@@ -224,7 +224,7 @@ console.log("Supabase DB:", db);
  }
 }
 
-async function login(){
+async function login(){document.getElementById('globalMessage').textContent='زر الدخول يعمل';
  try{
   const email=document.getElementById('loginEmail').value.trim();
   const password=document.getElementById('loginPassword').value;
