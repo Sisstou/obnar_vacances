@@ -184,12 +184,8 @@ function showUser(){
  document.getElementById('userInfo').textContent=
   'مرحباً '+currentProfile.full_name+' — نوع الحساب: '+
   (currentProfile.role==='owner'?'مالك':'مصطاف');
-
- if(currentProfile.role==='owner'){
-  document.getElementById('ownerArea').classList.remove('hidden');
- }else{
-  document.getElementById('ownerArea').classList.add('hidden');
- }
+ 
+document.getElementById('ownerArea').classList.remove('hidden');
 }
 
 async function signup(){
