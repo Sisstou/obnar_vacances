@@ -252,12 +252,10 @@ async function logout(){
  msg('تم تسجيل الخروج.');
 }
 
-async function submitVerification(){
- try{
-  if(!currentUser||currentProfile?.role!=='owner'){
-   msg('يجب الدخول بحساب مالك.');
+if(!currentUser){
+   msg('يجب تسجيل الدخول أولاً.');
    return;
-  }
+}
 
   const file=document.getElementById('ownerDocument').files[0];
   if(!file){msg('اختر وثيقة أولاً.');return;}
