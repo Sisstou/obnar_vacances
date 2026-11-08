@@ -5,7 +5,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>OBNAR VACANCES</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:#f3f7fa;color:#17324d}
@@ -28,11 +30,12 @@ button:disabled{opacity:.5}
 .property .info{padding:14px}
 .price{color:#087eae;font-weight:bold;font-size:19px}
 .small{font-size:13px;color:#687b89}
-#message{text-align:center;padding:10px;color:#087eae}
+#globalMessage{text-align:center;padding:10px;color:#087eae;font-weight:bold}
 .hidden{display:none}
 footer{background:#063b60;color:white;text-align:center;padding:22px;margin-top:30px}
 </style>
 </head>
+
 <body>
 
 <header>
@@ -58,10 +61,13 @@ footer{background:#063b60;color:white;text-align:center;padding:22px;margin-top:
 <section id="search">
 <div class="panel">
 <h2>🔎 البحث عن إقامة</h2>
+
 <input id="searchText" placeholder="المدينة أو المنطقة أو اسم الإقامة">
+
 <select id="locationFilter">
 <option value="">كل المناطق</option>
 </select>
+
 <select id="guestFilter">
 <option value="1">شخص واحد على الأقل</option>
 <option value="2">شخصان</option>
@@ -69,45 +75,55 @@ footer{background:#063b60;color:white;text-align:center;padding:22px;margin-top:
 <option value="4">4 أشخاص</option>
 <option value="5">5 أشخاص</option>
 </select>
+
 <button onclick="loadProperties()">بحث</button>
 <button class="secondary" onclick="resetSearch()">إلغاء البحث</button>
 </div>
+
 <div id="properties" class="grid"></div>
 </section>
 
 <section id="account">
 <div class="panel">
 <h2>👤 حساب المستخدم</h2>
+
 <div id="authForms">
-<p id="message" style="color:#d00;font-weight:bold"></p>
 <h3>إنشاء حساب جديد</h3>
+
 <input id="fullName" placeholder="الاسم الكامل">
 <input id="phone" placeholder="رقم الهاتف">
 <input id="email" type="email" placeholder="البريد الإلكتروني">
 <input id="password" type="password" placeholder="كلمة المرور (6 أحرف على الأقل)">
-<select id="role">
-<option value="traveler">مصطاف</option>
-<option value="owner">مالك إقامة</option>
-</select>
+
 <button onclick="signup()">إنشاء حساب</button>
+
 <hr>
+
 <h3>تسجيل الدخول</h3>
+
 <input id="loginEmail" type="email" placeholder="البريد الإلكتروني">
 <input id="loginPassword" type="password" placeholder="كلمة المرور">
+
 <button onclick="login()">دخول</button>
 </div>
 
 <div id="userArea" class="hidden">
 <p id="userInfo"></p>
-<div id="ownerArea" class="hidden">
+
+<div id="ownerArea">
 <hr>
 <h3>طلب توثيق المالك</h3>
 <p class="small">ارفع وثيقة تثبت صفتك كمالك. لا يمكن نشر إقامة قبل موافقة الإدارة.</p>
-<input id="ownerDocument" type="file" accept="image/jpeg,image/png,image/webp,application/pdf">
+
+<input id="ownerDocument" type="file"
+accept="image/jpeg,image/png,image/webp,application/pdf">
+
 <button onclick="submitVerification()">إرسال طلب التوثيق</button>
 </div>
+
 <button class="secondary" onclick="logout()">تسجيل الخروج</button>
 </div>
+
 </div>
 </section>
 
@@ -125,7 +141,10 @@ footer{background:#063b60;color:white;text-align:center;padding:22px;margin-top:
 const SUPABASE_URL = 'https://iuxrtgyufocblnvpaeaq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_9GfnaeaysGZ4WXssDzcECg_BRprKZfe';
 
-const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const db = window.supabase.createClient(
+ SUPABASE_URL,
+ SUPABASE_KEY
+);
 
 let currentUser = null;
 let currentProfile = null;
@@ -133,31 +152,44 @@ let allProperties = [];
 let allLocations = [];
 
 function msg(text){
- document.getElementById('globalMessage').textContent=text;
+ document.getElementById('globalMessage').textContent = text;
 }
+
 async function ensureProfile(user){
+
  const {data,error} = await db.from('profiles')
-  .select('*').eq('id',user.id).maybeSingle();
+  .select('*')
+  .eq('id',user.id)
+  .maybeSingle();
 
  if(error) throw error;
- if(data) return data;
 
- const role = user.user_metadata?.role === 'owner' ? 'owner':'traveler';
+ if(data) return data;
 
  const {data:newProfile,error:insertError} = await db.from('profiles')
   .insert({
    id:user.id,
    full_name:user.user_metadata?.full_name || 'مستخدم جديد',
    phone:user.user_metadata?.phone || null,
-   role:role
-  }).select().single();
+   role:'traveler'
+  })
+  .select()
+  .single();
 
  if(insertError) throw insertError;
+
  return newProfile;
 }
 
 async function refreshUser(){
- const {data} = await db.auth.getSession();
+
+ const {data,error} = await db.auth.getSession();
+
+ if(error){
+  msg('تعذر التحقق من الجلسة: '+error.message);
+  return;
+ }
+
  currentUser = data.session?.user || null;
 
  if(currentUser){
@@ -168,259 +200,395 @@ async function refreshUser(){
    msg('تعذر تحميل بيانات الحساب: '+e.message);
   }
  }else{
-  currentProfile=null;
+  currentProfile = null;
   showGuest();
  }
 }
 
 function showGuest(){
+
  document.getElementById('authForms').classList.remove('hidden');
  document.getElementById('userArea').classList.add('hidden');
 }
 
 function showUser(){
+
  document.getElementById('authForms').classList.add('hidden');
  document.getElementById('userArea').classList.remove('hidden');
- document.getElementById('userInfo').textContent=
+
+ document.getElementById('userInfo').textContent =
   'مرحباً '+currentProfile.full_name+' — نوع الحساب: '+
-  (currentProfile.role==='owner'?'مالك':'مصطاف');
- 
-document.getElementById('ownerArea').classList.remove('hidden');
+  (currentProfile.role === 'owner' ? 'مالك' : 'مصطاف');
+
+ document.getElementById('ownerArea').classList.remove('hidden');
 }
 
 async function signup(){
-document.getElementById('globalMessage').textContent='وصلنا إلى دالة التسجيل';
+
  try{
-  const name=document.getElementById('fullName').value.trim();
-  const phone=document.getElementById('phone').value.trim();
-  const email=document.getElementById('email').value.trim();
-  const password=document.getElementById('password').value;
-  const role='traveler';
-  if(!name||!email||password.length<6){
+
+  const name = document.getElementById('fullName').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  if(!name || !email || password.length < 6){
    msg('أدخل الاسم والبريد وكلمة مرور من 6 أحرف على الأقل.');
    return;
   }
 
   msg('جارٍ إنشاء الحساب...');
-console.log("Supabase DB:", db);
 
-  const {data,error}=await db.auth.signUp({
-   email,password,
-   options:{data:{full_name:name,phone:phone,role:role}}
+  const {data,error} = await db.auth.signUp({
+   email,
+   password,
+   options:{
+    data:{
+     full_name:name,
+     phone:phone,
+     role:'traveler'
+    }
+   }
   });
 
   if(error) throw error;
 
   if(data.session){
-   currentUser=data.user;
-   currentProfile=await ensureProfile(data.user);
+
+   currentUser = data.user;
+   currentProfile = await ensureProfile(data.user);
+
    showUser();
    msg('تم إنشاء الحساب بنجاح.');
+
   }else{
-   msg('تم التسجيل. تحقق من بريدك الإلكتروني لتأكيد الحساب، ثم سجّل الدخول.');
+
+   msg('تم التسجيل. تحقق من بريدك الإلكتروني ثم سجّل الدخول.');
+
   }
+
  }catch(e){
-  msg('خطأ: '+e.message);
+
+  msg('خطأ في التسجيل: '+e.message);
+
  }
 }
 
 async function login(){
- document.getElementById('globalMessage').textContent='زر الدخول يعمل';
- try{
-  const email=document.getElementById('loginEmail').value.trim();
-  const password=document.getElementById('loginPassword').value;
 
-  if(!email||!password){msg('أدخل البريد الإلكتروني وكلمة المرور.');return;}
+ try{
+
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+
+  if(!email || !password){
+   msg('أدخل البريد الإلكتروني وكلمة المرور.');
+   return;
+  }
 
   msg('جارٍ تسجيل الدخول...');
-  const {data,error}=await db.auth.signInWithPassword({email,password});
+
+  const {data,error} = await db.auth.signInWithPassword({
+   email,
+   password
+  });
+
   if(error) throw error;
 
-  currentUser=data.user;
-  currentProfile=await ensureProfile(data.user);
+  currentUser = data.user;
+  currentProfile = await ensureProfile(data.user);
+
   showUser();
   msg('تم تسجيل الدخول بنجاح.');
+
  }catch(e){
+
   msg('تعذر الدخول: '+e.message);
+
  }
 }
 
 async function logout(){
- await db.auth.signOut();
- currentUser=null;
- currentProfile=null;
- showGuest();
- msg('تم تسجيل الخروج.');
+
+ try{
+
+  const {error} = await db.auth.signOut();
+
+  if(error) throw error;
+
+  currentUser = null;
+  currentProfile = null;
+
+  showGuest();
+  msg('تم تسجيل الخروج.');
+
+ }catch(e){
+
+  msg('تعذر تسجيل الخروج: '+e.message);
+
+ }
 }
 
-if(!currentUser){
+async function submitVerification(){
+
+ try{
+
+  if(!currentUser){
    msg('يجب تسجيل الدخول أولاً.');
    return;
-}
+  }
 
-  const file=document.getElementById('ownerDocument').files[0];
-  if(!file){msg('اختر وثيقة أولاً.');return;}
-  if(file.size>5*1024*1024){msg('حجم الملف يجب ألا يتجاوز 5 ميغابايت.');return;}
+  const file = document.getElementById('ownerDocument').files[0];
 
-  const allowed=['image/jpeg','image/png','image/webp','application/pdf'];
-  if(!allowed.includes(file.type)){msg('نوع الملف غير مسموح.');return;}
+  if(!file){
+   msg('اختر وثيقة أولاً.');
+   return;
+  }
+
+  if(file.size > 5*1024*1024){
+   msg('حجم الملف يجب ألا يتجاوز 5 ميغابايت.');
+   return;
+  }
+
+  const allowed = [
+   'image/jpeg',
+   'image/png',
+   'image/webp',
+   'application/pdf'
+  ];
+
+  if(!allowed.includes(file.type)){
+   msg('نوع الملف غير مسموح.');
+   return;
+  }
 
   msg('جارٍ رفع الوثيقة...');
-  const safeName=Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-  const path=currentUser.id+'/'+safeName;
 
-  const {error:uploadError}=await db.storage
-   .from('owner-documents').upload(path,file,{upsert:false});
+  const safeName = Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const path = currentUser.id+'/'+safeName;
+
+  const {error:uploadError} = await db.storage
+   .from('owner-documents')
+   .upload(path,file,{upsert:false});
 
   if(uploadError) throw uploadError;
 
-  const {error:insertError}=await db.from('owner_verifications')
-   .insert({owner_id:currentUser.id,document_path:path});
+  const {error:insertError} = await db.from('owner_verifications')
+   .insert({
+    owner_id:currentUser.id,
+    document_path:path
+   });
 
   if(insertError){
+
    await db.storage.from('owner-documents').remove([path]);
    throw insertError;
+
   }
 
   msg('تم إرسال طلب التوثيق بنجاح. طلبك قيد المراجعة.');
-  document.getElementById('ownerDocument').value='';
+
+  document.getElementById('ownerDocument').value = '';
+
  }catch(e){
+
   msg('تعذر إرسال الطلب: '+e.message);
+
  }
 }
 
 async function loadLocations(){
- const {data,error}=await db.from('locations')
-  .select('id,name_ar,name_fr').order('name_ar');
 
- if(error){msg('تعذر تحميل المناطق: '+error.message);return;}
+ try{
 
- allLocations=data||[];
- const select=document.getElementById('locationFilter');
- select.innerHTML='<option value="">كل المناطق</option>';
+  const {data,error} = await db.from('locations')
+   .select('id,name_ar,name_fr')
+   .order('name_ar');
 
- allLocations.forEach(loc=>{
-  const option=document.createElement('option');
-  option.value=loc.id;
-  option.textContent=loc.name_ar;
-  select.appendChild(option);
- });
+  if(error) throw error;
+
+  allLocations = data || [];
+
+  const select = document.getElementById('locationFilter');
+
+  select.innerHTML = '<option value="">كل المناطق</option>';
+
+  allLocations.forEach(loc=>{
+
+   const option = document.createElement('option');
+   option.value = loc.id;
+   option.textContent = loc.name_ar;
+   select.appendChild(option);
+
+  });
+
+ }catch(e){
+
+  msg('تعذر تحميل المناطق: '+e.message);
+
+ }
 }
 
 async function loadProperties(){
- const container=document.getElementById('properties');
- container.innerHTML='<p>جارٍ تحميل الإقامات...</p>';
+
+ const container = document.getElementById('properties');
+
+ container.innerHTML = '<p>جارٍ تحميل الإقامات...</p>';
 
  try{
-  const {data,error}=await db.from('properties')
-   .select('*').eq('status','approved')
+
+  const {data,error} = await db.from('properties')
+   .select('*')
+   .eq('status','approved')
    .order('created_at',{ascending:false});
 
   if(error) throw error;
-  allProperties=data||[];
 
-  const ids=allProperties.map(p=>p.id);
-  let images=[];
+  allProperties = data || [];
+
+  const ids = allProperties.map(p=>p.id);
+  let images = [];
 
   if(ids.length){
-   const result=await db.from('property_images')
+
+   const result = await db.from('property_images')
     .select('property_id,storage_path,is_cover,display_order')
     .in('property_id',ids)
     .order('display_order');
 
    if(result.error) throw result.error;
-   images=result.data||[];
+
+   images = result.data || [];
+
   }
 
   allProperties.forEach(p=>{
-   p.cover=images.find(i=>i.property_id===p.id&&i.is_cover)
-    ||images.find(i=>i.property_id===p.id);
+
+   p.cover = images.find(i=>i.property_id===p.id && i.is_cover)
+    || images.find(i=>i.property_id===p.id);
+
   });
 
   renderProperties();
+
  }catch(e){
-  container.innerHTML='<p>تعذر تحميل الإقامات.</p>';
+
+  container.innerHTML = '<p>تعذر تحميل الإقامات.</p>';
   msg('خطأ في تحميل الإقامات: '+e.message);
+
  }
 }
 
 function renderProperties(){
- const container=document.getElementById('properties');
- const term=document.getElementById('searchText').value.trim().toLowerCase();
- const locId=document.getElementById('locationFilter').value;
- const guests=Number(document.getElementById('guestFilter').value);
 
- const filtered=allProperties.filter(p=>{
-  const location=allLocations.find(l=>l.id===p.location_id);
-  const text=[p.title_ar,p.title_fr,p.address,
-   location?.name_ar,location?.name_fr].filter(Boolean).join(' ').toLowerCase();
+ const container = document.getElementById('properties');
 
-  return (!term||text.includes(term))
-   &&(!locId||p.location_id===locId)
-   &&Number(p.capacity)>=guests;
+ const term = document.getElementById('searchText').value.trim().toLowerCase();
+ const locId = document.getElementById('locationFilter').value;
+ const guests = Number(document.getElementById('guestFilter').value);
+
+ const filtered = allProperties.filter(p=>{
+
+  const location = allLocations.find(l=>l.id===p.location_id);
+
+  const text = [
+   p.title_ar,
+   p.title_fr,
+   p.address,
+   location?.name_ar,
+   location?.name_fr
+  ].filter(Boolean).join(' ').toLowerCase();
+
+  return (!term || text.includes(term))
+   && (!locId || p.location_id===locId)
+   && Number(p.capacity)>=guests;
+
  });
 
- container.innerHTML='';
+ container.innerHTML = '';
 
  if(!filtered.length){
-  container.innerHTML='<p style="text-align:center">لا توجد إقامات مطابقة حالياً.</p>';
+
+  container.innerHTML =
+   '<p style="text-align:center">لا توجد إقامات مطابقة حالياً.</p>';
+
   return;
+
  }
 
  filtered.forEach(p=>{
-  const location=allLocations.find(l=>l.id===p.location_id);
-  const card=document.createElement('article');
-  card.className='property';
 
-  const image=document.createElement('img');
-  image.alt='صورة الإقامة';
-  image.src=p.cover
-   ?db.storage.from('property-images').getPublicUrl(p.cover.storage_path).data.publicUrl
-   :'';
+  const location = allLocations.find(l=>l.id===p.location_id);
+
+  const card = document.createElement('article');
+  card.className = 'property';
+
+  const image = document.createElement('img');
+  image.alt = 'صورة الإقامة';
+
+  image.src = p.cover
+   ? db.storage.from('property-images')
+      .getPublicUrl(p.cover.storage_path).data.publicUrl
+   : '';
+
   card.appendChild(image);
 
-  const info=document.createElement('div');
-  info.className='info';
+  const info = document.createElement('div');
+  info.className = 'info';
 
-  const title=document.createElement('h3');
-  title.textContent=p.title_ar;
+  const title = document.createElement('h3');
+  title.textContent = p.title_ar;
   info.appendChild(title);
 
-  const place=document.createElement('p');
-  place.textContent=location?.name_ar||p.address||'جيجل';
+  const place = document.createElement('p');
+  place.textContent = location?.name_ar || p.address || 'جيجل';
   info.appendChild(place);
 
-  const details=document.createElement('p');
-  details.textContent='الغرف: '+p.bedrooms+' | الحمامات: '+p.bathrooms+
+  const details = document.createElement('p');
+  details.textContent =
+   'الغرف: '+p.bedrooms+
+   ' | الحمامات: '+p.bathrooms+
    ' | السعة: '+p.capacity+' أشخاص';
+
   info.appendChild(details);
 
-  const price=document.createElement('p');
-  price.className='price';
-  price.textContent=p.price_per_night+' '+p.currency+' / الليلة';
+  const price = document.createElement('p');
+  price.className = 'price';
+  price.textContent = p.price_per_night+' '+p.currency+' / الليلة';
+
   info.appendChild(price);
 
   card.appendChild(info);
   container.appendChild(card);
+
  });
+
 }
 
 function resetSearch(){
- document.getElementById('searchText').value='';
- document.getElementById('locationFilter').value='';
- document.getElementById('guestFilter').value='1';
+
+ document.getElementById('searchText').value = '';
+ document.getElementById('locationFilter').value = '';
+ document.getElementById('guestFilter').value = '1';
+
  renderProperties();
+
 }
 
 db.auth.onAuthStateChange(()=>{
+
  setTimeout(refreshUser,0);
+
 });
 
 (async()=>{
+
  await refreshUser();
  await loadLocations();
  await loadProperties();
+
 })();
 </script>
+
 </body>
 </html>
