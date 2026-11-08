@@ -199,8 +199,7 @@ document.getElementById('globalMessage').textContent='وصلنا إلى دالة
   const phone=document.getElementById('phone').value.trim();
   const email=document.getElementById('email').value.trim();
   const password=document.getElementById('password').value;
-  const role=document.getElementById('role').value;
-
+  const role='traveler';
   if(!name||!email||password.length<6){
    msg('أدخل الاسم والبريد وكلمة مرور من 6 أحرف على الأقل.');
    return;
