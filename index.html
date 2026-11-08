@@ -3,60 +3,428 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>OBNAR VACANCES</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#f4f8fb;color:#17324d}
-header{background:#063b60;color:white;padding:25px 15px;text-align:center}
-header h1{margin:0;font-size:28px}
-header p{margin:10px 0 0}
-nav{background:#fff;padding:15px;text-align:center}
-nav a{color:#063b60;text-decoration:none;margin:10px;font-weight:bold}
-.hero{padding:55px 20px;text-align:center;background:#dcecf5}
+body{margin:0;font-family:Arial,sans-serif;background:#f3f7fa;color:#17324d}
+header{background:#063b60;color:white;text-align:center;padding:25px 12px}
+header h1{margin:0;font-size:29px}
+header p{margin:9px 0 0}
+nav{background:white;padding:14px;text-align:center;position:sticky;top:0;z-index:5}
+nav a{color:#063b60;text-decoration:none;margin:8px;font-weight:bold}
+.hero{background:#dcecf5;text-align:center;padding:40px 15px}
 .hero h2{font-size:27px}
-.btn{background:#087eae;color:white;padding:13px 25px;border:0;border-radius:8px;font-size:16px}
-section{padding:25px 18px}
-.search{background:white;padding:20px;border-radius:12px;max-width:500px;margin:auto;box-shadow:0 2px 10px #ddd}
-input,select{width:100%;padding:12px;margin:8px 0;border:1px solid #ccc;border-radius:7px}
-footer{background:#063b60;color:white;text-align:center;padding:20px}
+section{padding:22px 15px}
+.panel{background:white;padding:18px;border-radius:12px;max-width:550px;margin:12px auto;box-shadow:0 2px 10px #ddd}
+input,select{width:100%;padding:12px;margin:7px 0;border:1px solid #ccd5dc;border-radius:7px;font-size:15px}
+button{background:#087eae;color:white;padding:12px 20px;border:0;border-radius:8px;font-size:15px;cursor:pointer;margin:5px}
+button.secondary{background:#526777}
+button:disabled{opacity:.5}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:15px;max-width:1100px;margin:auto}
+.property{background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 9px #ddd}
+.property img{width:100%;height:180px;object-fit:cover;background:#dcecf5}
+.property .info{padding:14px}
+.price{color:#087eae;font-weight:bold;font-size:19px}
+.small{font-size:13px;color:#687b89}
+#message{text-align:center;padding:10px;color:#087eae}
+.hidden{display:none}
+footer{background:#063b60;color:white;text-align:center;padding:22px;margin-top:30px}
 </style>
 </head>
 <body>
+
 <header>
 <h1>OBNAR VACANCES</h1>
 <p>منصتك لحجز العطلات والإقامات في أولاد بونار وجيجل</p>
 </header>
+
 <nav>
 <a href="#">الرئيسية</a>
 <a href="#search">البحث عن سكن</a>
+<a href="#account">حسابي</a>
 <a href="#contact">اتصل بنا</a>
 </nav>
+
 <div class="hero">
 <h2>اكتشف عطلتك في جيجل 🌊</h2>
-<p>ابحث عن إقامة مناسبة واستمتع بعطلتك.</p>
-<button class="btn" onclick="document.getElementById('search').scrollIntoView()">ابحث الآن</button>
+<p>اعثر على الإقامة المناسبة لك في أولاد بونار وجيجل.</p>
+<button onclick="document.getElementById('search').scrollIntoView()">ابحث عن إقامة</button>
 </div>
+
+<div id="message"></div>
+
 <section id="search">
-<div class="search">
-<h2>ابحث عن إقامة</h2>
-<input type="text" placeholder="المدينة أو المنطقة">
-<input type="date" id="arrival">
-<input type="date" id="departure">
-<select id="guests">
-<option value="1">شخص واحد</option>
+<div class="panel">
+<h2>🔎 البحث عن إقامة</h2>
+<input id="searchText" placeholder="المدينة أو المنطقة أو اسم الإقامة">
+<select id="locationFilter">
+<option value="">كل المناطق</option>
+</select>
+<select id="guestFilter">
+<option value="1">شخص واحد على الأقل</option>
 <option value="2">شخصان</option>
 <option value="3">3 أشخاص</option>
 <option value="4">4 أشخاص</option>
-<option value="5">5 أشخاص أو أكثر</option>
+<option value="5">5 أشخاص</option>
 </select>
-<button class="btn" onclick="alert('قريباً: ستتوفر الإقامات للحجز هنا')">بحث</button>
+<button onclick="loadProperties()">بحث</button>
+<button class="secondary" onclick="resetSearch()">إلغاء البحث</button>
+</div>
+<div id="properties" class="grid"></div>
+</section>
+
+<section id="account">
+<div class="panel">
+<h2>👤 حساب المستخدم</h2>
+<div id="authForms">
+<h3>إنشاء حساب جديد</h3>
+<input id="fullName" placeholder="الاسم الكامل">
+<input id="phone" placeholder="رقم الهاتف">
+<input id="email" type="email" placeholder="البريد الإلكتروني">
+<input id="password" type="password" placeholder="كلمة المرور (6 أحرف على الأقل)">
+<select id="role">
+<option value="traveler">مصطاف</option>
+<option value="owner">مالك إقامة</option>
+</select>
+<button onclick="signup()">إنشاء حساب</button>
+<hr>
+<h3>تسجيل الدخول</h3>
+<input id="loginEmail" type="email" placeholder="البريد الإلكتروني">
+<input id="loginPassword" type="password" placeholder="كلمة المرور">
+<button onclick="login()">دخول</button>
+</div>
+
+<div id="userArea" class="hidden">
+<p id="userInfo"></p>
+<div id="ownerArea" class="hidden">
+<hr>
+<h3>طلب توثيق المالك</h3>
+<p class="small">ارفع وثيقة تثبت صفتك كمالك. لا يمكن نشر إقامة قبل موافقة الإدارة.</p>
+<input id="ownerDocument" type="file" accept="image/jpeg,image/png,image/webp,application/pdf">
+<button onclick="submitVerification()">إرسال طلب التوثيق</button>
+</div>
+<button class="secondary" onclick="logout()">تسجيل الخروج</button>
+</div>
 </div>
 </section>
+
 <section id="contact">
-<h2 style="text-align:center">OBNAR VACANCES</h2>
-<p style="text-align:center">إقامتك القادمة تبدأ من هنا.</p>
+<div class="panel" style="text-align:center">
+<h2>OBNAR VACANCES</h2>
+<p>إقامتك القادمة تبدأ من هنا.</p>
+<p>أولاد بونار - جيجل</p>
+</div>
 </section>
+
 <footer>© 2026 OBNAR VACANCES</footer>
+
+<script>
+const SUPABASE_URL = 'https://iuxrtgyufocblnvpaeaq.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_9GfnaeaysGZ4WXssDzcECg_BRprKZfe';
+
+const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+let currentUser = null;
+let currentProfile = null;
+let allProperties = [];
+let allLocations = [];
+
+function msg(text){
+ document.getElementById('message').textContent=text;
+}
+
+async function ensureProfile(user){
+ const {data,error} = await db.from('profiles')
+  .select('*').eq('id',user.id).maybeSingle();
+
+ if(error) throw error;
+ if(data) return data;
+
+ const role = user.user_metadata?.role === 'owner' ? 'owner':'traveler';
+
+ const {data:newProfile,error:insertError} = await db.from('profiles')
+  .insert({
+   id:user.id,
+   full_name:user.user_metadata?.full_name || 'مستخدم جديد',
+   phone:user.user_metadata?.phone || null,
+   role:role
+  }).select().single();
+
+ if(insertError) throw insertError;
+ return newProfile;
+}
+
+async function refreshUser(){
+ const {data} = await db.auth.getSession();
+ currentUser = data.session?.user || null;
+
+ if(currentUser){
+  try{
+   currentProfile = await ensureProfile(currentUser);
+   showUser();
+  }catch(e){
+   msg('تعذر تحميل بيانات الحساب: '+e.message);
+  }
+ }else{
+  currentProfile=null;
+  showGuest();
+ }
+}
+
+function showGuest(){
+ document.getElementById('authForms').classList.remove('hidden');
+ document.getElementById('userArea').classList.add('hidden');
+}
+
+function showUser(){
+ document.getElementById('authForms').classList.add('hidden');
+ document.getElementById('userArea').classList.remove('hidden');
+ document.getElementById('userInfo').textContent=
+  'مرحباً '+currentProfile.full_name+' — نوع الحساب: '+
+  (currentProfile.role==='owner'?'مالك':'مصطاف');
+
+ if(currentProfile.role==='owner'){
+  document.getElementById('ownerArea').classList.remove('hidden');
+ }else{
+  document.getElementById('ownerArea').classList.add('hidden');
+ }
+}
+
+async function signup(){
+ try{
+  const name=document.getElementById('fullName').value.trim();
+  const phone=document.getElementById('phone').value.trim();
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+  const role=document.getElementById('role').value;
+
+  if(!name||!email||password.length<6){
+   msg('أدخل الاسم والبريد وكلمة مرور من 6 أحرف على الأقل.');
+   return;
+  }
+
+  msg('جارٍ إنشاء الحساب...');
+
+  const {data,error}=await db.auth.signUp({
+   email,password,
+   options:{data:{full_name:name,phone:phone,role:role}}
+  });
+
+  if(error) throw error;
+
+  if(data.session){
+   currentUser=data.user;
+   currentProfile=await ensureProfile(data.user);
+   showUser();
+   msg('تم إنشاء الحساب بنجاح.');
+  }else{
+   msg('تم التسجيل. تحقق من بريدك الإلكتروني لتأكيد الحساب، ثم سجّل الدخول.');
+  }
+ }catch(e){
+  msg('خطأ: '+e.message);
+ }
+}
+
+async function login(){
+ try{
+  const email=document.getElementById('loginEmail').value.trim();
+  const password=document.getElementById('loginPassword').value;
+
+  if(!email||!password){msg('أدخل البريد الإلكتروني وكلمة المرور.');return;}
+
+  msg('جارٍ تسجيل الدخول...');
+  const {data,error}=await db.auth.signInWithPassword({email,password});
+  if(error) throw error;
+
+  currentUser=data.user;
+  currentProfile=await ensureProfile(data.user);
+  showUser();
+  msg('تم تسجيل الدخول بنجاح.');
+ }catch(e){
+  msg('تعذر الدخول: '+e.message);
+ }
+}
+
+async function logout(){
+ await db.auth.signOut();
+ currentUser=null;
+ currentProfile=null;
+ showGuest();
+ msg('تم تسجيل الخروج.');
+}
+
+async function submitVerification(){
+ try{
+  if(!currentUser||currentProfile?.role!=='owner'){
+   msg('يجب الدخول بحساب مالك.');
+   return;
+  }
+
+  const file=document.getElementById('ownerDocument').files[0];
+  if(!file){msg('اختر وثيقة أولاً.');return;}
+  if(file.size>5*1024*1024){msg('حجم الملف يجب ألا يتجاوز 5 ميغابايت.');return;}
+
+  const allowed=['image/jpeg','image/png','image/webp','application/pdf'];
+  if(!allowed.includes(file.type)){msg('نوع الملف غير مسموح.');return;}
+
+  msg('جارٍ رفع الوثيقة...');
+  const safeName=Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const path=currentUser.id+'/'+safeName;
+
+  const {error:uploadError}=await db.storage
+   .from('owner-documents').upload(path,file,{upsert:false});
+
+  if(uploadError) throw uploadError;
+
+  const {error:insertError}=await db.from('owner_verifications')
+   .insert({owner_id:currentUser.id,document_path:path});
+
+  if(insertError){
+   await db.storage.from('owner-documents').remove([path]);
+   throw insertError;
+  }
+
+  msg('تم إرسال طلب التوثيق بنجاح. طلبك قيد المراجعة.');
+  document.getElementById('ownerDocument').value='';
+ }catch(e){
+  msg('تعذر إرسال الطلب: '+e.message);
+ }
+}
+
+async function loadLocations(){
+ const {data,error}=await db.from('locations')
+  .select('id,name_ar,name_fr').order('name_ar');
+
+ if(error){msg('تعذر تحميل المناطق: '+error.message);return;}
+
+ allLocations=data||[];
+ const select=document.getElementById('locationFilter');
+ select.innerHTML='<option value="">كل المناطق</option>';
+
+ allLocations.forEach(loc=>{
+  const option=document.createElement('option');
+  option.value=loc.id;
+  option.textContent=loc.name_ar;
+  select.appendChild(option);
+ });
+}
+
+async function loadProperties(){
+ const container=document.getElementById('properties');
+ container.innerHTML='<p>جارٍ تحميل الإقامات...</p>';
+
+ try{
+  const {data,error}=await db.from('properties')
+   .select('*').eq('status','approved')
+   .order('created_at',{ascending:false});
+
+  if(error) throw error;
+  allProperties=data||[];
+
+  const ids=allProperties.map(p=>p.id);
+  let images=[];
+
+  if(ids.length){
+   const result=await db.from('property_images')
+    .select('property_id,storage_path,is_cover,display_order')
+    .in('property_id',ids)
+    .order('display_order');
+
+   if(result.error) throw result.error;
+   images=result.data||[];
+  }
+
+  allProperties.forEach(p=>{
+   p.cover=images.find(i=>i.property_id===p.id&&i.is_cover)
+    ||images.find(i=>i.property_id===p.id);
+  });
+
+  renderProperties();
+ }catch(e){
+  container.innerHTML='<p>تعذر تحميل الإقامات.</p>';
+  msg('خطأ في تحميل الإقامات: '+e.message);
+ }
+}
+
+function renderProperties(){
+ const container=document.getElementById('properties');
+ const term=document.getElementById('searchText').value.trim().toLowerCase();
+ const locId=document.getElementById('locationFilter').value;
+ const guests=Number(document.getElementById('guestFilter').value);
+
+ const filtered=allProperties.filter(p=>{
+  const location=allLocations.find(l=>l.id===p.location_id);
+  const text=[p.title_ar,p.title_fr,p.address,
+   location?.name_ar,location?.name_fr].filter(Boolean).join(' ').toLowerCase();
+
+  return (!term||text.includes(term))
+   &&(!locId||p.location_id===locId)
+   &&Number(p.capacity)>=guests;
+ });
+
+ container.innerHTML='';
+
+ if(!filtered.length){
+  container.innerHTML='<p style="text-align:center">لا توجد إقامات مطابقة حالياً.</p>';
+  return;
+ }
+
+ filtered.forEach(p=>{
+  const location=allLocations.find(l=>l.id===p.location_id);
+  const card=document.createElement('article');
+  card.className='property';
+
+  const image=document.createElement('img');
+  image.alt='صورة الإقامة';
+  image.src=p.cover
+   ?db.storage.from('property-images').getPublicUrl(p.cover.storage_path).data.publicUrl
+   :'';
+  card.appendChild(image);
+
+  const info=document.createElement('div');
+  info.className='info';
+
+  const title=document.createElement('h3');
+  title.textContent=p.title_ar;
+  info.appendChild(title);
+
+  const place=document.createElement('p');
+  place.textContent=location?.name_ar||p.address||'جيجل';
+  info.appendChild(place);
+
+  const details=document.createElement('p');
+  details.textContent='الغرف: '+p.bedrooms+' | الحمامات: '+p.bathrooms+
+   ' | السعة: '+p.capacity+' أشخاص';
+  info.appendChild(details);
+
+  const price=document.createElement('p');
+  price.className='price';
+  price.textContent=p.price_per_night+' '+p.currency+' / الليلة';
+  info.appendChild(price);
+
+  card.appendChild(info);
+  container.appendChild(card);
+ });
+}
+
+function resetSearch(){
+ document.getElementById('searchText').value='';
+ document.getElementById('locationFilter').value='';
+ document.getElementById('guestFilter').value='1';
+ renderProperties();
+}
+
+db.auth.onAuthStateChange(()=>{
+ setTimeout(refreshUser,0);
+});
+
+(async()=>{
+ await refreshUser();
+ await loadLocations();
+ await loadProperties();
+})();
+</script>
 </body>
 </html>
