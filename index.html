@@ -133,9 +133,8 @@ let allProperties = [];
 let allLocations = [];
 
 function msg(text){
- document.getElementById('message').textContent=text;
+ document.getElementById('globalMessage').textContent=text;
 }
-
 async function ensureProfile(user){
  const {data,error} = await db.from('profiles')
   .select('*').eq('id',user.id).maybeSingle();
