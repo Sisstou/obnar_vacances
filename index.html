@@ -238,8 +238,15 @@ async function showUser(){
 
  try{
 
-  const {data:userData,error:userError} = await db.auth.getUser();
+  const {error:approveError} = await db.rpc(
+ 'approve_owner_verification',
+ {p_request_id:request.id}
+);
 
+if(approveError) throw approveError;
+
+msg('تم قبول التوثيق وتحويل الحساب إلى مالك بنجاح.');
+await loadVerificationRequests();
   if(userError) throw userError;
 
   const userId = userData.user.id;
