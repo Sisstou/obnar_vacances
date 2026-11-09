@@ -120,7 +120,18 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 
 <button onclick="submitVerification()">إرسال طلب التوثيق</button>
 </div>
+<div id="adminArea" class="hidden">
+  <hr>
+  <h2>لوحة تحكم المدير الرئيسي</h2>
 
+  <button onclick="loadVerificationRequests()">
+    عرض طلبات التوثيق
+  </button>
+
+  <div id="verificationRequests">
+    <p>طلبات التوثيق ستظهر هنا.</p>
+  </div>
+</div>
 <button class="secondary" onclick="logout()">تسجيل الخروج</button>
 </div>
 
