@@ -163,12 +163,8 @@ let allProperties = [];
 let allLocations = [];
 
 function msg(text){
- document.getElementById('userInfo').textContent =
- 'مرحباً '+currentProfile.full_name+
- ' — نوع الحساب: '+
- (currentProfile.role === 'owner' ? 'مالك' : 'مصطاف')+
- ' — معرف الحساب: '+currentUser.id;
-
+ document.getElementById('globalMessage').textContent = text;
+}
 async function ensureProfile(user){
 
  const {data,error} = await db.from('profiles')
