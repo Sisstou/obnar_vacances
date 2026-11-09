@@ -159,8 +159,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 <label>صور الإقامة (حتى 5 ميغابايت للصورة)</label>
 <input id="propertyPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
 
-<button onclick="createProperty()">إضافة الإقامة وإرسالها للمراجعة</button>
-
+<button onclick="submitSavedProperty()">إرسال الإقامة المحفوظة للمراجعة</button>
 </div>
 
 </div>
@@ -792,7 +791,32 @@ async function createProperty(){
  }
 
 }
+async function submitSavedProperty(){
 
+ try{
+
+  const propertyId = '1fe049df-160a-4c99-ad5d-fbe28d297067';
+
+  const {data,error} = await db
+   .from('properties')
+   .update({status:'pending'})
+   .eq('id',propertyId)
+   .eq('owner_id',currentUser.id)
+   .eq('status','draft')
+   .select()
+   .single();
+
+  if(error) throw error;
+
+  msg('تم إرسال الإقامة إلى الإدارة للمراجعة بنجاح.');
+
+ }catch(e){
+
+  msg('تعذر إرسال الإقامة: '+e.message);
+
+ }
+
+}
 async function loadLocations(){
 
  try{
