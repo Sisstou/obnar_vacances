@@ -119,6 +119,45 @@ footer{background:#063b60;color:white;text-align:center;padding:22px;margin-top:
 accept="image/jpeg,image/png,image/webp,application/pdf">
 
 <button onclick="submitVerification()">إرسال طلب التوثيق</button>
+
+<div id="ownerPropertyArea" class="hidden">
+
+<hr>
+<h3>🏠 إضافة إقامة جديدة</h3>
+
+<input id="propertyTitleAr" placeholder="اسم الإقامة بالعربية">
+<input id="propertyTitleFr" placeholder="اسم الإقامة بالفرنسية">
+
+<select id="propertyType">
+<option value="apartment">شقة</option>
+<option value="house">منزل</option>
+<option value="villa">فيلا</option>
+<option value="studio">استوديو</option>
+<option value="chalet">شاليه</option>
+</select>
+
+<select id="propertyLocation">
+<option value="">اختر المنطقة</option>
+</select>
+
+<input id="propertyAddress" placeholder="العنوان بالتفصيل">
+
+<input id="propertyBedrooms" type="number" min="0" value="1" placeholder="عدد الغرف">
+<input id="propertyBathrooms" type="number" min="0" value="1" placeholder="عدد الحمامات">
+<input id="propertyCapacity" type="number" min="1" placeholder="عدد الأشخاص">
+
+<input id="propertyPrice" type="number" min="0" placeholder="السعر لليلة بالدينار">
+
+<textarea id="propertyDescriptionAr" placeholder="وصف الإقامة بالعربية"></textarea>
+<textarea id="propertyDescriptionFr" placeholder="وصف الإقامة بالفرنسية"></textarea>
+
+<label>صور الإقامة (حتى 5 ميغابايت للصورة)</label>
+<input id="propertyPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+
+<button onclick="createProperty()">إضافة الإقامة وإرسالها للمراجعة</button>
+
+</div>
+
 </div>
 <div id="adminArea" class="hidden">
   <hr>
@@ -234,7 +273,7 @@ async function showUser(){
  adminArea.classList.add('hidden');
 
  document.getElementById('ownerArea').classList.remove('hidden');
-
+document.getElementById('ownerPropertyArea').classList.add('hidden');
  msg('جارٍ التحقق من صلاحيات المدير...');
 
  try{
@@ -263,7 +302,10 @@ async function showUser(){
    document.getElementById('userInfo').textContent =
     'مرحباً '+currentProfile.full_name+' — نوع الحساب: '+
     (currentProfile.role === 'owner' ? 'مالك' : 'مصطاف');
-
+if(currentProfile.role === 'owner'){
+ document.getElementById('ownerPropertyArea')
+  .classList.remove('hidden');
+}
    msg('الحساب ليس مديراً. معرف الدخول: '+userId);
 
   }
@@ -634,6 +676,118 @@ approveBtn.onclick = async function(){
 
 }
 
+async function createProperty(){
+
+ try{
+
+  if(!currentUser || !currentProfile || currentProfile.role !== 'owner'){
+   throw new Error('هذه الخدمة متاحة للمالكين الموثقين فقط.');
+  }
+
+  const titleAr = document.getElementById('propertyTitleAr').value.trim();
+  const titleFr = document.getElementById('propertyTitleFr').value.trim();
+  const type = document.getElementById('propertyType').value;
+  const locationId = document.getElementById('propertyLocation').value;
+  const address = document.getElementById('propertyAddress').value.trim();
+  const bedrooms = Number(document.getElementById('propertyBedrooms').value);
+  const bathrooms = Number(document.getElementById('propertyBathrooms').value);
+  const capacity = Number(document.getElementById('propertyCapacity').value);
+  const price = Number(document.getElementById('propertyPrice').value);
+  const photos = Array.from(document.getElementById('propertyPhotos').files);
+
+  if(!titleAr || !titleFr || !capacity || !locationId){
+   throw new Error('أكمل الاسم بالعربية والفرنسية والمنطقة والسعة.');
+  }
+
+  if(bedrooms < 0 || bathrooms < 0 || capacity < 1 || price < 0){
+   throw new Error('تحقق من أعداد الغرف والحمامات والسعة والسعر.');
+  }
+
+  if(photos.length === 0){
+   throw new Error('أضف صورة واحدة على الأقل.');
+  }
+
+  if(photos.some(f =>
+   f.size > 5*1024*1024 ||
+   !['image/jpeg','image/png','image/webp'].includes(f.type)
+  )){
+   throw new Error('الصور يجب أن تكون JPEG أو PNG أو WebP وأقل من 5 ميغابايت.');
+  }
+
+  msg('جارٍ إنشاء الإقامة...');
+
+  const {data:property,error:insertError} = await db
+   .from('properties')
+   .insert({
+    owner_id:currentUser.id,
+    location_id:locationId,
+    title_ar:titleAr,
+    title_fr:titleFr,
+    description_ar:document.getElementById('propertyDescriptionAr').value.trim(),
+    description_fr:document.getElementById('propertyDescriptionFr').value.trim(),
+    address,
+    property_type:type,
+    bedrooms,
+    bathrooms,
+    capacity,
+    price_per_night:price,
+    currency:'DZD',
+    status:'draft'
+   })
+   .select()
+   .single();
+
+  if(insertError) throw insertError;
+
+  const imageRows = [];
+
+  for(let i=0;i<photos.length;i++){
+
+   const file = photos[i];
+   const extension = file.type === 'image/png' ? 'png' :
+    file.type === 'image/webp' ? 'webp' : 'jpg';
+
+   const path = currentUser.id+'/'+property.id+'/'+
+    Date.now()+'_'+i+'.'+extension;
+
+   const {error:uploadError} = await db.storage
+    .from('property-images')
+    .upload(path,file,{upsert:false});
+
+   if(uploadError) throw uploadError;
+
+   imageRows.push({
+    property_id:property.id,
+    storage_path:path,
+    is_cover:i===0,
+    display_order:i
+   });
+
+  }
+
+  const {error:imageError} = await db
+   .from('property_images')
+   .insert(imageRows);
+
+  if(imageError) throw imageError;
+
+  const {error:submitError} = await db
+   .from('properties')
+   .update({status:'pending'})
+   .eq('id',property.id);
+
+  if(submitError) throw submitError;
+
+  msg('تم إرسال الإقامة والصور إلى الإدارة للمراجعة بنجاح.');
+
+ }catch(e){
+
+  msg('تعذر إضافة الإقامة: '+e.message);
+
+ }
+
+}
+
 async function loadLocations(){
 
  try{
@@ -645,7 +799,18 @@ async function loadLocations(){
   if(error) throw error;
 
   allLocations = data || [];
+const propertySelect =
+ document.getElementById('propertyLocation');
 
+propertySelect.innerHTML =
+ '<option value="">اختر المنطقة</option>';
+
+allLocations.forEach(loc=>{
+ const option = document.createElement('option');
+ option.value = loc.id;
+ option.textContent = loc.name_ar;
+ propertySelect.appendChild(option);
+});
   const select = document.getElementById('locationFilter');
 
   select.innerHTML = '<option value="">كل المناطق</option>';
