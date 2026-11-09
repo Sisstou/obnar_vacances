@@ -1225,7 +1225,43 @@ function renderProperties(){
  });
 
 }
+function calculateBookingPrice(){
 
+ if(!selectedProperty) return;
+
+ const checkIn = document.getElementById('bookingCheckIn').value;
+ const checkOut = document.getElementById('bookingCheckOut').value;
+ const guests = Number(document.getElementById('bookingGuests').value);
+
+ const output = document.getElementById('bookingPrice');
+
+ if(!checkIn || !checkOut){
+  output.textContent = 'السعر الإجمالي: 0 '+selectedProperty.currency;
+  return;
+ }
+
+ const start = new Date(checkIn+'T00:00:00');
+ const end = new Date(checkOut+'T00:00:00');
+
+ const nights = Math.round((end-start)/86400000);
+
+ if(nights <= 0){
+  output.textContent = 'تاريخ المغادرة يجب أن يكون بعد الوصول.';
+  return;
+ }
+
+ if(guests < 1 || guests > selectedProperty.capacity){
+  output.textContent = 'عدد الأشخاص يتجاوز سعة الإقامة.';
+  return;
+ }
+
+ const total = nights * Number(selectedProperty.price_per_night);
+
+ output.textContent =
+  'عدد الليالي: '+nights+
+  ' | السعر الإجمالي: '+total+' '+selectedProperty.currency;
+
+}
 function resetSearch(){
 
  document.getElementById('searchText').value = '';
