@@ -448,10 +448,10 @@ async function submitVerification(){
 
  }
 }
+
 async function loadVerificationRequests(){
 
  const container = document.getElementById('verificationRequests');
-
  container.textContent = 'جارٍ تحميل الطلبات...';
 
  try{
@@ -528,6 +528,109 @@ async function loadVerificationRequests(){
    link.textContent = 'عرض الوثيقة';
    card.appendChild(link);
 
+   if(request.status === 'pending'){
+
+    const approveBtn = document.createElement('button');
+    approveBtn.textContent = 'قبول الطلب';
+    approveBtn.style.background = '#16803c';
+    approveBtn.style.color = 'white';
+    approveBtn.style.margin = '10px 5px';
+
+    approveBtn.onclick = async function(){
+
+     if(!confirm('هل أنت متأكد من قبول طلب التوثيق؟')) return;
+
+     approveBtn.disabled = true;
+     rejectBtn.disabled = true;
+
+     try{
+
+      const {data:userData,error:userError} =
+       await db.auth.getUser();
+
+      if(userError) throw userError;
+
+      const {data:updateData,error:updateError} = await db
+       .from('owner_verifications')
+       .update({
+        status:'approved',
+        reviewed_by:userData.user.id,
+        reviewed_at:new Date().toISOString()
+       })
+       .eq('id',request.id)
+       .eq('status','pending')
+       .select('id')
+       .maybeSingle();
+
+      if(updateError) throw updateError;
+      if(!updateData) throw new Error('الطلب لم يعد قيد الانتظار.');
+
+      msg('تم قبول طلب التوثيق بنجاح.');
+      await loadVerificationRequests();
+
+     }catch(e){
+
+      msg('تعذر قبول الطلب: '+e.message);
+      approveBtn.disabled = false;
+      rejectBtn.disabled = false;
+
+     }
+
+    };
+
+    const rejectBtn = document.createElement('button');
+    rejectBtn.textContent = 'رفض الطلب';
+    rejectBtn.style.background = '#b42318';
+    rejectBtn.style.color = 'white';
+    rejectBtn.style.margin = '10px 5px';
+
+    rejectBtn.onclick = async function(){
+
+     if(!confirm('هل أنت متأكد من رفض طلب التوثيق؟')) return;
+
+     approveBtn.disabled = true;
+     rejectBtn.disabled = true;
+
+     try{
+
+      const {data:userData,error:userError} =
+       await db.auth.getUser();
+
+      if(userError) throw userError;
+
+      const {data:updateData,error:updateError} = await db
+       .from('owner_verifications')
+       .update({
+        status:'rejected',
+        reviewed_by:userData.user.id,
+        reviewed_at:new Date().toISOString()
+       })
+       .eq('id',request.id)
+       .eq('status','pending')
+       .select('id')
+       .maybeSingle();
+
+      if(updateError) throw updateError;
+      if(!updateData) throw new Error('الطلب لم يعد قيد الانتظار.');
+
+      msg('تم رفض طلب التوثيق.');
+      await loadVerificationRequests();
+
+     }catch(e){
+
+      msg('تعذر رفض الطلب: '+e.message);
+      approveBtn.disabled = false;
+      rejectBtn.disabled = false;
+
+     }
+
+    };
+
+    card.appendChild(approveBtn);
+    card.appendChild(rejectBtn);
+
+   }
+
    container.appendChild(card);
 
   }
@@ -539,6 +642,7 @@ async function loadVerificationRequests(){
  }
 
 }
+
 async function loadLocations(){
 
  try{
