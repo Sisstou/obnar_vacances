@@ -1093,6 +1093,43 @@ async function loadProperties(){
 
  }
 }
+let selectedProperty = null;
+
+function openBookingForm(property){
+
+ if(!currentUser){
+  msg('يجب تسجيل الدخول أولاً لإجراء الحجز.');
+  return;
+ }
+
+ selectedProperty = property;
+
+ document.getElementById('bookingPropertyTitle').textContent =
+  property.title_ar;
+
+ const guestsInput = document.getElementById('bookingGuests');
+
+ guestsInput.max = property.capacity;
+ guestsInput.value = 1;
+
+ document.getElementById('bookingCheckIn').value = '';
+ document.getElementById('bookingCheckOut').value = '';
+ document.getElementById('bookingPrice').textContent =
+  'السعر الإجمالي: 0 '+property.currency;
+
+ document.getElementById('bookingMessage').textContent = '';
+
+ document.getElementById('bookingModal').classList.remove('hidden');
+
+}
+
+function closeBookingForm(){
+
+ document.getElementById('bookingModal').classList.add('hidden');
+
+ selectedProperty = null;
+
+}
 
 function renderProperties(){
 
