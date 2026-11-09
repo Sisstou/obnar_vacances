@@ -163,8 +163,11 @@ let allProperties = [];
 let allLocations = [];
 
 function msg(text){
- document.getElementById('globalMessage').textContent = text;
-}
+ document.getElementById('userInfo').textContent =
+ 'مرحباً '+currentProfile.full_name+
+ ' — نوع الحساب: '+
+ (currentProfile.role === 'owner' ? 'مالك' : 'مصطاف')+
+ ' — معرف الحساب: '+currentUser.id;
 
 async function ensureProfile(user){
 
