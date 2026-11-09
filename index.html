@@ -1225,6 +1225,75 @@ function renderProperties(){
  });
 
 }
+async function confirmBooking(){
+
+ if(!currentUser){
+  msg('يجب تسجيل الدخول أولاً.');
+  return;
+ }
+
+ if(!selectedProperty){
+  msg('لم يتم اختيار إقامة.');
+  return;
+ }
+
+ const checkIn = document.getElementById('bookingCheckIn').value;
+ const checkOut = document.getElementById('bookingCheckOut').value;
+ const guests = Number(document.getElementById('bookingGuests').value);
+
+ if(!checkIn || !checkOut){
+  msg('يرجى تحديد تاريخ الوصول والمغادرة.');
+  return;
+ }
+
+ const start = new Date(checkIn+'T00:00:00');
+ const end = new Date(checkOut+'T00:00:00');
+
+ if(checkIn < new Date().toISOString().slice(0,10) ||
+    end <= start){
+  msg('تواريخ الحجز غير صالحة.');
+  return;
+ }
+
+ if(guests < 1 || guests > selectedProperty.capacity){
+  msg('عدد الأشخاص غير صالح.');
+  return;
+ }
+
+ const button = document.querySelector(
+  '#bookingModal button[onclick="confirmBooking()"]'
+ );
+
+ button.disabled = true;
+ button.textContent = 'جارٍ إرسال الحجز...';
+
+ try{
+
+  const {data,error} = await db.rpc('create_booking',{
+   p_property_id:selectedProperty.id,
+   p_check_in:checkIn,
+   p_check_out:checkOut,
+   p_guests:guests
+  });
+
+  if(error) throw error;
+
+  msg('تم إرسال طلب الحجز بنجاح. رقم الحجز: '+data);
+
+  closeBookingForm();
+
+ }catch(e){
+
+  msg('تعذر إنشاء الحجز: '+e.message);
+
+ }finally{
+
+  button.disabled = false;
+  button.textContent = 'تأكيد الحجز';
+
+ }
+
+}
 function calculateBookingPrice(){
 
  if(!selectedProperty) return;
