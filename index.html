@@ -242,7 +242,26 @@ async function showUser(){
 
  try{
 
-  const {data,error} = await db.rpc('is_main_admin');
+  const {data:userData,error:userError} = await db.auth.getUser();
+
+if(userError) throw userError;
+
+const userId = userData.user.id;
+
+const {data,error} = await db.rpc('is_main_admin');
+
+if(error) throw error;
+
+msg(
+ 'معرف حساب الدخول: '+userId+
+ ' | نتيجة المدير: '+data
+);
+
+if(data === true){
+ adminArea.classList.remove('hidden');
+}else{
+ adminArea.classList.add('hidden');
+}
 
   if(error){
    msg('خطأ التحقق من المدير: '+error.message);
