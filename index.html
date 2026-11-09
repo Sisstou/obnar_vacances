@@ -421,7 +421,97 @@ async function submitVerification(){
 
  }
 }
+async function loadVerificationRequests(){
 
+ const container = document.getElementById('verificationRequests');
+
+ container.textContent = 'جارٍ تحميل الطلبات...';
+
+ try{
+
+  const {data:isAdmin,error:adminError} =
+   await db.rpc('is_main_admin');
+
+  if(adminError) throw adminError;
+
+  if(isAdmin !== true){
+   throw new Error('غير مسموح لك بالدخول.');
+  }
+
+  const {data:requests,error} = await db
+   .from('owner_verifications')
+   .select('*')
+   .order('created_at',{ascending:false});
+
+  if(error) throw error;
+
+  container.innerHTML = '';
+
+  if(!requests || requests.length === 0){
+   container.textContent = 'لا توجد طلبات توثيق حالياً.';
+   return;
+  }
+
+  for(const request of requests){
+
+   const card = document.createElement('div');
+   card.className = 'panel';
+
+   const title = document.createElement('h3');
+   title.textContent = 'طلب توثيق';
+   card.appendChild(title);
+
+   const status = document.createElement('p');
+   status.textContent = 'الحالة: '+request.status;
+   card.appendChild(status);
+
+   const date = document.createElement('p');
+   date.textContent = 'تاريخ الطلب: '+
+    new Date(request.created_at).toLocaleString('ar-DZ');
+   card.appendChild(date);
+
+   const profileResult = await db
+    .from('profiles')
+    .select('full_name,phone')
+    .eq('id',request.owner_id)
+    .maybeSingle();
+
+   if(profileResult.error) throw profileResult.error;
+
+   const profile = profileResult.data;
+
+   const name = document.createElement('p');
+   name.textContent = 'الاسم: '+(profile?.full_name || 'غير متوفر');
+   card.appendChild(name);
+
+   const phone = document.createElement('p');
+   phone.textContent = 'الهاتف: '+(profile?.phone || 'غير متوفر');
+   card.appendChild(phone);
+
+   const fileResult = await db.storage
+    .from('owner-documents')
+    .createSignedUrl(request.document_path,300);
+
+   if(fileResult.error) throw fileResult.error;
+
+   const link = document.createElement('a');
+   link.href = fileResult.data.signedUrl;
+   link.target = '_blank';
+   link.rel = 'noopener noreferrer';
+   link.textContent = 'عرض الوثيقة';
+   card.appendChild(link);
+
+   container.appendChild(card);
+
+  }
+
+ }catch(e){
+
+  container.textContent = 'تعذر تحميل الطلبات: '+e.message;
+
+ }
+
+}
 async function loadLocations(){
 
  try{
