@@ -557,20 +557,12 @@ async function loadVerificationRequests(){
 
       if(userError) throw userError;
 
-      const {data:updateData,error:updateError} = await db
-       .from('owner_verifications')
-       .update({
-        status:'approved',
-        reviewed_by:userData.user.id,
-        reviewed_at:new Date().toISOString()
-       })
-       .eq('id',request.id)
-       .eq('status','pending')
-       .select('id')
-       .maybeSingle();
+      const const {error:approveError} = await db.rpc(
+ 'approve_owner_verification',
+ {p_request_id:request.id}
+);
 
-      if(updateError) throw updateError;
-      if(!updateData) throw new Error('الطلب لم يعد قيد الانتظار.');
+if(approveError) throw approveError;
 
       msg('تم قبول طلب التوثيق بنجاح.');
       await loadVerificationRequests();
