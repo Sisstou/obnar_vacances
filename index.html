@@ -1148,7 +1148,16 @@ function renderProperties(){
   price.className = 'price';
   price.textContent = p.price_per_night+' '+p.currency+' / الليلة';
 
-  info.appendChild(price);
+    info.appendChild(price);
+
+  const bookButton = document.createElement('button');
+  bookButton.textContent = 'احجز الآن';
+
+  bookButton.onclick = function(){
+   openBookingForm(p);
+  };
+
+  info.appendChild(bookButton);
 
   card.appendChild(info);
   container.appendChild(card);
