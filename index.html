@@ -1001,6 +1001,80 @@ async function loadPropertyRequests(){
  }
 
 }
+async function loadOwnerBookings(){
+
+ try{
+
+  if(!currentUser) return;
+
+  const {data,error} = await db
+   .from('bookings')
+   .select(`
+    id,
+    check_in,
+    check_out,
+    guests,
+    total_price,
+    status,
+    properties (
+     title_ar,
+     owner_id
+    )
+   `)
+   .eq('properties.owner_id',currentUser.id)
+   .order('created_at',{ascending:false});
+
+  if(error) throw error;
+
+  const area = document.getElementById('ownerBookings');
+
+  if(!data || data.length === 0){
+   area.innerHTML = '<p>لا توجد طلبات حجز حالياً.</p>';
+   return;
+  }
+
+  area.innerHTML = '';
+
+  data.forEach(b=>{
+
+   const item = document.createElement('div');
+
+   item.className = 'panel';
+
+   item.innerHTML = `
+    <h3>${b.properties.title_ar}</h3>
+    <p>الوصول: ${b.check_in}</p>
+    <p>المغادرة: ${b.check_out}</p>
+    <p>عدد الأشخاص: ${b.guests}</p>
+    <p>السعر الإجمالي: ${b.total_price} دج</p>
+    <p>الحالة: ${b.status}</p>
+   `;
+
+   if(b.status === 'pending'){
+
+    const accept = document.createElement('button');
+    accept.textContent = 'قبول الحجز';
+    accept.onclick = ()=>respondToBooking(b.id,'confirmed');
+
+    const reject = document.createElement('button');
+    reject.textContent = 'رفض الحجز';
+    reject.onclick = ()=>respondToBooking(b.id,'rejected');
+
+    item.appendChild(accept);
+    item.appendChild(reject);
+   }
+
+   area.appendChild(item);
+
+  });
+
+ }catch(e){
+
+  msg('تعذر تحميل الحجوزات: '+e.message);
+
+ }
+
+}
 async function loadLocations(){
 
  try{
