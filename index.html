@@ -232,6 +232,20 @@ function showUser(){
   (currentProfile.role === 'owner' ? 'مالك' : 'مصطاف');
 
  document.getElementById('ownerArea').classList.remove('hidden');
+
+ const adminArea = document.getElementById('adminArea');
+ adminArea.classList.add('hidden');
+
+ db.rpc('is_main_admin').then(({data,error})=>{
+
+  if(error){
+   console.error('Admin check:',error.message);
+   return;
+  }
+
+  adminArea.classList.toggle('hidden',data !== true);
+
+ });
 }
 
 async function signup(){
