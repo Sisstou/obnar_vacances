@@ -224,6 +224,7 @@ function showGuest(){
 }
 
 
+
 async function showUser(){
 
  document.getElementById('authForms').classList.add('hidden');
@@ -238,15 +239,8 @@ async function showUser(){
 
  try{
 
-  const {error:approveError} = await db.rpc(
- 'approve_owner_verification',
- {p_request_id:request.id}
-);
+  const {data:userData,error:userError} = await db.auth.getUser();
 
-if(approveError) throw approveError;
-
-msg('تم قبول التوثيق وتحويل الحساب إلى مالك بنجاح.');
-await loadVerificationRequests();
   if(userError) throw userError;
 
   const userId = userData.user.id;
@@ -281,6 +275,7 @@ await loadVerificationRequests();
  }
 
 }
+
 
 async function signup(){
 
@@ -543,39 +538,36 @@ async function loadVerificationRequests(){
     approveBtn.style.color = 'white';
     approveBtn.style.margin = '10px 5px';
 
-    approveBtn.onclick = async function(){
+    
+approveBtn.onclick = async function(){
 
-     if(!confirm('هل أنت متأكد من قبول طلب التوثيق؟')) return;
+ if(!confirm('هل أنت متأكد من قبول طلب التوثيق؟')) return;
 
-     approveBtn.disabled = true;
-     rejectBtn.disabled = true;
+ approveBtn.disabled = true;
+ rejectBtn.disabled = true;
 
-     try{
+ try{
 
-      const {data:userData,error:userError} =
-       await db.auth.getUser();
+  const {error:approveError} = await db.rpc(
+   'approve_owner_verification',
+   {p_request_id:request.id}
+  );
 
-      if(userError) throw userError;
+  if(approveError) throw approveError;
 
-      const const {error:approveError} = await db.rpc(
- 'approve_owner_verification',
- {p_request_id:request.id}
-);
+  msg('تم قبول التوثيق وتحويل الحساب إلى مالك بنجاح.');
+  await loadVerificationRequests();
 
-if(approveError) throw approveError;
+ }catch(e){
 
-      msg('تم قبول طلب التوثيق بنجاح.');
-      await loadVerificationRequests();
+  msg('تعذر قبول الطلب: '+e.message);
+  approveBtn.disabled = false;
+  rejectBtn.disabled = false;
 
-     }catch(e){
+ }
 
-      msg('تعذر قبول الطلب: '+e.message);
-      approveBtn.disabled = false;
-      rejectBtn.disabled = false;
+};
 
-     }
-
-    };
 
     const rejectBtn = document.createElement('button');
     rejectBtn.textContent = 'رفض الطلب';
