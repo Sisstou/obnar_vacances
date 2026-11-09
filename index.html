@@ -216,11 +216,14 @@ async function refreshUser(){
  }
 }
 
+
 function showGuest(){
 
  document.getElementById('authForms').classList.remove('hidden');
  document.getElementById('userArea').classList.add('hidden');
+
 }
+
 async function showUser(){
 
  document.getElementById('authForms').classList.add('hidden');
@@ -247,10 +250,14 @@ async function showUser(){
   }
 
   if(data === true){
+
    adminArea.classList.remove('hidden');
    msg('تم التحقق: أنت المدير الرئيسي.');
+
   }else{
+
    msg('تم الدخول، لكن الحساب ليس مديراً رئيسياً.');
+
   }
 
  }catch(e){
@@ -258,8 +265,8 @@ async function showUser(){
   msg('تعذر التحقق من المدير: '+e.message);
 
  }
-
 }
+
 
  
 
