@@ -223,19 +223,16 @@ function showGuest(){
 
 }
 
+
 async function showUser(){
 
  document.getElementById('authForms').classList.add('hidden');
  document.getElementById('userArea').classList.remove('hidden');
 
- document.getElementById('userInfo').textContent =
-  'مرحباً '+currentProfile.full_name+' — نوع الحساب: '+
-  (currentProfile.role === 'owner' ? 'مالك' : 'مصطاف');
-
- document.getElementById('ownerArea').classList.remove('hidden');
-
  const adminArea = document.getElementById('adminArea');
  adminArea.classList.add('hidden');
+
+ document.getElementById('ownerArea').classList.remove('hidden');
 
  msg('جارٍ التحقق من صلاحيات المدير...');
 
@@ -243,36 +240,28 @@ async function showUser(){
 
   const {data:userData,error:userError} = await db.auth.getUser();
 
-if(userError) throw userError;
+  if(userError) throw userError;
 
-const userId = userData.user.id;
+  const userId = userData.user.id;
 
-const {data,error} = await db.rpc('is_main_admin');
+  const {data,error} = await db.rpc('is_main_admin');
 
-if(error) throw error;
-
-msg(
- 'معرف حساب الدخول: '+userId+
- ' | نتيجة المدير: '+data
-);
-
-if(data === true){
- adminArea.classList.remove('hidden');
-}else{
- adminArea.classList.add('hidden');
-}
-
-  if(error){
-   msg('خطأ التحقق من المدير: '+error.message);
-   return;
-  }
+  if(error) throw error;
 
   if(data === true){
 
    adminArea.classList.remove('hidden');
+
+   document.getElementById('userInfo').textContent =
+    'مرحباً '+currentProfile.full_name+' — نوع الحساب: مدير رئيسي';
+
    msg('تم التحقق: أنت المدير الرئيسي.');
 
   }else{
+
+   document.getElementById('userInfo').textContent =
+    'مرحباً '+currentProfile.full_name+' — نوع الحساب: '+
+    (currentProfile.role === 'owner' ? 'مالك' : 'مصطاف');
 
    msg('الحساب ليس مديراً. معرف الدخول: '+userId);
 
@@ -283,10 +272,8 @@ if(data === true){
   msg('تعذر التحقق من المدير: '+e.message);
 
  }
+
 }
-
-
- 
 
 async function signup(){
 
