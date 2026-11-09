@@ -1262,6 +1262,14 @@ function calculateBookingPrice(){
   ' | السعر الإجمالي: '+total+' '+selectedProperty.currency;
 
 }
+document.getElementById('bookingCheckIn')
+ .addEventListener('change', calculateBookingPrice);
+
+document.getElementById('bookingCheckOut')
+ .addEventListener('change', calculateBookingPrice);
+
+document.getElementById('bookingGuests')
+ .addEventListener('input', calculateBookingPrice);
 function resetSearch(){
 
  document.getElementById('searchText').value = '';
