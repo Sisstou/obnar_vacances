@@ -221,8 +221,7 @@ function showGuest(){
  document.getElementById('authForms').classList.remove('hidden');
  document.getElementById('userArea').classList.add('hidden');
 }
-
-function showUser(){
+async function showUser(){
 
  document.getElementById('authForms').classList.add('hidden');
  document.getElementById('userArea').classList.remove('hidden');
@@ -232,6 +231,35 @@ function showUser(){
   (currentProfile.role === 'owner' ? 'مالك' : 'مصطاف');
 
  document.getElementById('ownerArea').classList.remove('hidden');
+
+ const adminArea = document.getElementById('adminArea');
+ adminArea.classList.add('hidden');
+
+ msg('جارٍ التحقق من صلاحيات المدير...');
+
+ try{
+
+  const {data,error} = await db.rpc('is_main_admin');
+
+  if(error){
+   msg('خطأ التحقق من المدير: '+error.message);
+   return;
+  }
+
+  if(data === true){
+   adminArea.classList.remove('hidden');
+   msg('تم التحقق: أنت المدير الرئيسي.');
+  }else{
+   msg('تم الدخول، لكن الحساب ليس مديراً رئيسياً.');
+  }
+
+ }catch(e){
+
+  msg('تعذر التحقق من المدير: '+e.message);
+
+ }
+
+}
 
  const adminArea = document.getElementById('adminArea');
  adminArea.classList.add('hidden');
