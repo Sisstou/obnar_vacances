@@ -310,6 +310,8 @@ document.getElementById('ownerPropertyArea').classList.add('hidden');
 
    msg('تم التحقق: أنت المدير الرئيسي.');
 
+   await loadPropertyRequests();
+
   }else{
 
    document.getElementById('userInfo').textContent =
