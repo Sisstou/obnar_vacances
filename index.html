@@ -169,6 +169,15 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 
   <button onclick="loadVerificationRequests()">
     عرض طلبات التوثيق
+<hr>
+
+<h3>🏠 طلبات الإقامات الجديدة</h3>
+
+<button onclick="loadPropertyRequests()">
+  عرض الإقامات المنتظرة للمراجعة
+</button>
+
+<div id="propertyRequests"></div>
   </button>
 
   <div id="verificationRequests">
@@ -813,6 +822,156 @@ async function submitSavedProperty(){
  }catch(e){
 
   msg('تعذر إرسال الإقامة: '+e.message);
+
+ }
+
+}
+async function loadPropertyRequests(){
+
+ const container = document.getElementById('propertyRequests');
+ if(!container) return;
+
+ container.textContent = 'جارٍ تحميل الإقامات...';
+
+ try{
+
+  const {data:isAdmin,error:adminError} =
+   await db.rpc('is_main_admin');
+
+  if(adminError) throw adminError;
+  if(isAdmin !== true) throw new Error('غير مسموح لك.');
+
+  const {data:properties,error} = await db
+   .from('properties')
+   .select('*, locations(name_ar)')
+   .eq('status','pending')
+   .order('created_at',{ascending:false});
+
+  if(error) throw error;
+
+  container.innerHTML = '';
+
+  if(!properties || properties.length === 0){
+   container.textContent = 'لا توجد إقامات تنتظر المراجعة.';
+   return;
+  }
+
+  for(const property of properties){
+
+   const card = document.createElement('div');
+   card.className = 'panel';
+
+   const title = document.createElement('h3');
+   title.textContent = property.title_ar;
+   card.appendChild(title);
+
+   const details = document.createElement('p');
+   details.textContent =
+    'الاسم بالفرنسية: '+property.title_fr+
+    ' | المنطقة: '+(property.locations?.name_ar || 'غير محددة')+
+    ' | النوع: '+property.property_type+
+    ' | السعة: '+property.capacity+
+    ' أشخاص | السعر: '+property.price_per_night+' دج لليلة';
+   card.appendChild(details);
+
+   const description = document.createElement('p');
+   description.textContent = property.description_ar || 'لا يوجد وصف';
+   card.appendChild(description);
+
+   const {data:images,error:imageError} = await db
+    .from('property_images')
+    .select('storage_path,is_cover')
+    .eq('property_id',property.id)
+    .order('display_order');
+
+   if(imageError) throw imageError;
+
+   for(const img of (images || [])){
+
+    const url = db.storage
+     .from('property-images')
+     .getPublicUrl(img.storage_path).data.publicUrl;
+
+    const photo = document.createElement('img');
+    photo.src = url;
+    photo.style.width = '180px';
+    photo.style.maxWidth = '100%';
+    photo.style.margin = '5px';
+    card.appendChild(photo);
+
+   }
+
+   const approve = document.createElement('button');
+   approve.textContent = 'قبول ونشر الإقامة';
+
+   approve.onclick = async function(){
+
+    if(!confirm('هل تريد قبول ونشر هذه الإقامة؟')) return;
+
+    approve.disabled = true;
+    reject.disabled = true;
+
+    try{
+
+     const {error} = await db
+      .from('properties')
+      .update({status:'approved'})
+      .eq('id',property.id)
+      .eq('status','pending');
+
+     if(error) throw error;
+
+     msg('تم قبول الإقامة ونشرها.');
+     await loadPropertyRequests();
+
+    }catch(e){
+     msg('تعذر قبول الإقامة: '+e.message);
+     approve.disabled = false;
+     reject.disabled = false;
+    }
+
+   };
+
+   const reject = document.createElement('button');
+   reject.textContent = 'رفض الإقامة';
+
+   reject.onclick = async function(){
+
+    if(!confirm('هل تريد رفض هذه الإقامة؟')) return;
+
+    approve.disabled = true;
+    reject.disabled = true;
+
+    try{
+
+     const {error} = await db
+      .from('properties')
+      .update({status:'rejected'})
+      .eq('id',property.id)
+      .eq('status','pending');
+
+     if(error) throw error;
+
+     msg('تم رفض الإقامة.');
+     await loadPropertyRequests();
+
+    }catch(e){
+     msg('تعذر رفض الإقامة: '+e.message);
+     approve.disabled = false;
+     reject.disabled = false;
+    }
+
+   };
+
+   card.appendChild(approve);
+   card.appendChild(reject);
+   container.appendChild(card);
+
+  }
+
+ }catch(e){
+
+  container.textContent = 'تعذر تحميل الإقامات: '+e.message;
 
  }
 
