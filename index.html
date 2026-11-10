@@ -1007,6 +1007,84 @@ async function loadPropertyRequests(){
 
 async function loadOwnerBookings(){
 
+ const area = document.getElementById('ownerBookings');
+ if(!area) return;
+
+ area.textContent = 'جارٍ تحميل طلبات الحجز...';
+
+ try{
+
+  const {data:properties,error:propertyError} = await db
+   .from('properties')
+   .select('id,title_ar')
+   .eq('owner_id',currentUser.id);
+
+  if(propertyError) throw propertyError;
+
+  const ids = (properties || []).map(p=>p.id);
+
+  if(ids.length === 0){
+   area.textContent = 'لا توجد إقامات مسجلة لهذا المالك.';
+   return;
+  }
+
+  const {data:bookings,error} = await db
+   .from('bookings')
+   .select('id,property_id,check_in,check_out,guests,total_price,status,created_at')
+   .in('property_id',ids)
+   .order('created_at',{ascending:false});
+
+  if(error) throw error;
+
+  area.innerHTML = '';
+
+  if(!bookings || bookings.length === 0){
+   area.textContent = 'لا توجد طلبات حجز حالياً.';
+   return;
+  }
+
+  bookings.forEach(b=>{
+
+   const property = properties.find(p=>p.id === b.property_id);
+   const item = document.createElement('div');
+   item.className = 'panel';
+
+   const title = document.createElement('h3');
+   title.textContent = property ? property.title_ar : 'إقامة';
+   item.appendChild(title);
+
+   item.innerHTML +=
+    '<p>الوصول: '+b.check_in+'</p>'+
+    '<p>المغادرة: '+b.check_out+'</p>'+
+    '<p>عدد الأشخاص: '+b.guests+'</p>'+
+    '<p>السعر الإجمالي: '+b.total_price+' دج</p>'+
+    '<p>الحالة: '+b.status+'</p>';
+
+   if(b.status === 'pending'){
+
+    const accept = document.createElement('button');
+    accept.textContent = 'قبول الحجز';
+    accept.onclick = ()=>respondToBooking(b.id,'confirmed');
+
+    const reject = document.createElement('button');
+    reject.textContent = 'رفض الحجز';
+    reject.onclick = ()=>respondToBooking(b.id,'rejected');
+
+    item.appendChild(accept);
+    item.appendChild(reject);
+   }
+
+   area.appendChild(item);
+
+  });
+
+ }catch(e){
+  area.textContent = 'تعذر تحميل الحجوزات: '+e.message;
+ }
+
+}
+async function loadOwnerBookings(){
+
  try{
 
   if(!currentUser) return;
