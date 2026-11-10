@@ -1,4 +1,4 @@
-ه‍
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -1014,11 +1014,14 @@ async function loadPropertyRequests(){
 
 }
 
-async function loadOwnerBookings(){
+const area = document.getElementById('ownerBookings');
 
- const area = document.getElementById('ownerBookings');
-alert('تم تشغيل دالة الحجوزات');
- if(!area) return;
+if(!area){
+ alert('لم يتم العثور على عنصر ownerBookings');
+ return;
+}
+
+alert('تم العثور على عنصر الحجوزات');
 
  area.textContent = 'جارٍ تحميل طلبات الحجز...';
 
