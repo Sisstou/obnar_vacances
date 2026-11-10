@@ -1075,6 +1075,39 @@ async function loadOwnerBookings(){
  }
 
 }
+async function loadOwnerBookings(){
+
+  // الكود السابق كاملاً
+
+} // نهاية الدالة الأولى
+
+
+async function respondToBooking(bookingId,status){
+
+ try{
+
+  const {error} = await db.rpc('respond_to_booking',{
+   p_booking_id:bookingId,
+   p_status:status
+  });
+
+  if(error) throw error;
+
+  msg(
+   status === 'confirmed'
+   ? 'تم قبول الحجز بنجاح.'
+   : 'تم رفض الحجز.'
+  );
+
+  await loadOwnerBookings();
+
+ }catch(e){
+
+  msg('تعذر تحديث الحجز: '+e.message);
+
+ }
+
+}
 async function loadLocations(){
 
  try{
