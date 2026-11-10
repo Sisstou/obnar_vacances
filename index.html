@@ -1482,7 +1482,7 @@ async function confirmBooking(){
   msg('عدد الأشخاص غير صالح.');
   return;
  }
-
+ try{
  const {data:conflicts,error:conflictError} = await db
   .from('bookings')
   .select('id')
@@ -1497,7 +1497,10 @@ async function confirmBooking(){
   msg('عذراً، هذه التواريخ محجوزة بالفعل. اختر تواريخ أخرى.');
   return;
  }
-
+ }catch(e){
+  msg('تعذر فحص التواريخ: '+e.message);
+  return;
+ }
  const button = document.querySelector(
   '#bookingModal button[onclick="confirmBooking()"]'
  );
