@@ -164,7 +164,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 <div id="ownerBookingArea" class="hidden">
  <hr>
  <h3>📅 طلبات الحجوزات</h3>
-<button onclick="alert('تم الضغط على الزر'); loadOwnerBookings()">
+<button onclick="loadOwnerBookings()">
   عرض طلبات الحجوزات
  </button>
  <div id="ownerBookings"></div>
@@ -1021,8 +1021,6 @@ if(!area){
  alert('لم يتم العثور على عنصر ownerBookings');
  return;
 }
-
-alert('تم العثور على عنصر الحجوزات');
 
  area.textContent = 'جارٍ تحميل طلبات الحجز...';
 
