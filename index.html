@@ -169,6 +169,16 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 </button>
  <div id="ownerBookings"></div>
 </div>
+
+<div id="travelerBookingArea" class="hidden">
+ <hr>
+ <h3>📋 حجوزاتي</h3>
+ <button type="button" onclick="loadTravelerBookings()">
+  عرض حجوزاتي
+ </button>
+ <div id="travelerBookings"></div>
+</div>
+
 <div id="bookingModal" class="hidden panel">
 
   <h2>احجز إقامتك</h2>
@@ -319,6 +329,7 @@ async function showUser(){
  document.getElementById('ownerArea').classList.remove('hidden');
 document.getElementById('ownerPropertyArea').classList.add('hidden');
 document.getElementById('ownerBookingArea').classList.add('hidden');
+document.getElementById('travelerBookingArea').classList.add('hidden');
  msg('جارٍ التحقق من صلاحيات المدير...');
 
  try{
@@ -354,6 +365,10 @@ if(currentProfile.role === 'owner'){
   .classList.remove('hidden');
 
  document.getElementById('ownerBookingArea')
+  .classList.remove('hidden');
+}
+if(currentProfile.role === 'traveler'){
+ document.getElementById('travelerBookingArea')
   .classList.remove('hidden');
 }
    msg('الحساب ليس مديراً. معرف الدخول: '+userId);
@@ -1127,6 +1142,88 @@ async function respondToBooking(bookingId,status){
 
 }
 window.loadOwnerBookings = loadOwnerBookings;
+
+async function loadTravelerBookings(){
+
+ const area = document.getElementById('travelerBookings');
+
+ if(!area) return;
+
+ area.textContent = 'جارٍ تحميل حجوزاتك...';
+
+ try{
+
+  if(!currentUser){
+   throw new Error('يجب تسجيل الدخول أولاً');
+  }
+
+  const {data:bookings,error} = await db
+   .from('bookings')
+   .select(`
+    id,
+    check_in,
+    check_out,
+    guests,
+    total_price,
+    status,
+    properties(title_ar)
+   `)
+   .eq('traveler_id',currentUser.id)
+   .order('created_at',{ascending:false});
+
+  if(error) throw error;
+
+  area.innerHTML = '';
+
+  if(!bookings || bookings.length === 0){
+   area.textContent = 'ليس لديك حجوزات حالياً.';
+   return;
+  }
+
+  bookings.forEach(b=>{
+
+   const item = document.createElement('div');
+   item.className = 'panel';
+
+   const title = document.createElement('h3');
+   title.textContent = b.properties?.title_ar || 'إقامة';
+   item.appendChild(title);
+
+   const details = document.createElement('p');
+
+   details.textContent =
+    'الوصول: '+b.check_in+
+    ' | المغادرة: '+b.check_out+
+    ' | الأشخاص: '+b.guests+
+    ' | السعر: '+b.total_price+' دج';
+
+   item.appendChild(details);
+
+   const status = document.createElement('p');
+
+   const statusNames = {
+    pending:'قيد الانتظار',
+    confirmed:'تم تأكيد الحجز',
+    rejected:'تم رفض الحجز'
+   };
+
+   status.textContent =
+    'حالة الحجز: '+(statusNames[b.status] || b.status);
+
+   item.appendChild(status);
+
+   area.appendChild(item);
+
+  });
+
+ }catch(e){
+
+  area.textContent = 'تعذر تحميل حجوزاتك: '+e.message;
+
+ }
+
+}
+window.loadTravelerBookings = loadTravelerBookings;
 async function loadLocations(){
 
  try{
