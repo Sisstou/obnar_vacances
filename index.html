@@ -161,6 +161,14 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 
 <button onclick="submitSavedProperty()">إرسال الإقامة المحفوظة للمراجعة</button>
 </div>
+<div id="ownerBookingArea" class="hidden">
+ <hr>
+ <h3>📅 طلبات الحجوزات</h3>
+ <button onclick="loadOwnerBookings()">
+  عرض طلبات الحجوزات
+ </button>
+ <div id="ownerBookings"></div>
+</div>
 <div id="bookingModal" class="hidden panel">
 
   <h2>احجز إقامتك</h2>
