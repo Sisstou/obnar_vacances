@@ -1014,8 +1014,9 @@ async function loadPropertyRequests(){
 
 }
 
-const area = document.getElementById('ownerBookings');
+async function loadOwnerBookings(){
 
+ const area = document.getElementById('ownerBookings');
 if(!area){
  alert('لم يتم العثور على عنصر ownerBookings');
  return;
