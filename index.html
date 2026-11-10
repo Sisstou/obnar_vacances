@@ -1483,6 +1483,21 @@ async function confirmBooking(){
   return;
  }
 
+ const {data:conflicts,error:conflictError} = await db
+  .from('bookings')
+  .select('id')
+  .eq('property_id',selectedProperty.id)
+  .eq('status','confirmed')
+  .lt('check_in',checkOut)
+  .gt('check_out',checkIn);
+
+ if(conflictError) throw conflictError;
+
+ if(conflicts && conflicts.length > 0){
+  msg('عذراً، هذه التواريخ محجوزة بالفعل. اختر تواريخ أخرى.');
+  return;
+ }
+
  const button = document.querySelector(
   '#bookingModal button[onclick="confirmBooking()"]'
  );
