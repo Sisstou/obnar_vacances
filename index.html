@@ -1249,6 +1249,9 @@ async function loadTravelerBookings(){
     guests,
     total_price,
     status,
+    payment_status,
+    deposit_amount,
+    payment_due_at,
     properties(title_ar)
    `)
    .eq('traveler_id',currentUser.id)
@@ -1285,18 +1288,116 @@ async function loadTravelerBookings(){
    const status = document.createElement('p');
 
    const statusNames = {
-    pending:'قيد الانتظار',
-    confirmed:'تم تأكيد الحجز',
-    rejected:'تم رفض الحجز'
-   };
+ pending:'قيد الانتظار',
+ awaiting_payment:'قبول مبدئي - بانتظار التسبيق',
+ confirmed:'تم تأكيد الحجز',
+ rejected:'تم رفض الحجز',
+ cancelled:'تم إلغاء الحجز',
+ completed:'اكتملت الإقامة'
+};
 
    status.textContent =
     'حالة الحجز: '+(statusNames[b.status] || b.status);
 
    item.appendChild(status);
+const deposit = document.createElement('p');
+deposit.textContent =
+ 'تسبيق الليلة الأولى: '+(b.deposit_amount || 0)+' دج';
+item.appendChild(deposit);
 
-   area.appendChild(item);
+const paymentNames = {
+ unpaid:'لم يتم رفع الوصل',
+ receipt_submitted:'تم رفع الوصل - بانتظار التحقق',
+ verified:'تم التحقق من الدفع',
+ rejected:'تم رفض الوصل'
+};
 
+const payment = document.createElement('p');
+payment.textContent =
+ 'حالة الدفع: '+(paymentNames[b.payment_status] || b.payment_status);
+item.appendChild(payment);
+
+if(b.payment_due_at){
+ const deadline = document.createElement('p');
+ deadline.textContent =
+  'آخر أجل للدفع: '+new Date(b.payment_due_at).toLocaleString('ar-DZ');
+ item.appendChild(deadline);
+}
+   if(
+ b.status === 'awaiting_payment' &&
+ b.payment_status === 'unpaid' &&
+ b.payment_due_at &&
+ new Date(b.payment_due_at) > new Date()
+){
+
+ const fileInput = document.createElement('input');
+ fileInput.type = 'file';
+ fileInput.accept = 'image/jpeg,image/png,image/webp,application/pdf';
+
+ const uploadButton = document.createElement('button');
+ uploadButton.textContent = 'رفع وصل التحويل';
+
+ uploadButton.onclick = async ()=>{
+
+  const file = fileInput.files[0];
+
+  if(!file){
+   msg('اختر وصل التحويل أولاً.');
+   return;
+  }
+
+  if(file.size > 5 * 1024 * 1024){
+   msg('حجم الملف يجب ألا يتجاوز 5 ميغابايت.');
+   return;
+  }
+
+  const allowedTypes = [
+   'image/jpeg',
+   'image/png',
+   'image/webp',
+   'application/pdf'
+  ];
+
+  if(!allowedTypes.includes(file.type)){
+   msg('نوع الملف غير مسموح.');
+   return;
+  }
+
+  try{
+
+   const filePath =
+    currentUser.id+'/'+b.id+'/'+Date.now()+'-'+file.name;
+
+   const {error:uploadError} = await db.storage
+    .from('payment-receipts')
+    .upload(filePath,file);
+
+   if(uploadError) throw uploadError;
+
+   const {error:submitError} = await db.rpc('submit_payment_receipt',{
+    p_booking_id:b.id,
+    p_storage_path:filePath
+   });
+
+   if(submitError) throw submitError;
+
+   msg('تم رفع وصل التحويل بنجاح.');
+
+   await loadTravelerBookings();
+
+  }catch(e){
+
+   msg('تعذر رفع الوصل: '+e.message);
+
+  }
+
+ };
+
+ item.appendChild(fileInput);
+ item.appendChild(uploadButton);
+}
+
+area.appendChild(item);
   });
 
  }catch(e){
