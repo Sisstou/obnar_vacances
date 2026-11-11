@@ -1396,7 +1396,41 @@ if(b.payment_due_at){
  item.appendChild(fileInput);
  item.appendChild(uploadButton);
 }
+if(
+ b.status === 'pending' ||
+ b.status === 'awaiting_payment' ||
+ b.status === 'confirmed'
+){
 
+ const cancelButton = document.createElement('button');
+ cancelButton.textContent = 'إلغاء الحجز';
+
+ cancelButton.onclick = async ()=>{
+
+  if(!confirm('هل أنت متأكد من إلغاء هذا الحجز؟')) return;
+
+  try{
+
+   const {error} = await db.rpc('cancel_booking_by_traveler',{
+    p_booking_id:b.id
+   });
+
+   if(error) throw error;
+
+   msg('تم إلغاء الحجز بنجاح.');
+
+   await loadTravelerBookings();
+
+  }catch(e){
+
+   msg('تعذر إلغاء الحجز: '+e.message);
+
+  }
+
+ };
+
+ item.appendChild(cancelButton);
+}
 area.appendChild(item);
   });
 
