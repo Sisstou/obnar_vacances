@@ -1058,7 +1058,7 @@ async function loadOwnerBookings(){
 
   const {data:bookings,error} = await db
    .from('bookings')
-   .select('id,property_id,check_in,check_out,guests,total_price,status,created_at')
+   .select('id,property_id,check_in,check_out,guests,total_price,status,created_at,payment_status,deposit_amount,payment_receipt_path,payment_due_at')
    .in('property_id',ids)
    .order('created_at',{ascending:false});
 
@@ -1082,11 +1082,29 @@ async function loadOwnerBookings(){
    item.appendChild(title);
 
    item.innerHTML +=
-    '<p>الوصول: '+b.check_in+'</p>'+
-    '<p>المغادرة: '+b.check_out+'</p>'+
-    '<p>عدد الأشخاص: '+b.guests+'</p>'+
-    '<p>السعر الإجمالي: '+b.total_price+' دج</p>'+
-    '<p>الحالة: '+b.status+'</p>';
+ '<p>الوصول: '+b.check_in+'</p>'+
+ '<p>المغادرة: '+b.check_out+'</p>'+
+ '<p>عدد الأشخاص: '+b.guests+'</p>'+
+ '<p>السعر الإجمالي: '+b.total_price+' دج</p>'+
+ '<p>الحالة: '+b.status+'</p>';
+
+const deposit = document.createElement('p');
+deposit.textContent =
+ 'تسبيق الليلة الأولى: '+(b.deposit_amount || 0)+' دج';
+item.appendChild(deposit);
+
+const payment = document.createElement('p');
+
+const paymentNames = {
+ unpaid:'لم يتم الدفع',
+ receipt_submitted:'تم رفع وصل التحويل',
+ verified:'تم التحقق من الدفع',
+ rejected:'تم رفض الوصل'
+};
+
+payment.textContent =
+ 'حالة الدفع: '+(paymentNames[b.payment_status] || b.payment_status);
+item.appendChild(payment);
 
    if(b.status === 'pending'){
 
@@ -1101,10 +1119,70 @@ async function loadOwnerBookings(){
     item.appendChild(accept);
     item.appendChild(reject);
    }
+if(
+ b.status === 'awaiting_payment' &&
+ b.payment_status === 'receipt_submitted' &&
+ b.payment_receipt_path
+){
 
-   area.appendChild(item);
+ const receiptButton = document.createElement('button');
+ receiptButton.textContent = 'عرض وصل التحويل';
 
-  });
+ receiptButton.onclick = async ()=>{
+
+  try{
+
+   const {data,error} = await db.storage
+    .from('payment-receipts')
+    .createSignedUrl(b.payment_receipt_path,300);
+
+   if(error) throw error;
+
+   window.open(data.signedUrl,'_blank');
+
+  }catch(e){
+
+   msg('تعذر عرض الوصل: '+e.message);
+
+  }
+
+ };
+
+ item.appendChild(receiptButton);
+
+ const verifyButton = document.createElement('button');
+ verifyButton.textContent = 'تأكيد استلام التسبيق';
+
+ verifyButton.onclick = async ()=>{
+
+  if(!confirm('هل تأكدت فعلياً من وصول التسبيق؟')) return;
+
+  try{
+
+   const {error} = await db.rpc('verify_booking_payment',{
+    p_booking_id:b.id
+   });
+
+   if(error) throw error;
+
+   msg('تم تأكيد الدفع والحجز بنجاح.');
+
+   await loadOwnerBookings();
+
+  }catch(e){
+
+   msg('تعذر تأكيد الدفع: '+e.message);
+
+  }
+
+  };
+
+ item.appendChild(verifyButton);
+}
+
+area.appendChild(item);
+
+});
 
  }catch(e){
 
@@ -1114,21 +1192,25 @@ async function loadOwnerBookings(){
 
 }
 
-
 async function respondToBooking(bookingId,status){
 
  try{
 
+  const newStatus =
+   status === 'confirmed'
+   ? 'awaiting_payment'
+   : status;
+
   const {error} = await db.rpc('respond_to_booking',{
    p_booking_id:bookingId,
-   p_status:status
+   p_status:newStatus
   });
 
   if(error) throw error;
 
   msg(
    status === 'confirmed'
-   ? 'تم قبول الحجز بنجاح.'
+   ? 'تم قبول الطلب مبدئياً. ينتظر دفع تسبيق الليلة الأولى.'
    : 'تم رفض الحجز.'
   );
 
@@ -1141,6 +1223,7 @@ async function respondToBooking(bookingId,status){
  }
 
 }
+
 window.loadOwnerBookings = loadOwnerBookings;
 
 async function loadTravelerBookings(){
