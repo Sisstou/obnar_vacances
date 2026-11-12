@@ -284,7 +284,60 @@ async function ensureProfile(user){
  return newProfile;
 }
 
+async function updateMyProfile({
+  full_name,
+  phone,
+  preferred_language,
+  avatar_url
+}) {
+  try {
+    if (!currentUser) {
+      throw new Error('يجب تسجيل الدخول أولاً');
+    }
 
+    const updates = {};
+
+    if (full_name !== undefined)
+      updates.full_name = full_name;
+
+    if (phone !== undefined)
+      updates.phone = phone;
+
+    if (preferred_language !== undefined)
+      updates.preferred_language = preferred_language;
+
+    if (avatar_url !== undefined)
+      updates.avatar_url = avatar_url;
+
+    if (Object.keys(updates).length === 0) {
+      throw new Error('لا توجد بيانات لتحديثها');
+    }
+
+    const { data, error } = await db
+      .from('profiles')
+      .update(updates)
+      .eq('id', currentUser.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    currentProfile = data;
+
+    return {
+      success: true,
+      profile: data
+    };
+
+  } catch (error) {
+    console.error('Profile update error:', error);
+
+    return {
+      success: false,
+      message: error.message
+    };
+  }
+}
 async function refreshUser(){
 
  const {data,error} = await db.auth.getSession();
