@@ -284,6 +284,31 @@ async function ensureProfile(user){
  return newProfile;
 }
 
+
+async function refreshUser(){
+
+ const {data,error} = await db.auth.getSession();
+
+ if(error){
+  msg('تعذر التحقق من الجلسة: '+error.message);
+  return;
+ }
+
+ currentUser = data.session?.user || null;
+
+ if(currentUser){
+  try{
+   currentProfile = await ensureProfile(currentUser);
+   showUser();
+  }catch(e){
+   msg('تعذر تحميل بيانات الحساب: '+e.message);
+  }
+ }else{
+  currentProfile = null;
+  showGuest();
+ }
+}
+
 async function refreshUser(){
 
  const {data,error} = await db.auth.getSession();
