@@ -362,29 +362,6 @@ async function refreshUser(){
  }
 }
 
-async function refreshUser(){
-
- const {data,error} = await db.auth.getSession();
-
- if(error){
-  msg('تعذر التحقق من الجلسة: '+error.message);
-  return;
- }
-
- currentUser = data.session?.user || null;
-
- if(currentUser){
-  try{
-   currentProfile = await ensureProfile(currentUser);
-   showUser();
-  }catch(e){
-   msg('تعذر تحميل بيانات الحساب: '+e.message);
-  }
- }else{
-  currentProfile = null;
-  showGuest();
- }
-}
 
 
 function showGuest(){
@@ -393,8 +370,6 @@ function showGuest(){
  document.getElementById('userArea').classList.add('hidden');
 
 }
-
-
 
 async function showUser(){
 
