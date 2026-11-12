@@ -109,71 +109,6 @@ footer{background:#063b60;color:white;text-align:center;padding:22px;margin-top:
 
 <div id="userArea" class="hidden">
 
-<script>
-async function showUser(){
-
- document.getElementById('authForms').classList.add('hidden');
- document.getElementById('userArea').classList.remove('hidden');
-
- const adminArea = document.getElementById('adminArea');
- adminArea.classList.add('hidden');
-
- document.getElementById('ownerArea').classList.remove('hidden');
-document.getElementById('ownerPropertyArea').classList.add('hidden');
-document.getElementById('ownerBookingArea').classList.add('hidden');
-document.getElementById('travelerBookingArea').classList.add('hidden');
- msg('جارٍ التحقق من صلاحيات المدير...');
-
- try{
-
-  const {data:userData,error:userError} = await db.auth.getUser();
-
-  if(userError) throw userError;
-
-  const userId = userData.user.id;
-
-  const {data,error} = await db.rpc('is_main_admin');
-
-  if(error) throw error;
-
-  if(data === true){
-
-   adminArea.classList.remove('hidden');
-
-   document.getElementById('userInfo').textContent =
-    'مرحباً '+currentProfile.full_name+' — نوع الحساب: مدير رئيسي';
-
-   msg('تم التحقق: أنت المدير الرئيسي.');
-
-   await loadPropertyRequests();
-
-  }else{
-
-   document.getElementById('userInfo').textContent =
-    'مرحباً '+currentProfile.full_name+' — نوع الحساب: '+
-    (currentProfile.role === 'owner' ? 'مالك' : 'مصطاف');
-if(currentProfile.role === 'owner'){
- document.getElementById('ownerPropertyArea')
-  .classList.remove('hidden');
-
- document.getElementById('ownerBookingArea')
-  .classList.remove('hidden');
-}
-if(currentProfile.role === 'traveler'){
- document.getElementById('travelerBookingArea')
-  .classList.remove('hidden');
-}
-   msg('الحساب ليس مديراً. معرف الدخول: '+userId);
-
-  }
-
- }catch(e){
-
-  msg('تعذر التحقق من المدير: '+e.message);
-
- }
-
-}
 
 
 
@@ -307,6 +242,71 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 </section>
 
 <footer>© 2026 OBNAR VACANCES</footer>
+<script>
+async function showUser(){
+
+ document.getElementById('authForms').classList.add('hidden');
+ document.getElementById('userArea').classList.remove('hidden');
+
+ const adminArea = document.getElementById('adminArea');
+ adminArea.classList.add('hidden');
+
+ document.getElementById('ownerArea').classList.remove('hidden');
+document.getElementById('ownerPropertyArea').classList.add('hidden');
+document.getElementById('ownerBookingArea').classList.add('hidden');
+document.getElementById('travelerBookingArea').classList.add('hidden');
+ msg('جارٍ التحقق من صلاحيات المدير...');
+
+ try{
+
+  const {data:userData,error:userError} = await db.auth.getUser();
+
+  if(userError) throw userError;
+
+  const userId = userData.user.id;
+
+  const {data,error} = await db.rpc('is_main_admin');
+
+  if(error) throw error;
+
+  if(data === true){
+
+   adminArea.classList.remove('hidden');
+
+   document.getElementById('userInfo').textContent =
+    'مرحباً '+currentProfile.full_name+' — نوع الحساب: مدير رئيسي';
+
+   msg('تم التحقق: أنت المدير الرئيسي.');
+
+   await loadPropertyRequests();
+
+  }else{
+
+   document.getElementById('userInfo').textContent =
+    'مرحباً '+currentProfile.full_name+' — نوع الحساب: '+
+    (currentProfile.role === 'owner' ? 'مالك' : 'مصطاف');
+if(currentProfile.role === 'owner'){
+ document.getElementById('ownerPropertyArea')
+  .classList.remove('hidden');
+
+ document.getElementById('ownerBookingArea')
+  .classList.remove('hidden');
+}
+if(currentProfile.role === 'traveler'){
+ document.getElementById('travelerBookingArea')
+  .classList.remove('hidden');
+}
+   msg('الحساب ليس مديراً. معرف الدخول: '+userId);
+
+  }
+
+ }catch(e){
+
+  msg('تعذر التحقق من المدير: '+e.message);
+
+ }
+
+}
 
 const SUPABASE_URL = 'https://iuxrtgyufocblnvpaeaq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_9GfnaeaysGZ4WXssDzcECg_BRprKZfe';
