@@ -201,6 +201,12 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 <button type="button" onclick="window.loadOwnerBookings()">
 عرض طلبات الحجوزات
 </button>
+<div class="panel" style="border:1px dashed #c58b32;background:#fffaf0">
+ <strong>اختبار صلاحية تأكيد الدفع (مؤقت)</strong>
+ <p class="small">اختبار قراءة فقط. لا يغيّر الحجوزات أو حالات الدفع.</p>
+ <button type="button" id="paymentGuardTestButton" onclick="runPaymentAdminGuardTest()">اختبار صلاحية حساب المالك</button>
+ <p id="paymentGuardTestResult" role="status" aria-live="polite"></p>
+</div>
  <div id="ownerBookings"></div>
 </div>
 
@@ -1494,6 +1500,41 @@ async function loadPropertyRequests(){
 
  }
 
+}
+
+async function runPaymentAdminGuardTest(){
+ const output = document.getElementById('paymentGuardTestResult');
+ const button = document.getElementById('paymentGuardTestButton');
+
+ if(!currentUser){
+  output.textContent = 'يجب تسجيل الدخول أولاً.';
+  return;
+ }
+
+ if(currentProfile?.role !== 'owner'){
+  output.textContent = 'هذا الاختبار مخصص لحساب مالك الإقامة.';
+  return;
+ }
+
+ button.disabled = true;
+ output.textContent = 'جارٍ فحص الصلاحية...';
+
+ try{
+  const {data,error} = await db.rpc('test_payment_admin_guard');
+  if(error) throw error;
+
+  if(data === 'NOT_ADMIN'){
+   output.textContent = 'نجح الاختبار: حساب المالك ليس مديراً رئيسياً، وبالتالي لا يملك صلاحية تأكيد الدفع.';
+  }else if(data === 'ADMIN'){
+   output.textContent = 'تنبيه: الدالة تعرّف هذا الحساب كمدير رئيسي. لا تنفّذ أي تأكيد دفع.';
+  }else{
+   output.textContent = 'نتيجة غير متوقعة: '+String(data);
+  }
+ }catch(e){
+  output.textContent = 'تعذر إجراء الاختبار: '+e.message;
+ }finally{
+  button.disabled = false;
+ }
 }
 
 async function loadOwnerBookings(){
