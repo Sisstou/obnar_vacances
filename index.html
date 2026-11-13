@@ -211,11 +211,6 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
   عرض حجوزاتي
  </button>
  <div id="travelerBookings"></div>
- <hr>
- <h4>اختبار حماية وصل التحويل (مؤقت)</h4>
- <p class="small">اختبار قراءة فقط للتأكد أن حساباً غير مشارك في الحجز لا يستطيع فتح الوصل.</p>
- <button type="button" id="receiptAccessTestButton" onclick="testUnauthorizedReceiptAccess()">اختبار صلاحية الوصول</button>
- <p id="receiptAccessTestResult" role="status"></p>
 </div>
 
 <div id="bookingModal" class="hidden panel">
@@ -1918,48 +1913,6 @@ area.appendChild(item);
 
 }
 window.loadTravelerBookings = loadTravelerBookings;
-
-async function testUnauthorizedReceiptAccess(){
- const button = document.getElementById('receiptAccessTestButton');
- const result = document.getElementById('receiptAccessTestResult');
- const testPath = '3c51c498-7e9e-43dd-8fcc-41ebd691dcc0/5350a900-0c04-4c0e-8699-eed2c7347116/1794594790317-1794594651504.jpg';
-
- if(!currentUser || !currentProfile || currentProfile.role !== 'traveler'){
-  result.textContent = 'تعذر الاختبار: يجب تسجيل الدخول بحساب مصطاف.';
-  return;
- }
-
- button.disabled = true;
- result.textContent = 'جارٍ اختبار صلاحية قراءة الملف...';
-
- try{
-  const {data,error} = await db.storage
-   .from('payment-receipts')
-   .download(testPath);
-
-  if(error){
-   const status = Number(error.statusCode || error.status || 0);
-   const message = String(error.message || '');
-   if([400,403,404].includes(status) || /not found|unauthorized|permission|row.level security|access denied/i.test(message)){
-    result.textContent = 'نجح الاختبار: Supabase رفض وصول هذا الحساب إلى وصل الحجز، ولم يتم تنزيل الملف.';
-   }else{
-    result.textContent = 'تعذر حسم الاختبار بسبب خطأ اتصال أو خدمة: '+message;
-   }
-   return;
-  }
-
-  if(data){
-   result.textContent = 'تنبيه أمني: استطاع هذا الحساب تنزيل ملف الوصل. يجب إيقاف الاختبار ومراجعة سياسات التخزين فوراً.';
-  }else{
-   result.textContent = 'نتيجة غير حاسمة: لم يُرجع التخزين ملفاً ولا رسالة رفض واضحة.';
-  }
- }catch(e){
-  result.textContent = 'تعذر إكمال الاختبار: '+e.message;
- }finally{
-  button.disabled = false;
- }
-}
-window.testUnauthorizedReceiptAccess = testUnauthorizedReceiptAccess;
 
 async function loadLocations(){
 
