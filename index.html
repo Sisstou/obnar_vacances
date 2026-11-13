@@ -1064,6 +1064,10 @@ document.getElementById('propertyType').addEventListener('change',updateProperty
 document.getElementById('propertyCapacitySelect').addEventListener('change',updateCapacityField);
 updatePropertyFormFields();updateCapacityField();
 
+function capacityTextIsValid(choice,value){
+ return choice!=='' && Number.isFinite(value);
+}
+
 async function createProperty(){
 
  try{
@@ -1083,15 +1087,29 @@ async function createProperty(){
   const capacity=capacityChoice==='more'?Number(document.getElementById('propertyCapacityMore').value):Number(capacityChoice);
   const googleMapsUrl=document.getElementById('propertyGoogleMaps').value.trim();
   const selectedAmenities=Array.from(document.querySelectorAll('input[name="propertyAmenity"]:checked')).map(input=>input.value);
-  const price = Number(document.getElementById('propertyPrice').value);
+  const priceInput=document.getElementById('propertyPrice');
+  const priceText=priceInput.value.trim();
+  const price=priceText===''?NaN:Number(priceText);
   const photos = Array.from(document.getElementById('propertyPhotos').files);
 
-  if(!titleAr || !titleFr || !capacity || !locationId){
-   throw new Error('أكمل الاسم بالعربية والفرنسية والمنطقة والسعة.');
+  if(!titleAr || !titleFr || !locationId || !capacityTextIsValid(capacityChoice,capacity)){
+   throw new Error('أكمل الاسم بالعربية والفرنسية والمنطقة وحدد السعة بشكل صحيح.');
   }
 
-  if(bedrooms<0||(type==="house"&&bedrooms<1)||bathrooms<0||capacity<1||(capacityChoice==="more"&&capacity<8)||price<0){
-   throw new Error('تحقق من عدد الغرف والحمامات والسعة والسعر. عند اختيار أكثر من 7 أدخل العدد الفعلي ابتداءً من 8.');
+  if(!['apartment','studio','house'].includes(type)){
+   throw new Error('اختر نوع إقامة صحيحاً.');
+  }
+  if(!Number.isInteger(bedrooms)||bedrooms<0||(type==='apartment'&&![2,3,4].includes(bedrooms))||(type==='house'&&bedrooms<1)){
+   throw new Error('حدد عدد الغرف بشكل صحيح: الشقة غرفتان أو 3 أو 4، والمنزل غرفة واحدة على الأقل.');
+  }
+  if(!Number.isInteger(bathrooms)||bathrooms<0){
+   throw new Error('عدد الحمامات يجب أن يكون عدداً صحيحاً لا يقل عن صفر.');
+  }
+  if(!Number.isInteger(capacity)||capacity<1||(capacityChoice==='more'&&capacity<8)){
+   throw new Error('حدد السعة بعدد صحيح. عند اختيار أكثر من 7 أدخل العدد الفعلي ابتداءً من 8.');
+  }
+  if(priceText===''||!Number.isFinite(price)||price<0){
+   throw new Error('أدخل السعر لليلة. يجب أن يكون رقماً صحيحاً أو عشرياً غير سالب.');
   }
 
   if(photos.length === 0){
