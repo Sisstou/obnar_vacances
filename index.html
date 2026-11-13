@@ -137,6 +137,7 @@ placeholder="رقم الهاتف">
 
 
 <div id="ownerArea">
+<div id="ownerVerificationArea" class="hidden">
 <hr>
 <h3>طلب توثيق المالك</h3>
 <p class="small">ارفع وثيقة تثبت صفتك كمالك. لا يمكن نشر إقامة قبل موافقة الإدارة.</p>
@@ -145,6 +146,7 @@ placeholder="رقم الهاتف">
 accept="image/jpeg,image/png,image/webp,application/pdf">
 
 <button onclick="submitVerification()">إرسال طلب التوثيق</button>
+</div>
 
 <div id="ownerPropertyArea" class="hidden">
 
@@ -512,6 +514,7 @@ async function showUser(){
  adminArea.classList.add('hidden');
 
  document.getElementById('ownerArea').classList.remove('hidden');
+ document.getElementById('ownerVerificationArea').classList.add('hidden');
 document.getElementById('editFullName').value =
   currentProfile?.full_name || '';
 
@@ -560,8 +563,10 @@ if(currentProfile.role === 'owner'){
 if(currentProfile.role === 'traveler'){
  document.getElementById('travelerBookingArea')
   .classList.remove('hidden');
+ document.getElementById('ownerVerificationArea')
+  .classList.remove('hidden');
 }
-   msg('الحساب ليس مديراً. معرف الدخول: '+userId);
+   msg('');
 
   }
 
