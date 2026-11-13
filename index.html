@@ -48,6 +48,9 @@ button:disabled{opacity:.5}
 .property{background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 9px #ddd}
 .property img{width:100%;height:180px;object-fit:cover;background:#dcecf5}
 .property .info{padding:14px}
+.property-amenities-preview{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.property-amenities-preview span{display:inline-block;background:#eef5f8;color:#174b68;border:1px solid #d8e6ed;border-radius:20px;padding:4px 9px;font-size:12px}
+.property-amenities-preview .amenities-more{background:#f5f7f9;color:#526574}
 .price{color:#087eae;font-weight:bold;font-size:19px}
 .small{font-size:13px;color:#687b89}
 #globalMessage{text-align:center;padding:10px;color:#087eae;font-weight:bold}
@@ -2400,6 +2403,22 @@ function renderProperties(){
   details.textContent=(p.property_type==='studio'?'استوديو':p.property_type==='apartment'?'شقة - '+p.bedrooms+' غرف':'منزل مستقل - '+p.bedrooms+' غرف')+' | الحمامات: '+p.bathrooms+' | حتى '+p.capacity+' أشخاص';
 
   info.appendChild(details);
+
+  const amenityPreview=document.createElement('div');
+  amenityPreview.className='property-amenities-preview';
+  const propertyAmenities=propertyAmenitiesById[p.id]||[];
+  propertyAmenities.slice(0,3).forEach(a=>{
+   const tag=document.createElement('span');
+   tag.textContent=a.name_ar;
+   amenityPreview.appendChild(tag);
+  });
+  if(propertyAmenities.length>3){
+   const more=document.createElement('span');
+   more.className='amenities-more';
+   more.textContent='+'+(propertyAmenities.length-3)+' مزايا أخرى';
+   amenityPreview.appendChild(more);
+  }
+  if(propertyAmenities.length) info.appendChild(amenityPreview);
 
   const price = document.createElement('p');
   price.className = 'price';
