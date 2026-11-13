@@ -1721,6 +1721,18 @@ async function loadPropertyRequests(){
     ' أشخاص | السعر: '+property.price_per_night+' دج لليلة';
    card.appendChild(details);
 
+   const roomsInfo = document.createElement('p');
+   const typeLabel = property.property_type === 'studio' ? 'استوديو' :
+    property.property_type === 'apartment' ? 'شقة' :
+    property.property_type === 'house' ? 'منزل مستقل' : property.property_type;
+   const bedroomsLabel = property.property_type === 'studio' ?
+    'عدد غرف النوم: لا ينطبق (استوديو)' :
+    'عدد الغرف: '+property.bedrooms;
+   roomsInfo.textContent = 'نوع الإقامة: '+typeLabel+
+    ' | '+bedroomsLabel+
+    ' | عدد الحمامات: '+property.bathrooms;
+   card.appendChild(roomsInfo);
+
    const description = document.createElement('p');
    description.textContent = property.description_ar || 'لا يوجد وصف';
    card.appendChild(description);
