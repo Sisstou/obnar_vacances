@@ -25,6 +25,12 @@ button{background:#087eae;color:white;padding:12px 20px;border:0;border-radius:8
 button.secondary{background:#526777}
 button:disabled{opacity:.5}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:15px;max-width:1100px;margin:auto}
+.admin-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;max-width:1100px;margin:12px auto}
+.stat-card{background:#fff;border:1px solid #dce5eb;border-radius:10px;padding:14px;text-align:center;box-shadow:0 2px 7px #ddd}
+.stat-card span{display:block;font-size:13px;color:#526777;margin-bottom:8px}
+.stat-card strong{font-size:22px;color:#063b60}
+.admin-booking-card{max-width:900px}
+.admin-booking-card p{margin:8px 0}
 .property{background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 9px #ddd}
 .property img{width:100%;height:180px;object-fit:cover;background:#dcecf5}
 .property .info{padding:14px}
@@ -243,13 +249,31 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 <div id="verificationRequests">
   <p>طلبات التوثيق ستظهر هنا.</p>
 </div>
-<h3>📋 متابعة جميع الحجوزات</h3>
+<h3>📊 مؤشرات الحجوزات والدفع</h3>
+<div id="adminBookingStats" class="admin-stats">
+  <div class="stat-card"><span>إجمالي الحجوزات</span><strong>—</strong></div>
+  <div class="stat-card"><span>الحجوزات النشطة</span><strong>—</strong></div>
+  <div class="stat-card"><span>الحجوزات الملغاة</span><strong>—</strong></div>
+  <div class="stat-card"><span>وصولات تنتظر التحقق</span><strong>—</strong></div>
+  <div class="stat-card"><span>تسبيقات مطلوبة</span><strong>—</strong></div>
+  <div class="stat-card"><span>تسبيقات تم التحقق منها</span><strong>—</strong></div>
+</div>
 
-<button type="button" onclick="loadAdminBookings()">
-  عرض جميع الحجوزات
-</button>
+<h3>📋 متابعة جميع الحجوزات</h3>
+<label for="adminBookingFilter">تصفية الحجوزات</label>
+<select id="adminBookingFilter" onchange="filterAdminBookings()">
+  <option value="all">جميع الحجوزات</option>
+  <option value="active">الحجوزات النشطة</option>
+  <option value="pending">بانتظار رد المالك</option>
+  <option value="awaiting_payment">بانتظار التسبيق</option>
+  <option value="receipt_submitted">وصل مرفوع - ينتظر التحقق</option>
+  <option value="verified">تم التحقق من الدفع</option>
+  <option value="cancelled">الحجوزات الملغاة</option>
+  <option value="rejected">الحجوزات المرفوضة</option>
+</select>
+<button type="button" onclick="loadAdminBookings()">تحديث بيانات الحجوزات</button>
 <div id="adminBookings">
-  <p>اضغط لعرض الحجوزات وحالاتها.</p>
+  <p>اضغط على تحديث بيانات الحجوزات لعرض المؤشرات والقائمة.</p>
 </div>
 
 <h3>🏠 طلبات الإقامات الجديدة</h3>
@@ -1082,15 +1106,114 @@ async function submitSavedProperty(){
  }
 
 }
-async function loadAdminBookings(){
+let adminBookingCache = [];
 
+function renderAdminBookingStats(bookings){
+ const active = bookings.filter(b=>['pending','awaiting_payment','confirmed'].includes(b.status));
+ const cancelled = bookings.filter(b=>b.status === 'cancelled');
+ const receipts = bookings.filter(b=>b.payment_status === 'receipt_submitted');
+ const outstanding = bookings
+  .filter(b=>b.status === 'awaiting_payment' && b.payment_status !== 'verified')
+  .reduce((sum,b)=>sum + Number(b.deposit_amount || 0),0);
+ const verified = bookings
+  .filter(b=>b.payment_status === 'verified')
+  .reduce((sum,b)=>sum + Number(b.deposit_amount || 0),0);
+
+ const stats = [
+  ['إجمالي الحجوزات',bookings.length],
+  ['الحجوزات النشطة',active.length],
+  ['الحجوزات الملغاة',cancelled.length],
+  ['وصولات تنتظر التحقق',receipts.length],
+  ['تسبيقات مطلوبة',outstanding.toLocaleString('fr-DZ')+' دج'],
+  ['تسبيقات تم التحقق منها',verified.toLocaleString('fr-DZ')+' دج']
+ ];
+ const container = document.getElementById('adminBookingStats');
+ if(!container) return;
+ container.innerHTML = '';
+ stats.forEach(([label,value])=>{
+  const card = document.createElement('div');
+  card.className = 'stat-card';
+  const caption = document.createElement('span');
+  caption.textContent = label;
+  const number = document.createElement('strong');
+  number.textContent = value;
+  card.append(caption,number);
+  container.appendChild(card);
+ });
+}
+
+function filterAdminBookings(){
+ const filter = document.getElementById('adminBookingFilter')?.value || 'all';
+ renderAdminBookingList(adminBookingCache,filter);
+}
+
+function renderAdminBookingList(bookings,filter='all'){
  const container = document.getElementById('adminBookings');
  if(!container) return;
+ const filtered = bookings.filter(b=>{
+  if(filter === 'all') return true;
+  if(filter === 'active') return ['pending','awaiting_payment','confirmed'].includes(b.status);
+  if(filter === 'receipt_submitted') return b.payment_status === 'receipt_submitted';
+  if(filter === 'verified') return b.payment_status === 'verified';
+  return b.status === filter;
+ });
+ container.innerHTML = '';
+ if(!filtered.length){
+  container.textContent = 'لا توجد حجوزات ضمن هذا التصنيف.';
+  return;
+ }
 
+ const properties = window.adminBookingProperties || [];
+ const profiles = window.adminBookingProfiles || [];
+ const statusNames = {
+  pending:'بانتظار رد المالك',
+  awaiting_payment:'بانتظار التسبيق',
+  confirmed:'مؤكد',
+  rejected:'مرفوض',
+  cancelled:'ملغى',
+  completed:'مكتمل'
+ };
+ const paymentNames = {
+  unpaid:'لم يتم الدفع',
+  receipt_submitted:'تم رفع الوصل - ينتظر التحقق',
+  verified:'تم التحقق من الدفع',
+  rejected:'تم رفض الوصل'
+ };
+
+ filtered.forEach(b=>{
+  const property = properties.find(p=>p.id === b.property_id);
+  const traveler = profiles.find(p=>p.id === b.traveler_id);
+  const card = document.createElement('div');
+  card.className = 'panel admin-booking-card';
+  const title = document.createElement('h3');
+  title.textContent = property?.title_ar || 'إقامة غير معروفة';
+  card.appendChild(title);
+  const lines = [
+   'المصطاف: '+(traveler?.full_name || 'غير متوفر'),
+   'الوصول: '+b.check_in,
+   'المغادرة: '+b.check_out,
+   'عدد الأشخاص: '+b.guests,
+   'السعر الإجمالي: '+Number(b.total_price || 0).toLocaleString('fr-DZ')+' دج',
+   'حالة الحجز: '+(statusNames[b.status] || b.status || 'غير محددة'),
+   'التسبيق المطلوب: '+Number(b.deposit_amount || 0).toLocaleString('fr-DZ')+' دج',
+   'حالة الدفع: '+(paymentNames[b.payment_status] || b.payment_status || 'غير محددة'),
+   'آخر أجل للدفع: '+(b.payment_due_at ? new Date(b.payment_due_at).toLocaleString('ar-DZ') : 'غير محدد')
+  ];
+  lines.forEach(value=>{
+   const p = document.createElement('p');
+   p.textContent = value;
+   card.appendChild(p);
+  });
+  container.appendChild(card);
+ });
+}
+
+async function loadAdminBookings(){
+ const container = document.getElementById('adminBookings');
+ if(!container) return;
  container.textContent = 'جارٍ تحميل جميع الحجوزات...';
 
  try{
-
   const {data:isAdmin,error:adminError} = await db.rpc('is_main_admin');
   if(adminError) throw adminError;
   if(isAdmin !== true) throw new Error('غير مسموح لك بعرض الحجوزات.');
@@ -1099,19 +1222,10 @@ async function loadAdminBookings(){
    .from('bookings')
    .select('id,property_id,traveler_id,check_in,check_out,guests,total_price,status,payment_status,deposit_amount,payment_due_at,created_at')
    .order('created_at',{ascending:false});
-
   if(error) throw error;
 
-  container.innerHTML = '';
-
-  if(!bookings || bookings.length === 0){
-   container.textContent = 'لا توجد حجوزات حالياً.';
-   return;
-  }
-
-  const propertyIds = [...new Set(bookings.map(b=>b.property_id).filter(Boolean))];
-  const travelerIds = [...new Set(bookings.map(b=>b.traveler_id).filter(Boolean))];
-
+  const propertyIds = [...new Set((bookings || []).map(b=>b.property_id).filter(Boolean))];
+  const travelerIds = [...new Set((bookings || []).map(b=>b.traveler_id).filter(Boolean))];
   const [propertyResult,profileResult] = await Promise.all([
    propertyIds.length
     ? db.from('properties').select('id,title_ar,owner_id').in('id',propertyIds)
@@ -1120,64 +1234,19 @@ async function loadAdminBookings(){
     ? db.from('profiles').select('id,full_name,phone').in('id',travelerIds)
     : Promise.resolve({data:[],error:null})
   ]);
-
   if(propertyResult.error) throw propertyResult.error;
   if(profileResult.error) throw profileResult.error;
 
-  const properties = propertyResult.data || [];
-  const profiles = profileResult.data || [];
-
-  const statusNames = {
-   pending:'بانتظار رد المالك',
-   awaiting_payment:'بانتظار التسبيق',
-   confirmed:'مؤكد',
-   rejected:'مرفوض',
-   cancelled:'ملغى'
-  };
-
-  const paymentNames = {
-   unpaid:'لم يتم الدفع',
-   receipt_submitted:'تم رفع الوصل',
-   verified:'تم التحقق من الدفع',
-   rejected:'تم رفض الوصل'
-  };
-
-  bookings.forEach(b=>{
-   const property = properties.find(p=>p.id === b.property_id);
-   const traveler = profiles.find(p=>p.id === b.traveler_id);
-   const card = document.createElement('div');
-   card.className = 'panel';
-
-   const title = document.createElement('h3');
-   title.textContent = property?.title_ar || 'إقامة غير معروفة';
-   card.appendChild(title);
-
-   const lines = [
-    'المصطاف: '+(traveler?.full_name || 'غير متوفر'),
-    'الوصول: '+b.check_in,
-    'المغادرة: '+b.check_out,
-    'عدد الأشخاص: '+b.guests,
-    'السعر الإجمالي: '+b.total_price+' دج',
-    'حالة الحجز: '+(statusNames[b.status] || b.status),
-    'التسبيق المطلوب: '+(b.deposit_amount || 0)+' دج',
-    'حالة الدفع: '+(paymentNames[b.payment_status] || b.payment_status || 'غير محددة'),
-    'آخر أجل للدفع: '+(b.payment_due_at ? new Date(b.payment_due_at).toLocaleString('ar-DZ') : 'غير محدد')
-   ];
-
-   lines.forEach(value=>{
-    const p = document.createElement('p');
-    p.textContent = value;
-    card.appendChild(p);
-   });
-
-   container.appendChild(card);
-  });
-
+  adminBookingCache = bookings || [];
+  window.adminBookingProperties = propertyResult.data || [];
+  window.adminBookingProfiles = profileResult.data || [];
+  renderAdminBookingStats(adminBookingCache);
+  filterAdminBookings();
  }catch(e){
   container.textContent = 'تعذر تحميل الحجوزات: '+e.message;
  }
-
 }
+
 
 async function loadPropertyRequests(){
 
