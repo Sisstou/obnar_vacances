@@ -34,7 +34,7 @@ textarea{min-height:90px;resize:vertical}.field-label{display:block;margin-top:1
 @media(max-width:650px){.owner-form-grid{grid-template-columns:1fr;gap:10px}.owner-form-section.full{grid-column:auto}.owner-form-section{padding:13px}}
 .detail-modal{position:fixed;inset:0;background:#102a3bcc;z-index:20;overflow:auto;padding:18px}
 .detail-content{background:#fff;max-width:850px;margin:25px auto;padding:20px;border-radius:14px}
-.detail-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px}.detail-gallery img{width:100%;height:170px;object-fit:cover;border-radius:8px}
+.detail-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px}.detail-gallery img{width:100%;height:170px;object-fit:cover;border-radius:8px;cursor:zoom-in}\n.image-lightbox{position:fixed;inset:0;background:#071522ed;z-index:100;display:flex;align-items:center;justify-content:center;padding:18px}.image-lightbox img{max-width:95vw;max-height:88vh;object-fit:contain;border-radius:8px}.image-lightbox button{position:absolute;top:14px;right:14px}
 button{background:#087eae;color:white;padding:12px 20px;border:0;border-radius:8px;font-size:15px;cursor:pointer;margin:5px}
 button.secondary{background:#526777}
 button:disabled{opacity:.5}
@@ -107,7 +107,7 @@ footer{background:#063b60;color:white;text-align:center;padding:22px;margin-top:
 </div>
 
 <div id="properties" class="grid"></div>
-<div id="propertyDetailsModal" class="detail-modal hidden" role="dialog" aria-modal="true"><div class="detail-content"><button type="button" class="secondary" onclick="closePropertyDetails()">إغلاق ✕</button><h2 id="detailTitle"></h2><div id="detailGallery" class="detail-gallery"></div><div id="detailBody"></div><div id="detailActions"></div></div></div>
+<div id="propertyDetailsModal" class="detail-modal hidden" role="dialog" aria-modal="true"><div class="detail-content"><button type="button" class="secondary" onclick="closePropertyDetails()">إغلاق ✕</button><h2 id="detailTitle"></h2><div id="detailGallery" class="detail-gallery"></div><div id="detailBody"></div><div id="detailActions"></div></div></div>\n<div id="imageLightbox" class="image-lightbox hidden" role="dialog" aria-modal="true" aria-label="عرض الصورة بالحجم الكبير" onclick="if(event.target===this)closeImageLightbox()"><button type="button" class="secondary" onclick="closeImageLightbox()">إغلاق ✕</button><img id="lightboxImage" alt="صورة الإقامة بالحجم الكبير"></div>
 </section>
 
 <section id="account">
@@ -2589,7 +2589,7 @@ async function confirmBooking(){
 function openPropertyDetails(property){
  document.getElementById('detailTitle').textContent=property.title_ar||'تفاصيل الإقامة';
  const gallery=document.getElementById('detailGallery');gallery.innerHTML='';
- (property.images||[]).forEach(photo=>{const img=document.createElement('img');img.src=db.storage.from('property-images').getPublicUrl(photo.storage_path).data.publicUrl;img.alt='صورة الإقامة';gallery.appendChild(img);});
+ (property.images||[]).forEach(photo=>{const img=document.createElement('img');img.src=db.storage.from('property-images').getPublicUrl(photo.storage_path).data.publicUrl;img.alt='صورة الإقامة';img.addEventListener('click',()=>openImageLightbox(img.src));gallery.appendChild(img);});
  const body=document.getElementById('detailBody');body.innerHTML='';
  const loc=allLocations.find(l=>l.id===property.location_id);
  const kind=property.property_type==='studio'?'استوديو':property.property_type==='apartment'?'شقة':'منزل مستقل';
@@ -2602,7 +2602,7 @@ function openPropertyDetails(property){
  const actions=document.getElementById('detailActions');actions.innerHTML='';const book=document.createElement('button');book.textContent='احجز هذه الإقامة';book.onclick=()=>{closePropertyDetails();openBookingForm(property);};actions.appendChild(book);
  document.getElementById('propertyDetailsModal').classList.remove('hidden');
 }
-function closePropertyDetails(){document.getElementById('propertyDetailsModal').classList.add('hidden');}
+function closePropertyDetails(){document.getElementById('propertyDetailsModal').classList.add('hidden');}\nfunction openImageLightbox(src){const box=document.getElementById('imageLightbox');document.getElementById('lightboxImage').src=src;box.classList.remove('hidden');}\nfunction closeImageLightbox(){const box=document.getElementById('imageLightbox');box.classList.add('hidden');document.getElementById('lightboxImage').src='';}\ndocument.addEventListener('keydown',event=>{if(event.key==='Escape'){closeImageLightbox();}});
 
 function calculateBookingPrice(){
 
