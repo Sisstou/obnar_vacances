@@ -1673,10 +1673,18 @@ async function loadAdminBookings(){
 }
 
 
+let propertyRequestsLoading = false;
+
 async function loadPropertyRequests(){
 
+ if(propertyRequestsLoading) return;
+ propertyRequestsLoading = true;
+
  const container = document.getElementById('propertyRequests');
- if(!container) return;
+ if(!container){
+  propertyRequestsLoading = false;
+  return;
+ }
 
  container.textContent = 'جارٍ تحميل الإقامات...';
 
@@ -1845,6 +1853,8 @@ async function loadPropertyRequests(){
 
   container.textContent = 'تعذر تحميل الإقامات: '+e.message;
 
+ }finally{
+  propertyRequestsLoading = false;
  }
 
 }
