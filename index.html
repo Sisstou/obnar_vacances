@@ -24,7 +24,15 @@ input,select,textarea{width:100%;padding:12px;margin:7px 0;border:1px solid #ccd
 textarea{min-height:90px;resize:vertical}.field-label{display:block;margin-top:12px;font-weight:bold}
 .amenities-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:10px 0}
 .amenity-option{display:flex;align-items:center;gap:8px;background:#f5f8fa;border:1px solid #e1e8ed;border-radius:8px;padding:9px}
-.amenity-option input{width:auto;margin:0}.detail-modal{position:fixed;inset:0;background:#102a3bcc;z-index:20;overflow:auto;padding:18px}
+.amenity-option input{width:auto;margin:0}
+.owner-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:1050px;margin:14px auto}
+.owner-form-section{background:#fff;border:1px solid #e0e8ee;border-radius:12px;padding:16px;box-shadow:0 2px 8px #17324d0b;min-width:0}
+.owner-form-section h4{margin:0 0 10px;color:#063b60;font-size:17px}
+.owner-form-section p{margin:5px 0 10px}
+.owner-form-section.full{grid-column:1/-1}
+.owner-form-actions{text-align:center;margin:18px 0}
+@media(max-width:650px){.owner-form-grid{grid-template-columns:1fr;gap:10px}.owner-form-section.full{grid-column:auto}.owner-form-section{padding:13px}}
+.detail-modal{position:fixed;inset:0;background:#102a3bcc;z-index:20;overflow:auto;padding:18px}
 .detail-content{background:#fff;max-width:850px;margin:25px auto;padding:20px;border-radius:14px}
 .detail-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px}.detail-gallery img{width:100%;height:170px;object-fit:cover;border-radius:8px}
 button{background:#087eae;color:white;padding:12px 20px;border:0;border-radius:8px;font-size:15px;cursor:pointer;margin:5px}
@@ -168,44 +176,72 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 
 <hr>
 <h3>🏠 إضافة إقامة جديدة</h3>
+<p class="small">أدخل المعلومات الأساسية أولاً، ثم حدد السعة والمزايا وأضف الصور.</p>
 
-<input id="propertyTitleAr" placeholder="اسم الإقامة بالعربية">
-<input id="propertyTitleFr" placeholder="اسم الإقامة بالفرنسية">
+<div class="owner-form-grid">
+ <div class="owner-form-section">
+  <h4>1. معلومات الإقامة</h4>
+  <label class="field-label" for="propertyTitleAr">اسم الإقامة بالعربية</label>
+  <input id="propertyTitleAr" placeholder="مثال: منزل مطل على البحر">
+  <label class="field-label" for="propertyTitleFr">اسم الإقامة بالفرنسية</label>
+  <input id="propertyTitleFr" placeholder="Nom du logement">
+  <label class="field-label" for="propertyType">نوع الإقامة</label>
+  <select id="propertyType">
+   <option value="apartment">شقة</option>
+   <option value="studio">استوديو</option>
+   <option value="house">منزل مستقل</option>
+  </select>
+  <div id="propertyStudioNote" class="small hidden">الاستوديو: فضاء إقامة واحد، ولا يلزم تحديد عدد الغرف.</div>
+  <label class="field-label" for="propertyLocation">المنطقة</label>
+  <select id="propertyLocation"><option value="">اختر المنطقة</option></select>
+  <label class="field-label" for="propertyAddress">العنوان بالتفصيل</label>
+  <input id="propertyAddress" placeholder="العنوان أو وصف الوصول">
+ </div>
 
-<select id="propertyType">
-<option value="apartment">شقة</option>
-<option value="studio">استوديو</option>
-<option value="house">منزل مستقل</option>
-</select>
+ <div class="owner-form-section">
+  <h4>2. الغرف والسعة والسعر</h4>
+  <label class="field-label" for="propertyBedroomsSelect">عدد غرف الشقة</label>
+  <select id="propertyBedroomsSelect"><option value="2">غرفتان</option><option value="3" selected>3 غرف</option><option value="4">4 غرف</option></select>
+  <input id="propertyBedroomsHouse" class="hidden" type="number" min="1" step="1" value="3" placeholder="أدخل عدد غرف المنزل">
+  <label class="field-label" for="propertyBathrooms">عدد الحمامات</label>
+  <input id="propertyBathrooms" type="number" min="0" step="1" value="1">
+  <label class="field-label" for="propertyCapacitySelect">السعة القصوى</label>
+  <select id="propertyCapacitySelect">
+   <option value="1">شخص واحد</option><option value="2">شخصان</option><option value="3">3 أشخاص</option>
+   <option value="4">4 أشخاص</option><option value="5">5 أشخاص</option><option value="6">6 أشخاص</option>
+   <option value="7">7 أشخاص</option><option value="more">أكثر من 7 أشخاص</option>
+  </select>
+  <input id="propertyCapacityMore" class="hidden" type="number" min="8" step="1" placeholder="أدخل العدد الفعلي (8 أو أكثر)">
+  <label class="field-label" for="propertyPrice">السعر لليلة بالدينار</label>
+  <input id="propertyPrice" type="number" min="0" step="100" placeholder="مثال: 5000">
+ </div>
 
-<select id="propertyLocation">
-<option value="">اختر المنطقة</option>
-</select>
+ <div class="owner-form-section">
+  <h4>3. الموقع والمزايا</h4>
+  <label class="field-label" for="propertyGoogleMaps">رابط الموقع على Google Maps</label>
+  <input id="propertyGoogleMaps" type="url" placeholder="https://maps.google.com/...">
+  <label class="field-label">مزايا الإقامة</label>
+  <p class="small">اختر المزايا المتوفرة فعلياً فقط، حتى يعرف الزائر ما يبرر السعر.</p>
+  <div id="amenitiesOptions" class="amenities-grid">جارٍ تحميل المزايا...</div>
+ </div>
 
-<input id="propertyAddress" placeholder="العنوان بالتفصيل">
+ <div class="owner-form-section">
+  <h4>4. وصف الإقامة</h4>
+  <label class="field-label" for="propertyDescriptionAr">الوصف بالعربية</label>
+  <textarea id="propertyDescriptionAr" placeholder="صف الإقامة وما يميزها، مثل الإطلالة والمسافة إلى الشاطئ والتجهيزات..."></textarea>
+  <label class="field-label" for="propertyDescriptionFr">Description en français</label>
+  <textarea id="propertyDescriptionFr" placeholder="Décrivez le logement et ses principaux atouts..."></textarea>
+ </div>
 
-<label class="field-label">عدد الغرف</label>
-<select id="propertyBedroomsSelect"><option value="2">غرفتان</option><option value="3" selected>3 غرف</option><option value="4">4 غرف</option></select>
-<input id="propertyBedroomsHouse" class="hidden" type="number" min="1" value="3" placeholder="عدد غرف المنزل">
-
-<label>عدد الحمامات</label>
-<input id="propertyBathrooms" type="number" min="0" value="1">
-
-<label class="field-label">السعة القصوى</label>
-<select id="propertyCapacitySelect"><option value="1">شخص واحد</option><option value="2">شخصان</option><option value="3">3 أشخاص</option><option value="4">4 أشخاص</option><option value="5">5 أشخاص</option><option value="6">6 أشخاص</option><option value="7">7 أشخاص</option><option value="more">أكثر من 7 أشخاص</option></select>
-<input id="propertyCapacityMore" class="hidden" type="number" min="8" placeholder="أدخل العدد الفعلي (8 أو أكثر)">
-
-<input id="propertyPrice" type="number" min="0" placeholder="السعر لليلة بالدينار">
-<label class="field-label">رابط الموقع على Google Maps</label><input id="propertyGoogleMaps" type="url" placeholder="https://maps.google.com/...">
-<label class="field-label">مزايا الإقامة</label><p class="small">اختر المزايا المتوفرة فعلياً في الإقامة فقط.</p><div id="amenitiesOptions" class="amenities-grid">جارٍ تحميل المزايا...</div>
-
-<textarea id="propertyDescriptionAr" placeholder="وصف الإقامة بالعربية"></textarea>
-<textarea id="propertyDescriptionFr" placeholder="وصف الإقامة بالفرنسية"></textarea>
-
-<label>صور الإقامة (حتى 5 ميغابايت للصورة)</label>
-<input id="propertyPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
-
-<button type="button" onclick="createProperty()">إرسال الإقامة للمراجعة</button>
+ <div class="owner-form-section full">
+  <h4>5. صور الإقامة</h4>
+  <p class="small">أضف صوراً واضحة. الحد الأقصى 10 صور، و5 ميغابايت لكل صورة.</p>
+  <input id="propertyPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+ </div>
+</div>
+<div class="owner-form-actions">
+ <button type="button" onclick="createProperty()">إرسال الإقامة للمراجعة</button>
+</div>
 </div>
 <div id="ownerImagesArea" class="hidden">
  <hr>
@@ -998,10 +1034,19 @@ approveBtn.onclick = async function(){
 
 function updatePropertyFormFields(){
  const type=document.getElementById('propertyType').value;
- const sel=document.getElementById('propertyBedroomsSelect'),house=document.getElementById('propertyBedroomsHouse');
- if(type==='studio'){sel.classList.add('hidden');house.classList.add('hidden');}
- else if(type==='house'){sel.classList.add('hidden');house.classList.remove('hidden');}
- else{sel.classList.remove('hidden');house.classList.add('hidden');}
+ const sel=document.getElementById('propertyBedroomsSelect');
+ const house=document.getElementById('propertyBedroomsHouse');
+ const studioNote=document.getElementById('propertyStudioNote');
+ const roomLabel=sel.previousElementSibling;
+ if(type==='studio'){
+  sel.classList.add('hidden');house.classList.add('hidden');studioNote.classList.remove('hidden');roomLabel.classList.add('hidden');
+ }else if(type==='house'){
+  sel.classList.add('hidden');house.classList.remove('hidden');studioNote.classList.add('hidden');roomLabel.textContent='عدد غرف المنزل';
+  roomLabel.classList.remove('hidden');
+ }else{
+  sel.classList.remove('hidden');house.classList.add('hidden');studioNote.classList.add('hidden');roomLabel.textContent='عدد غرف الشقة';
+  roomLabel.classList.remove('hidden');
+ }
 }
 function updateCapacityField(){document.getElementById('propertyCapacityMore').classList.toggle('hidden',document.getElementById('propertyCapacitySelect').value!=='more');}
 async function loadAmenities(){
