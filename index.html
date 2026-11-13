@@ -1725,6 +1725,19 @@ async function loadPropertyRequests(){
    description.textContent = property.description_ar || 'لا يوجد وصف';
    card.appendChild(description);
 
+   const mapsInfo = document.createElement('p');
+   if(property.google_maps_url){
+    const mapsLink = document.createElement('a');
+    mapsLink.href = property.google_maps_url;
+    mapsLink.target = '_blank';
+    mapsLink.rel = 'noopener noreferrer';
+    mapsLink.textContent = '📍 معاينة موقع الإقامة على Google Maps';
+    mapsInfo.appendChild(mapsLink);
+   }else{
+    mapsInfo.textContent = '📍 لم يضف المالك رابط Google Maps.';
+   }
+   card.appendChild(mapsInfo);
+
    const {data:images,error:imageError} = await db
     .from('property_images')
     .select('storage_path,is_cover')
