@@ -20,7 +20,13 @@ nav a{color:#063b60;text-decoration:none;margin:8px;font-weight:bold}
 .hero h2{font-size:27px}
 section{padding:22px 15px}
 .panel{background:white;padding:18px;border-radius:12px;max-width:550px;margin:12px auto;box-shadow:0 2px 10px #ddd}
-input,select{width:100%;padding:12px;margin:7px 0;border:1px solid #ccd5dc;border-radius:7px;font-size:15px}
+input,select,textarea{width:100%;padding:12px;margin:7px 0;border:1px solid #ccd5dc;border-radius:7px;font-size:15px}
+textarea{min-height:90px;resize:vertical}.field-label{display:block;margin-top:12px;font-weight:bold}
+.amenities-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:10px 0}
+.amenity-option{display:flex;align-items:center;gap:8px;background:#f5f8fa;border:1px solid #e1e8ed;border-radius:8px;padding:9px}
+.amenity-option input{width:auto;margin:0}.detail-modal{position:fixed;inset:0;background:#102a3bcc;z-index:20;overflow:auto;padding:18px}
+.detail-content{background:#fff;max-width:850px;margin:25px auto;padding:20px;border-radius:14px}
+.detail-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px}.detail-gallery img{width:100%;height:170px;object-fit:cover;border-radius:8px}
 button{background:#087eae;color:white;padding:12px 20px;border:0;border-radius:8px;font-size:15px;cursor:pointer;margin:5px}
 button.secondary{background:#526777}
 button:disabled{opacity:.5}
@@ -80,6 +86,9 @@ footer{background:#063b60;color:white;text-align:center;padding:22px;margin-top:
 <option value="3">3 أشخاص</option>
 <option value="4">4 أشخاص</option>
 <option value="5">5 أشخاص</option>
+<option value="6">6 أشخاص</option>
+<option value="7">7 أشخاص</option>
+<option value="8">أكثر من 7 أشخاص</option>
 </select>
 
 <button onclick="loadProperties()">بحث</button>
@@ -87,6 +96,7 @@ footer{background:#063b60;color:white;text-align:center;padding:22px;margin-top:
 </div>
 
 <div id="properties" class="grid"></div>
+<div id="propertyDetailsModal" class="detail-modal hidden" role="dialog" aria-modal="true"><div class="detail-content"><button type="button" class="secondary" onclick="closePropertyDetails()">إغلاق ✕</button><h2 id="detailTitle"></h2><div id="detailGallery" class="detail-gallery"></div><div id="detailBody"></div><div id="detailActions"></div></div></div>
 </section>
 
 <section id="account">
@@ -163,11 +173,9 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 <input id="propertyTitleFr" placeholder="اسم الإقامة بالفرنسية">
 
 <select id="propertyType">
-<option value="apartment">شقة</option>
-<option value="house">منزل</option>
-<option value="villa">فيلا</option>
 <option value="studio">استوديو</option>
-<option value="chalet">شاليه</option>
+<option value="apartment">شقة</option>
+<option value="house">منزل مستقل</option>
 </select>
 
 <select id="propertyLocation">
@@ -176,16 +184,20 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 
 <input id="propertyAddress" placeholder="العنوان بالتفصيل">
 
-<label>عدد الغرف</label>
-<input id="propertyBedrooms" type="number" min="0" value="1">
+<label class="field-label">عدد الغرف</label>
+<select id="propertyBedroomsSelect"><option value="2">غرفتان</option><option value="3" selected>3 غرف</option><option value="4">4 غرف</option></select>
+<input id="propertyBedroomsHouse" class="hidden" type="number" min="1" value="3" placeholder="عدد غرف المنزل">
 
 <label>عدد الحمامات</label>
 <input id="propertyBathrooms" type="number" min="0" value="1">
 
-<label>عدد الأشخاص</label>
-<input id="propertyCapacity" type="number" min="1" value="1">
+<label class="field-label">السعة القصوى</label>
+<select id="propertyCapacitySelect"><option value="1">شخص واحد</option><option value="2">شخصان</option><option value="3">3 أشخاص</option><option value="4">4 أشخاص</option><option value="5">5 أشخاص</option><option value="6">6 أشخاص</option><option value="7">7 أشخاص</option><option value="more">أكثر من 7 أشخاص</option></select>
+<input id="propertyCapacityMore" class="hidden" type="number" min="8" placeholder="أدخل العدد الفعلي (8 أو أكثر)">
 
 <input id="propertyPrice" type="number" min="0" placeholder="السعر لليلة بالدينار">
+<label class="field-label">رابط الموقع على Google Maps</label><input id="propertyGoogleMaps" type="url" placeholder="https://maps.google.com/...">
+<label class="field-label">مزايا الإقامة</label><p class="small">اختر المزايا المتوفرة فعلياً في الإقامة فقط.</p><div id="amenitiesOptions" class="amenities-grid">جارٍ تحميل المزايا...</div>
 
 <textarea id="propertyDescriptionAr" placeholder="وصف الإقامة بالعربية"></textarea>
 <textarea id="propertyDescriptionFr" placeholder="وصف الإقامة بالفرنسية"></textarea>
@@ -193,7 +205,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 <label>صور الإقامة (حتى 5 ميغابايت للصورة)</label>
 <input id="propertyPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
 
-<button onclick="submitSavedProperty()">إرسال الإقامة المحفوظة للمراجعة</button>
+<button type="button" onclick="createProperty()">إرسال الإقامة للمراجعة</button>
 </div>
 <div id="ownerImagesArea" class="hidden">
  <hr>
@@ -321,6 +333,8 @@ let currentUser = null;
 let currentProfile = null;
 let allProperties = [];
 let allLocations = [];
+let allAmenities = [];
+let propertyAmenitiesById = {};
 
 function msg(text){
  document.getElementById('globalMessage').textContent = text;
@@ -982,6 +996,26 @@ approveBtn.onclick = async function(){
 
 }
 
+function updatePropertyFormFields(){
+ const type=document.getElementById('propertyType').value;
+ const sel=document.getElementById('propertyBedroomsSelect'),house=document.getElementById('propertyBedroomsHouse');
+ if(type==='studio'){sel.classList.add('hidden');house.classList.add('hidden');}
+ else if(type==='house'){sel.classList.add('hidden');house.classList.remove('hidden');}
+ else{sel.classList.remove('hidden');house.classList.add('hidden');}
+}
+function updateCapacityField(){document.getElementById('propertyCapacityMore').classList.toggle('hidden',document.getElementById('propertyCapacitySelect').value!=='more');}
+async function loadAmenities(){
+ const el=document.getElementById('amenitiesOptions');
+ try{
+  const {data,error}=await db.from('amenities').select('id,name_ar,name_fr').order('name_ar');
+  if(error)throw error;allAmenities=data||[];el.innerHTML='';
+  allAmenities.forEach(a=>{const label=document.createElement('label');label.className='amenity-option';const input=document.createElement('input');input.type='checkbox';input.name='propertyAmenity';input.value=a.id;const span=document.createElement('span');span.textContent=a.name_ar;label.append(input,span);el.appendChild(label);});
+ }catch(e){el.textContent='تعذر تحميل المزايا: '+e.message;}
+}
+document.getElementById('propertyType').addEventListener('change',updatePropertyFormFields);
+document.getElementById('propertyCapacitySelect').addEventListener('change',updateCapacityField);
+updatePropertyFormFields();updateCapacityField();
+
 async function createProperty(){
 
  try{
@@ -995,9 +1029,12 @@ async function createProperty(){
   const type = document.getElementById('propertyType').value;
   const locationId = document.getElementById('propertyLocation').value;
   const address = document.getElementById('propertyAddress').value.trim();
-  const bedrooms = Number(document.getElementById('propertyBedrooms').value);
-  const bathrooms = Number(document.getElementById('propertyBathrooms').value);
-  const capacity = Number(document.getElementById('propertyCapacity').value);
+  const bedrooms=type==='studio'?0:(type==='house'?Number(document.getElementById('propertyBedroomsHouse').value):Number(document.getElementById('propertyBedroomsSelect').value));
+  const bathrooms=Number(document.getElementById('propertyBathrooms').value);
+  const capacityChoice=document.getElementById('propertyCapacitySelect').value;
+  const capacity=capacityChoice==='more'?Number(document.getElementById('propertyCapacityMore').value):Number(capacityChoice);
+  const googleMapsUrl=document.getElementById('propertyGoogleMaps').value.trim();
+  const selectedAmenities=Array.from(document.querySelectorAll('input[name="propertyAmenity"]:checked')).map(input=>input.value);
   const price = Number(document.getElementById('propertyPrice').value);
   const photos = Array.from(document.getElementById('propertyPhotos').files);
 
@@ -1005,8 +1042,8 @@ async function createProperty(){
    throw new Error('أكمل الاسم بالعربية والفرنسية والمنطقة والسعة.');
   }
 
-  if(bedrooms < 0 || bathrooms < 0 || capacity < 1 || price < 0){
-   throw new Error('تحقق من أعداد الغرف والحمامات والسعة والسعر.');
+  if(bedrooms<0||(type==="house"&&bedrooms<1)||bathrooms<0||capacity<1||(capacityChoice==="more"&&capacity<8)||price<0){
+   throw new Error('تحقق من عدد الغرف والحمامات والسعة والسعر. عند اختيار أكثر من 7 أدخل العدد الفعلي ابتداءً من 8.');
   }
 
   if(photos.length === 0){
@@ -1024,6 +1061,7 @@ async function createProperty(){
    throw new Error('الصور يجب أن تكون JPEG أو PNG أو WebP وأقل من 5 ميغابايت.');
   }
 
+  if(googleMapsUrl){let u;try{u=new URL(googleMapsUrl);}catch(_){throw new Error('رابط Google Maps غير صالح.');}if(u.protocol!=='https:'||!(u.hostname==='google.com'||u.hostname.endsWith('.google.com')||u.hostname==='maps.app.goo.gl'))throw new Error('أدخل رابط Google Maps صحيحاً يبدأ بـ https.');}
   msg('جارٍ إنشاء الإقامة...');
 
   const {data:property,error:insertError} = await db
@@ -1036,6 +1074,7 @@ async function createProperty(){
     description_ar:document.getElementById('propertyDescriptionAr').value.trim(),
     description_fr:document.getElementById('propertyDescriptionFr').value.trim(),
     address,
+    google_maps_url:googleMapsUrl||null,
     property_type:type,
     bedrooms,
     bathrooms,
@@ -1080,6 +1119,7 @@ async function createProperty(){
    .insert(imageRows);
 
   if(imageError) throw imageError;
+  if(selectedAmenities.length){const rows=selectedAmenities.map(amenity_id=>({property_id:property.id,amenity_id}));const {error:amenityError}=await db.from('property_amenities').insert(rows);if(amenityError)throw amenityError;}
 
   const {error:submitError} = await db
    .from('properties')
@@ -2184,14 +2224,17 @@ async function loadProperties(){
 
    if(result.error) throw result.error;
 
-   images = result.data || [];
+   images=result.data||[];
+   const {data:rows,error:amenityError}=await db.from('property_amenities').select('property_id,amenity_id').in('property_id',ids);
+   if(amenityError)throw amenityError;
+   propertyAmenitiesById={};(rows||[]).forEach(row=>{const a=allAmenities.find(item=>item.id===row.amenity_id);if(a){if(!propertyAmenitiesById[row.property_id])propertyAmenitiesById[row.property_id]=[];propertyAmenitiesById[row.property_id].push(a);}});
 
   }
 
   allProperties.forEach(p=>{
 
-   p.cover = images.find(i=>i.property_id===p.id && i.is_cover)
-    || images.find(i=>i.property_id===p.id);
+   p.images=images.filter(i=>i.property_id===p.id);
+   p.cover=p.images.find(i=>i.is_cover)||p.images[0];
 
   });
 
@@ -2248,7 +2291,8 @@ function renderProperties(){
 
  const term = document.getElementById('searchText').value.trim().toLowerCase();
  const locId = document.getElementById('locationFilter').value;
- const guests = Number(document.getElementById('guestFilter').value);
+ const guestChoice=document.getElementById('guestFilter').value;
+ const guests=Number(guestChoice);
 
  const filtered = allProperties.filter(p=>{
 
@@ -2264,7 +2308,7 @@ function renderProperties(){
 
   return (!term || text.includes(term))
    && (!locId || p.location_id===locId)
-   && Number(p.capacity)>=guests;
+   && (guestChoice==='8'?Number(p.capacity)>7:Number(p.capacity)>=guests);
 
  });
 
@@ -2308,10 +2352,7 @@ function renderProperties(){
   info.appendChild(place);
 
   const details = document.createElement('p');
-  details.textContent =
-   'الغرف: '+p.bedrooms+
-   ' | الحمامات: '+p.bathrooms+
-   ' | السعة: '+p.capacity+' أشخاص';
+  details.textContent=(p.property_type==='studio'?'استوديو':p.property_type==='apartment'?'شقة - '+p.bedrooms+' غرف':'منزل مستقل - '+p.bedrooms+' غرف')+' | الحمامات: '+p.bathrooms+' | حتى '+p.capacity+' أشخاص';
 
   info.appendChild(details);
 
@@ -2321,6 +2362,7 @@ function renderProperties(){
 
     info.appendChild(price);
 
+  const detailsButton=document.createElement('button');detailsButton.className='secondary';detailsButton.textContent='عرض التفاصيل';detailsButton.onclick=()=>openPropertyDetails(p);info.appendChild(detailsButton);
   const bookButton = document.createElement('button');
   bookButton.textContent = 'احجز الآن';
 
@@ -2427,6 +2469,24 @@ async function confirmBooking(){
  }
 
 }
+function openPropertyDetails(property){
+ document.getElementById('detailTitle').textContent=property.title_ar||'تفاصيل الإقامة';
+ const gallery=document.getElementById('detailGallery');gallery.innerHTML='';
+ (property.images||[]).forEach(photo=>{const img=document.createElement('img');img.src=db.storage.from('property-images').getPublicUrl(photo.storage_path).data.publicUrl;img.alt='صورة الإقامة';gallery.appendChild(img);});
+ const body=document.getElementById('detailBody');body.innerHTML='';
+ const loc=allLocations.find(l=>l.id===property.location_id);
+ const kind=property.property_type==='studio'?'استوديو':property.property_type==='apartment'?'شقة':'منزل مستقل';
+ ['الموقع: '+(loc?.name_ar||property.address||'جيجل'),'النوع: '+kind,'عدد الغرف: '+(property.property_type==='studio'?'استوديو':property.bedrooms),'عدد الحمامات: '+property.bathrooms,'السعة: '+property.capacity+' أشخاص','السعر: '+property.price_per_night+' '+property.currency+' لليلة',property.description_ar||'لا يوجد وصف إضافي.'].forEach(t=>{const p=document.createElement('p');p.textContent=t;body.appendChild(p);});
+ const h=document.createElement('h3');h.textContent='مزايا الإقامة';body.appendChild(h);
+ const list=document.createElement('div');list.className='amenities-grid';
+ (propertyAmenitiesById[property.id]||[]).forEach(a=>{const item=document.createElement('span');item.className='amenity-option';item.textContent='✓ '+a.name_ar;list.appendChild(item);});
+ if(!list.children.length){const p=document.createElement('p');p.textContent='لم يحدد المالك مزايا إضافية.';list.appendChild(p);}body.appendChild(list);
+ if(property.google_maps_url){const a=document.createElement('a');a.href=property.google_maps_url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='📍 افتح موقع الإقامة على Google Maps';body.appendChild(a);}
+ const actions=document.getElementById('detailActions');actions.innerHTML='';const book=document.createElement('button');book.textContent='احجز هذه الإقامة';book.onclick=()=>{closePropertyDetails();openBookingForm(property);};actions.appendChild(book);
+ document.getElementById('propertyDetailsModal').classList.remove('hidden');
+}
+function closePropertyDetails(){document.getElementById('propertyDetailsModal').classList.add('hidden');}
+
 function calculateBookingPrice(){
 
  if(!selectedProperty) return;
@@ -2497,6 +2557,7 @@ db.auth.onAuthStateChange((event)=>{
 
  await refreshUser();
  await loadLocations();
+ await loadAmenities();
  await loadProperties();
 
 })();
