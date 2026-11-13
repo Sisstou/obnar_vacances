@@ -1205,6 +1205,99 @@ function renderAdminBookingList(bookings,filter='all'){
    p.textContent = value;
    card.appendChild(p);
   });
+
+  if(b.payment_rejection_reason){
+   const reason = document.createElement('p');
+   reason.textContent = 'سبب رفض الوصل السابق: '+b.payment_rejection_reason;
+   card.appendChild(reason);
+  }
+
+  if(b.payment_status === 'receipt_submitted' &&
+     b.status === 'awaiting_payment' &&
+     b.payment_receipt_path){
+
+   const receiptInfo = document.createElement('p');
+   receiptInfo.textContent = 'تاريخ رفع الوصل: '+(
+    b.receipt_uploaded_at
+     ? new Date(b.receipt_uploaded_at).toLocaleString('ar-DZ')
+     : 'غير متوفر'
+   );
+   card.appendChild(receiptInfo);
+
+   const viewReceipt = document.createElement('button');
+   viewReceipt.textContent = 'عرض وصل التحويل';
+   viewReceipt.onclick = async ()=>{
+    viewReceipt.disabled = true;
+    try{
+     const {data,error} = await db.storage
+      .from('payment-receipts')
+      .createSignedUrl(b.payment_receipt_path,300);
+     if(error) throw error;
+     window.open(data.signedUrl,'_blank','noopener');
+    }catch(e){
+     msg('تعذر عرض الوصل: '+e.message);
+    }finally{
+     viewReceipt.disabled = false;
+    }
+   };
+   card.appendChild(viewReceipt);
+
+   const verifyReceipt = document.createElement('button');
+   verifyReceipt.textContent = 'تأكيد الدفع والحجز';
+   verifyReceipt.onclick = async ()=>{
+    if(!confirm('هل تحققت فعلياً من وصول مبلغ التسبيق؟ سيصبح الحجز مؤكداً.')) return;
+    verifyReceipt.disabled = true;
+    try{
+     const {error} = await db.rpc('admin_review_payment_receipt',{
+      p_booking_id:b.id,
+      p_action:'verify',
+      p_reason:null
+     });
+     if(error) throw error;
+     msg('تم التحقق من التسبيق وتأكيد الحجز.');
+     await loadAdminBookings();
+    }catch(e){
+     msg('تعذر تأكيد الدفع: '+e.message);
+     verifyReceipt.disabled = false;
+    }
+   };
+   card.appendChild(verifyReceipt);
+
+   const rejectReceipt = document.createElement('button');
+   rejectReceipt.className = 'secondary';
+   rejectReceipt.textContent = 'رفض الوصل';
+   rejectReceipt.onclick = async ()=>{
+    const reason = prompt('أدخل سبب رفض الوصل ليظهر للمصطاف:');
+    if(reason === null) return;
+    if(reason.trim().length < 3){
+     msg('اكتب سبباً واضحاً لا يقل عن 3 أحرف.');
+     return;
+    }
+    if(!confirm('تأكيد رفض الوصل؟ سيتمكن المصطاف من رفع وصل جديد ما دام أجل الدفع سارياً.')) return;
+    rejectReceipt.disabled = true;
+    try{
+     const {error} = await db.rpc('admin_review_payment_receipt',{
+      p_booking_id:b.id,
+      p_action:'reject',
+      p_reason:reason.trim()
+     });
+     if(error) throw error;
+     msg('تم رفض الوصل وتسجيل السبب.');
+     await loadAdminBookings();
+    }catch(e){
+     msg('تعذر رفض الوصل: '+e.message);
+     rejectReceipt.disabled = false;
+    }
+   };
+   card.appendChild(rejectReceipt);
+  }
+
+  if(b.payment_reviewed_at){
+   const reviewed = document.createElement('p');
+   reviewed.textContent = 'تاريخ المراجعة: '+new Date(b.payment_reviewed_at).toLocaleString('ar-DZ');
+   card.appendChild(reviewed);
+  }
+
   container.appendChild(card);
  });
 }
@@ -1221,7 +1314,7 @@ async function loadAdminBookings(){
 
   const {data:bookings,error} = await db
    .from('bookings')
-   .select('id,property_id,traveler_id,check_in,check_out,guests,total_price,status,payment_status,deposit_amount,payment_due_at,created_at')
+   .select('id,property_id,traveler_id,check_in,check_out,guests,total_price,status,payment_status,deposit_amount,payment_due_at,payment_receipt_path,receipt_uploaded_at,payment_rejection_reason,payment_reviewed_at,payment_reviewed_by,created_at')
    .order('created_at',{ascending:false});
   if(error) throw error;
 
