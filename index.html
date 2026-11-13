@@ -1714,6 +1714,7 @@ async function loadTravelerBookings(){
     total_price,
     status,
     payment_status,
+    payment_rejection_reason,
     deposit_amount,
     payment_due_at,
     properties(title_ar)
@@ -1781,6 +1782,12 @@ payment.textContent =
  'حالة الدفع: '+(paymentNames[b.payment_status] || b.payment_status);
 item.appendChild(payment);
 
+if(b.payment_status === 'rejected' && b.payment_rejection_reason){
+ const rejectionReason = document.createElement('p');
+ rejectionReason.textContent = 'سبب رفض الوصل: '+b.payment_rejection_reason;
+ item.appendChild(rejectionReason);
+}
+
 if(b.payment_due_at){
  const deadline = document.createElement('p');
  deadline.textContent =
@@ -1789,7 +1796,7 @@ if(b.payment_due_at){
 }
    if(
  b.status === 'awaiting_payment' &&
- b.payment_status === 'unpaid' &&
+ ['unpaid','rejected'].includes(b.payment_status) &&
  b.payment_due_at &&
  new Date(b.payment_due_at) > new Date()
 ){
