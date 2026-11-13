@@ -105,6 +105,15 @@ footer{background:#063b60;color:white;text-align:center;padding:22px;margin-top:
 <input id="loginPassword" type="password" placeholder="كلمة المرور">
 
 <button onclick="login()">دخول</button>
+<button type="button" class="secondary" onclick="sendPasswordReset()">نسيت كلمة المرور؟</button>
+</div>
+
+<div id="passwordRecoveryArea" class="panel hidden">
+<h3>🔐 تعيين كلمة مرور جديدة</h3>
+<p>أدخل كلمة مرور جديدة لحسابك.</p>
+<input id="newPassword" type="password" placeholder="كلمة المرور الجديدة (6 أحرف على الأقل)" autocomplete="new-password">
+<input id="confirmNewPassword" type="password" placeholder="تأكيد كلمة المرور الجديدة" autocomplete="new-password">
+<button type="button" onclick="updateRecoveredPassword()">حفظ كلمة المرور الجديدة</button>
 </div>
 
 <div id="userArea" class="hidden">
@@ -412,6 +421,85 @@ function showGuest(){
 
  document.getElementById('authForms').classList.remove('hidden');
  document.getElementById('userArea').classList.add('hidden');
+
+}
+
+function showPasswordRecovery(){
+
+ document.getElementById('authForms').classList.add('hidden');
+ document.getElementById('userArea').classList.add('hidden');
+ document.getElementById('passwordRecoveryArea').classList.remove('hidden');
+ msg('افتحنا صفحة تعيين كلمة مرور جديدة. أدخل كلمة المرور الجديدة مرتين.');
+
+}
+
+async function sendPasswordReset(){
+
+ const email = document.getElementById('loginEmail').value.trim();
+
+ if(!email){
+  msg('أدخل البريد الإلكتروني في خانة تسجيل الدخول أولاً.');
+  document.getElementById('loginEmail').focus();
+  return;
+ }
+
+ msg('جارٍ إرسال رابط استرجاع كلمة المرور...');
+
+ try{
+
+  const redirectTo = window.location.origin + window.location.pathname;
+
+  const {error} = await db.auth.resetPasswordForEmail(email,{
+   redirectTo
+  });
+
+  if(error) throw error;
+
+  msg('إذا كان البريد مسجلاً، فستصلك رسالة تحتوي على رابط إعادة تعيين كلمة المرور. تحقق أيضاً من مجلد الرسائل غير المرغوب فيها.');
+
+ }catch(e){
+
+  msg('تعذر إرسال رابط الاسترجاع: '+e.message);
+
+ }
+
+}
+
+async function updateRecoveredPassword(){
+
+ const password = document.getElementById('newPassword').value;
+ const confirmation = document.getElementById('confirmNewPassword').value;
+
+ if(password.length < 6){
+  msg('كلمة المرور يجب أن تتكون من 6 أحرف على الأقل.');
+  return;
+ }
+
+ if(password !== confirmation){
+  msg('كلمتا المرور غير متطابقتين.');
+  return;
+ }
+
+ msg('جارٍ تحديث كلمة المرور...');
+
+ try{
+
+  const {error} = await db.auth.updateUser({password});
+
+  if(error) throw error;
+
+  document.getElementById('passwordRecoveryArea').classList.add('hidden');
+  document.getElementById('newPassword').value = '';
+  document.getElementById('confirmNewPassword').value = '';
+
+  await refreshUser();
+  msg('تم تحديث كلمة المرور بنجاح. يمكنك الآن استعمال كلمة المرور الجديدة.');
+
+ }catch(e){
+
+  msg('تعذر تحديث كلمة المرور: '+e.message);
+
+ }
 
 }
 
@@ -1914,7 +2002,12 @@ function resetSearch(){
 
 }
 
-db.auth.onAuthStateChange(()=>{
+db.auth.onAuthStateChange((event)=>{
+
+ if(event === 'PASSWORD_RECOVERY'){
+  showPasswordRecovery();
+  return;
+ }
 
  setTimeout(refreshUser,0);
 
