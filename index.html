@@ -272,6 +272,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
   <option value="rejected">الحجوزات المرفوضة</option>
 </select>
 <button type="button" onclick="loadAdminBookings()">تحديث بيانات الحجوزات</button>
+<p id="adminBookingsRefreshStatus" role="status" aria-live="polite" style="margin:8px 0;color:#64748b"></p>
 <div id="adminBookings">
   <p>اضغط على تحديث بيانات الحجوزات لعرض المؤشرات والقائمة.</p>
 </div>
@@ -1305,7 +1306,8 @@ function renderAdminBookingList(bookings,filter='all'){
 async function loadAdminBookings(){
  const container = document.getElementById('adminBookings');
  if(!container) return;
- container.textContent = 'جارٍ تحميل جميع الحجوزات...';
+ const refreshStatus = document.getElementById('adminBookingsRefreshStatus');
+ if(refreshStatus) refreshStatus.textContent = 'جارٍ تحديث بيانات الحجوزات… ستبقى القائمة الحالية ظاهرة.';
 
  try{
   const {data:isAdmin,error:adminError} = await db.rpc('is_main_admin');
@@ -1336,8 +1338,9 @@ async function loadAdminBookings(){
   window.adminBookingProfiles = profileResult.data || [];
   renderAdminBookingStats(adminBookingCache);
   filterAdminBookings();
+  if(refreshStatus) refreshStatus.textContent = 'تم تحديث بيانات الحجوزات بنجاح.';
  }catch(e){
-  container.textContent = 'تعذر تحميل الحجوزات: '+e.message;
+  if(refreshStatus) refreshStatus.textContent = 'تعذر تحديث الحجوزات: '+e.message+' — القائمة المعروضة محفوظة كما هي.';
  }
 }
 
