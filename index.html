@@ -1617,34 +1617,7 @@ if(
 
  item.appendChild(receiptButton);
 
- const verifyButton = document.createElement('button');
- verifyButton.textContent = 'تأكيد استلام التسبيق';
-
- verifyButton.onclick = async ()=>{
-
-  if(!confirm('هل تأكدت فعلياً من وصول التسبيق؟')) return;
-
-  try{
-
-   const {error} = await db.rpc('verify_booking_payment',{
-    p_booking_id:b.id
-   });
-
-   if(error) throw error;
-
-   msg('تم تأكيد الدفع والحجز بنجاح.');
-
-   await loadOwnerBookings();
-
-  }catch(e){
-
-   msg('تعذر تأكيد الدفع: '+e.message);
-
-  }
-
-  };
-
- item.appendChild(verifyButton);
+ // تأكيد الدفع محصور بالمدير الرئيسي عبر admin_review_payment_receipt.
 }
 
 area.appendChild(item);
