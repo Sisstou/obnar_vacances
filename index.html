@@ -195,6 +195,13 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 
 <button onclick="submitSavedProperty()">إرسال الإقامة المحفوظة للمراجعة</button>
 </div>
+<div id="ownerImagesArea" class="hidden">
+ <hr>
+ <h3>🖼️ إدارة صور إقاماتي</h3>
+ <p class="small">يمكنك إضافة الصور أو حذفها أو ترتيبها وتحديد صورة الغلاف. الحد الأقصى 10 صور لكل إقامة، و5 ميغابايت للصورة.</p>
+ <button type="button" onclick="loadOwnerProperties()">تحديث الإقامات والصور</button>
+ <div id="ownerPropertiesImages"></div>
+</div>
 <div id="ownerBookingArea" class="hidden">
  <hr>
  <h3>📅 طلبات الحجوزات</h3>
@@ -555,6 +562,7 @@ document.getElementById('editFullName').value =
 document.getElementById('editPhone').value =
   currentProfile?.phone || '';
 document.getElementById('ownerPropertyArea').classList.add('hidden');
+document.getElementById('ownerImagesArea').classList.add('hidden');
 document.getElementById('ownerBookingArea').classList.add('hidden');
 document.getElementById('travelerBookingArea').classList.add('hidden');
  msg('جارٍ التحقق من صلاحيات المدير...');
@@ -594,6 +602,9 @@ if(currentProfile.role === 'owner'){
 
  document.getElementById('ownerBookingArea')
   .classList.remove('hidden');
+ document.getElementById('ownerImagesArea')
+  .classList.remove('hidden');
+ await loadOwnerProperties();
 }
 if(currentProfile.role === 'traveler'){
  document.getElementById('travelerBookingArea')
@@ -1002,6 +1013,10 @@ async function createProperty(){
    throw new Error('أضف صورة واحدة على الأقل.');
   }
 
+  if(photos.length > 10){
+   throw new Error('الحد الأقصى هو 10 صور للإقامة الواحدة.');
+  }
+
   if(photos.some(f =>
    f.size > 5*1024*1024 ||
    !['image/jpeg','image/png','image/webp'].includes(f.type)
@@ -1082,6 +1097,213 @@ async function createProperty(){
  }
 
 }
+
+async function loadOwnerProperties(){
+ const container = document.getElementById('ownerPropertiesImages');
+ if(!container || !currentUser) return;
+ container.textContent = 'جارٍ تحميل إقاماتك...';
+ try{
+  const {data:properties,error} = await db.from('properties')
+   .select('id,title_ar,status')
+   .eq('owner_id',currentUser.id)
+   .order('created_at',{ascending:false});
+  if(error) throw error;
+  container.innerHTML = '';
+  if(!properties || !properties.length){
+   container.textContent = 'لا توجد إقامات مسجلة في حسابك حالياً.';
+   return;
+  }
+  for(const property of properties){
+   const card = document.createElement('div');
+   card.className = 'panel';
+   const heading = document.createElement('h4');
+   heading.textContent = property.title_ar || 'إقامة بدون اسم';
+   card.appendChild(heading);
+   const status = document.createElement('p');
+   status.className = 'small';
+   status.textContent = 'حالة الإقامة: '+property.status;
+   card.appendChild(status);
+   const {data:images,error:imageError} = await db.from('property_images')
+    .select('id,storage_path,is_cover,display_order')
+    .eq('property_id',property.id)
+    .order('display_order',{ascending:true});
+   if(imageError) throw imageError;
+   const list = images || [];
+   const count = document.createElement('p');
+   count.textContent = 'عدد الصور: '+list.length+' / 10';
+   card.appendChild(count);
+   const gallery = document.createElement('div');
+   gallery.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px';
+   list.forEach((photo,index)=>{
+    const item = document.createElement('div');
+    item.style.cssText = 'border:1px solid #dce5eb;border-radius:8px;padding:8px;min-width:0';
+    const image = document.createElement('img');
+    image.src = db.storage.from('property-images').getPublicUrl(photo.storage_path).data.publicUrl;
+    image.alt = 'صورة '+(index+1)+' للإقامة';
+    image.style.cssText = 'width:100%;height:110px;object-fit:cover;border-radius:6px';
+    item.appendChild(image);
+    const label = document.createElement('p');
+    label.className = 'small';
+    label.textContent = (photo.is_cover ? '⭐ صورة الغلاف' : 'صورة '+(index+1));
+    item.appendChild(label);
+    if(!photo.is_cover){
+     const coverBtn = document.createElement('button');
+     coverBtn.type = 'button';
+     coverBtn.textContent = 'تعيين غلاف';
+     coverBtn.onclick = ()=>setPropertyCover(property.id,photo.id);
+     item.appendChild(coverBtn);
+    }
+    const orderRow = document.createElement('div');
+    orderRow.style.cssText = 'display:flex;gap:4px;flex-wrap:wrap';
+    if(index > 0){
+     const up = document.createElement('button');
+     up.type = 'button'; up.className = 'secondary'; up.textContent = '↑';
+     up.title = 'تحريك للأعلى';
+     up.onclick = ()=>movePropertyImage(property.id,photo.id,-1);
+     orderRow.appendChild(up);
+    }
+    if(index < list.length-1){
+     const down = document.createElement('button');
+     down.type = 'button'; down.className = 'secondary'; down.textContent = '↓';
+     down.title = 'تحريك للأسفل';
+     down.onclick = ()=>movePropertyImage(property.id,photo.id,1);
+     orderRow.appendChild(down);
+    }
+    item.appendChild(orderRow);
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button'; deleteBtn.className = 'secondary';
+    deleteBtn.textContent = 'حذف الصورة';
+    deleteBtn.onclick = ()=>deletePropertyImage(property.id,photo.id,photo.storage_path);
+    item.appendChild(deleteBtn);
+    gallery.appendChild(item);
+   });
+   card.appendChild(gallery);
+   if(list.length < 10){
+    const fileLabel = document.createElement('label');
+    fileLabel.textContent = 'إضافة صور (يمكن اختيار عدة صور)';
+    card.appendChild(fileLabel);
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/jpeg,image/png,image/webp';
+    fileInput.multiple = true;
+    card.appendChild(fileInput);
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.textContent = 'رفع الصور المختارة';
+    addBtn.onclick = ()=>addPropertyImages(property.id,list,fileInput,addBtn);
+    card.appendChild(addBtn);
+   }else{
+    const limit = document.createElement('p');
+    limit.className = 'small';
+    limit.textContent = 'وصلت الإقامة إلى الحد الأقصى (10 صور).';
+    card.appendChild(limit);
+   }
+   container.appendChild(card);
+  }
+ }catch(e){
+  container.textContent = 'تعذر تحميل إقاماتك وصورها: '+e.message;
+ }
+}
+
+async function addPropertyImages(propertyId,currentImages,fileInput,button){
+ const files = Array.from(fileInput.files || []);
+ if(!files.length){ msg('اختر صورة واحدة على الأقل.'); return; }
+ if(currentImages.length + files.length > 10){
+  msg('يمكنك إضافة '+(10-currentImages.length)+' صورة فقط لهذه الإقامة.');
+  return;
+ }
+ if(files.some(file=>file.size > 5*1024*1024 ||
+  !['image/jpeg','image/png','image/webp'].includes(file.type))){
+  msg('كل صورة يجب أن تكون JPEG أو PNG أو WebP وألا يتجاوز حجمها 5 ميغابايت.');
+  return;
+ }
+ button.disabled = true;
+ const uploadedPaths = [];
+ try{
+  let order = currentImages.reduce((max,image)=>Math.max(max,Number(image.display_order)||0),-1)+1;
+  const rows = [];
+  for(const file of files){
+   const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+   const path = currentUser.id+'/'+propertyId+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,9)+'.'+ext;
+   const {error:uploadError} = await db.storage.from('property-images').upload(path,file,{upsert:false});
+   if(uploadError) throw uploadError;
+   uploadedPaths.push(path);
+   rows.push({property_id:propertyId,storage_path:path,is_cover:currentImages.length===0 && rows.length===0,display_order:order++});
+  }
+  const {error:insertError} = await db.from('property_images').insert(rows);
+  if(insertError) throw insertError;
+  fileInput.value = '';
+  msg('تمت إضافة الصور بنجاح.');
+  await loadOwnerProperties();
+  await loadProperties();
+ }catch(e){
+  if(uploadedPaths.length) await db.storage.from('property-images').remove(uploadedPaths);
+  msg('تعذر إضافة الصور: '+e.message);
+ }finally{
+  button.disabled = false;
+ }
+}
+
+async function setPropertyCover(propertyId,imageId){
+ try{
+  const {error:coverError} = await db.from('property_images')
+   .update({is_cover:true}).eq('id',imageId).eq('property_id',propertyId);
+  if(coverError) throw coverError;
+  const {error:otherError} = await db.from('property_images')
+   .update({is_cover:false}).eq('property_id',propertyId).neq('id',imageId);
+  if(otherError) throw otherError;
+  msg('تم تحديث صورة الغلاف.');
+  await loadOwnerProperties();
+  await loadProperties();
+ }catch(e){ msg('تعذر تغيير صورة الغلاف: '+e.message); }
+}
+
+async function movePropertyImage(propertyId,imageId,direction){
+ try{
+  const {data:images,error} = await db.from('property_images')
+   .select('id,display_order').eq('property_id',propertyId).order('display_order');
+  if(error) throw error;
+  const list = images || [];
+  const index = list.findIndex(image=>image.id===imageId);
+  const target = index+direction;
+  if(index<0 || target<0 || target>=list.length) return;
+  const firstOrder = Number(list[index].display_order)||0;
+  const secondOrder = Number(list[target].display_order)||0;
+  const {error:firstError} = await db.from('property_images')
+   .update({display_order:secondOrder}).eq('id',list[index].id);
+  if(firstError) throw firstError;
+  const {error:secondError} = await db.from('property_images')
+   .update({display_order:firstOrder}).eq('id',list[target].id);
+  if(secondError) throw secondError;
+  msg('تم تغيير ترتيب الصور.');
+  await loadOwnerProperties();
+  await loadProperties();
+ }catch(e){ msg('تعذر تغيير الترتيب: '+e.message); }
+}
+
+async function deletePropertyImage(propertyId,imageId,storagePath){
+ if(!confirm('هل تريد حذف هذه الصورة نهائياً؟')) return;
+ try{
+  const {error:deleteError} = await db.from('property_images')
+   .delete().eq('id',imageId).eq('property_id',propertyId);
+  if(deleteError) throw deleteError;
+  const {error:storageError} = await db.storage.from('property-images').remove([storagePath]);
+  const {data:remaining,error:readError} = await db.from('property_images')
+   .select('id,is_cover,display_order').eq('property_id',propertyId).order('display_order');
+  if(readError) throw readError;
+  if(remaining && remaining.length && !remaining.some(image=>image.is_cover)){
+   const {error:coverError} = await db.from('property_images')
+    .update({is_cover:true}).eq('id',remaining[0].id);
+   if(coverError) throw coverError;
+  }
+  msg(storageError
+   ? 'حُذفت الصورة من القائمة، لكن تعذر حذف ملفها من التخزين. يرجى إبلاغ الإدارة.'
+   : 'تم حذف الصورة وتحديث صورة الغلاف عند الحاجة.');
+  await loadOwnerProperties();
+  await loadProperties();
+ }catch(e){ msg('تعذر حذف الصورة: '+e.message); }
+}
+
 async function submitSavedProperty(){
 
  try{
