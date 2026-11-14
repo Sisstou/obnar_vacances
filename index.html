@@ -431,6 +431,12 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
   <p>اضغط على تحديث بيانات الحجوزات لعرض المؤشرات والقائمة.</p>
 </div>
 
+<h3>طلبات إلغاء الحجوزات والاسترداد</h3>
+<button type="button" onclick="loadAdminCancellationRequests()">عرض طلبات الإلغاء</button>
+<div id="adminCancellationRequests">
+ <p>اضغط على عرض طلبات الإلغاء لمراجعتها.</p>
+</div>
+
 <h3>🏠 طلبات الإقامات الجديدة</h3>
 
 <button type="button" onclick="loadPropertyRequests()">
@@ -1904,6 +1910,211 @@ function renderAdminBookingList(bookings,filter='all'){
 
   container.appendChild(card);
  });
+}
+
+async function loadAdminCancellationRequests(){
+
+ const container = document.getElementById('adminCancellationRequests');
+ if(!container) return;
+
+ container.textContent = 'جارٍ تحميل طلبات الإلغاء...';
+
+ try{
+
+  const {data:isAdmin,error:adminError} = await db.rpc('is_main_admin');
+  if(adminError) throw adminError;
+  if(isAdmin !== true) throw new Error('غير مسموح لك بمراجعة طلبات الإلغاء.');
+
+  const {data:requests,error} = await db
+   .from('booking_cancellations')
+   .select('id,booking_id,requester_role,reason_category,reason_details,request_status,owner_response,refund_eligibility,refund_amount,refund_execution_status,created_at')
+   .or('request_status.eq.admin_review,and(request_status.eq.approved,refund_eligibility.eq.admin_review)')
+   .order('created_at',{ascending:false});
+
+  if(error) throw error;
+
+  container.innerHTML = '';
+
+  if(!requests || requests.length === 0){
+   container.textContent = 'لا توجد طلبات إلغاء تنتظر مراجعة الإدارة.';
+   return;
+  }
+
+  const reasonNames = {
+   traveler_change:'تغيير في الخطط',
+   medical_emergency:'ظرف صحي طارئ',
+   family_emergency:'ظرف عائلي طارئ',
+   force_majeure:'قوة قاهرة أو ظرف خارج عن الإرادة',
+   owner_cancellation:'إلغاء من طرف المالك',
+   water_unavailable:'عدم توفر الماء',
+   electricity_unavailable:'عدم توفر الكهرباء',
+   gas_unavailable:'عدم توفر الغاز',
+   missing_furniture:'نقص الأثاث أو التجهيزات',
+   location_mismatch:'اختلاف الموقع',
+   property_mismatch:'اختلاف الإقامة عن المواصفات',
+   description_mismatch:'اختلاف الإعلان عن الواقع',
+   other:'سبب آخر'
+  };
+
+  requests.forEach(request=>{
+
+   const card = document.createElement('div');
+   card.className = 'panel';
+
+   const heading = document.createElement('h4');
+   heading.textContent = request.requester_role === 'owner'
+    ? 'طلب إلغاء من المالك'
+    : 'طلب إلغاء من المصطاف';
+   card.appendChild(heading);
+
+   const booking = document.createElement('p');
+   booking.textContent = 'رقم الحجز: '+request.booking_id;
+   card.appendChild(booking);
+
+   const reason = document.createElement('p');
+   reason.textContent = 'السبب: '+(reasonNames[request.reason_category] || request.reason_category);
+   card.appendChild(reason);
+
+   const details = document.createElement('p');
+   details.textContent = 'التفاصيل: '+request.reason_details;
+   card.appendChild(details);
+
+   const state = document.createElement('p');
+   state.textContent = 'حالة الطلب: '+request.request_status+
+    ' | رد المالك: '+request.owner_response+
+    ' | أهلية الاسترداد: '+request.refund_eligibility;
+   card.appendChild(state);
+
+   if(request.request_status === 'admin_review'){
+
+    const cancelLabel = document.createElement('label');
+    cancelLabel.textContent = 'قرار الإلغاء';
+    card.appendChild(cancelLabel);
+
+    const cancelSelect = document.createElement('select');
+    [
+     ['approve','الموافقة على الإلغاء'],
+     ['reject','رفض طلب الإلغاء']
+    ].forEach(([value,label])=>{
+     const option = document.createElement('option');
+     option.value = value;
+     option.textContent = label;
+     cancelSelect.appendChild(option);
+    });
+    card.appendChild(cancelSelect);
+
+    const refundLabel = document.createElement('label');
+    refundLabel.textContent = 'قرار استرداد التسبيق';
+    card.appendChild(refundLabel);
+
+    const refundSelect = document.createElement('select');
+    [
+     ['none','تأجيل قرار الاسترداد'],
+     ['approve','الموافقة على الاسترداد'],
+     ['reject','رفض الاسترداد']
+    ].forEach(([value,label])=>{
+     const option = document.createElement('option');
+     option.value = value;
+     option.textContent = label;
+     refundSelect.appendChild(option);
+    });
+    card.appendChild(refundSelect);
+
+    cancelSelect.onchange = ()=>{
+     if(cancelSelect.value === 'reject'){
+      refundSelect.value = 'none';
+      refundSelect.disabled = true;
+     }else{
+      refundSelect.disabled = false;
+     }
+    };
+
+    const save = document.createElement('button');
+    save.textContent = 'حفظ قرار الإدارة';
+    save.onclick = ()=>submitAdminCancellationDecision(
+     request.id,cancelSelect.value,refundSelect.value
+    );
+    card.appendChild(save);
+
+   }else if(
+    request.request_status === 'approved' &&
+    request.refund_eligibility === 'admin_review'
+   ){
+
+    const amount = document.createElement('p');
+    amount.textContent = 'التسبيق الأصلي: '+Number(request.refund_amount || 0).toLocaleString('fr-DZ')+' دج';
+    card.appendChild(amount);
+
+    const refundLabel = document.createElement('label');
+    refundLabel.textContent = 'قرار استرداد التسبيق';
+    card.appendChild(refundLabel);
+
+    const refundSelect = document.createElement('select');
+    [
+     ['approve','الموافقة على الاسترداد'],
+     ['reject','رفض الاسترداد']
+    ].forEach(([value,label])=>{
+     const option = document.createElement('option');
+     option.value = value;
+     option.textContent = label;
+     refundSelect.appendChild(option);
+    });
+    card.appendChild(refundSelect);
+
+    const save = document.createElement('button');
+    save.textContent = 'حفظ قرار الاسترداد';
+    save.onclick = ()=>submitAdminCancellationDecision(
+     request.id,'none',refundSelect.value
+    );
+    card.appendChild(save);
+   }
+
+   const note = document.createElement('p');
+   note.textContent = 'تنبيه: تسجيل الموافقة لا يحوّل الأموال تلقائياً؛ تنفيذ الاسترداد يتم خارج الموقع وتُسجّل حالته لاحقاً.';
+   card.appendChild(note);
+
+   container.appendChild(card);
+  });
+
+ }catch(e){
+
+  container.textContent = 'تعذر تحميل طلبات الإلغاء: '+e.message;
+
+ }
+
+}
+
+async function submitAdminCancellationDecision(cancellationId,cancelAction,refundAction){
+
+ const notes = prompt('ملاحظات الإدارة (اختياري):');
+ if(notes === null) return;
+
+ if(cancelAction === 'reject' && refundAction !== 'none'){
+  msg('عند رفض طلب الإلغاء يجب اختيار تأجيل قرار الاسترداد.');
+  return;
+ }
+
+ try{
+
+  const {error} = await db.rpc('admin_review_booking_cancellation',{
+   p_cancellation_id:cancellationId,
+   p_cancel_action:cancelAction,
+   p_refund_action:refundAction,
+   p_notes:notes.trim() || null
+  });
+
+  if(error) throw error;
+
+  msg('تم حفظ قرار الإدارة.');
+  await loadAdminCancellationRequests();
+  await loadAdminBookings();
+
+ }catch(e){
+
+  msg('تعذر حفظ القرار: '+e.message);
+
+ }
+
 }
 
 async function loadAdminBookings(){
