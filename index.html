@@ -497,6 +497,54 @@ let allProperties = [];
 let allLocations = [];
 let allAmenities = [];
 let propertyAmenitiesById = {};
+let notificationRealtimeChannel = null;
+let notificationRealtimeUserId = null;
+
+function stopNotificationRealtime(){
+ if(!notificationRealtimeChannel){
+  notificationRealtimeUserId = null;
+  return;
+ }
+ const channel = notificationRealtimeChannel;
+ notificationRealtimeChannel = null;
+ notificationRealtimeUserId = null;
+ db.removeChannel(channel).catch(e=>{
+  console.warn('Notification realtime cleanup failed:',e.message);
+ });
+}
+
+function startNotificationRealtime(userId){
+ if(!userId){
+  stopNotificationRealtime();
+  return;
+ }
+ if(notificationRealtimeChannel && notificationRealtimeUserId === userId) return;
+
+ stopNotificationRealtime();
+ notificationRealtimeUserId = userId;
+
+ const channel = db.channel('notifications-user-'+userId)
+  .on('postgres_changes',{
+   event:'*',
+   schema:'public',
+   table:'notifications',
+   filter:'user_id=eq.'+userId
+  },payload=>{
+   if(!currentUser || currentUser.id !== userId) return;
+   updateNotificationBadge();
+   const panel=document.getElementById('notificationsPanel');
+   if(panel && !panel.classList.contains('hidden')){
+    loadMyNotifications();
+   }
+  })
+  .subscribe((status)=>{
+   if(status === 'CHANNEL_ERROR' || status === 'TIMED_OUT'){
+    console.warn('Notification realtime unavailable:',status);
+   }
+  });
+
+ notificationRealtimeChannel = channel;
+}
 
 function msg(text){
  document.getElementById('globalMessage').textContent = text;
@@ -728,6 +776,7 @@ async function refreshUser(){
 
 function showGuest(){
 
+ stopNotificationRealtime();
  document.getElementById('authForms').classList.remove('hidden');
  document.getElementById('userArea').classList.add('hidden');
  document.getElementById('notificationBadge').classList.add('hidden');
@@ -815,6 +864,7 @@ async function updateRecoveredPassword(){
 
 async function showUser(){
 
+ if(currentUser) startNotificationRealtime(currentUser.id);
  document.getElementById('authForms').classList.add('hidden');
  document.getElementById('userArea').classList.remove('hidden');
  await updateNotificationBadge();
