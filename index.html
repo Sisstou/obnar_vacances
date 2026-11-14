@@ -1206,9 +1206,16 @@ async function createProperty(){
 
 }
 
+let ownerPropertiesLoading = false;
+
 async function loadOwnerProperties(){
+ if(ownerPropertiesLoading) return;
+ ownerPropertiesLoading = true;
  const container = document.getElementById('ownerPropertiesImages');
- if(!container || !currentUser) return;
+ if(!container || !currentUser){
+  ownerPropertiesLoading = false;
+  return;
+ }
  container.textContent = 'جارٍ تحميل إقاماتك...';
  try{
   const {data:properties,error} = await db.from('properties')
@@ -1310,6 +1317,8 @@ async function loadOwnerProperties(){
   }
  }catch(e){
   container.textContent = 'تعذر تحميل إقاماتك وصورها: '+e.message;
+ }finally{
+  ownerPropertiesLoading = false;
  }
 }
 
