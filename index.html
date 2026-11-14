@@ -2169,6 +2169,21 @@ async function loadOwnerBookings(){
 
   if(error) throw error;
 
+  const bookingIds = (bookings || []).map(b=>b.id);
+  let cancellationRequests = [];
+
+  if(bookingIds.length){
+   const {data:cancellations,error:cancellationError} = await db
+    .from('booking_cancellations')
+    .select('id,booking_id,reason_category,reason_details,owner_response_due_at')
+    .in('booking_id',bookingIds)
+    .eq('request_status','owner_review')
+    .eq('owner_response','pending');
+
+   if(cancellationError) throw cancellationError;
+   cancellationRequests = cancellations || [];
+  }
+
   area.innerHTML = '';
 
   if(!bookings || bookings.length === 0){
@@ -2210,6 +2225,53 @@ const paymentNames = {
 payment.textContent =
  'حالة الدفع: '+(paymentNames[b.payment_status] || b.payment_status);
 item.appendChild(payment);
+
+const cancellation = cancellationRequests.find(c=>c.booking_id === b.id);
+if(cancellation){
+ const cancellationTitle = document.createElement('h4');
+ cancellationTitle.textContent = 'طلب إلغاء ينتظر ردك';
+ item.appendChild(cancellationTitle);
+
+ const reasonNames = {
+  traveler_change:'تغيير في الخطط',
+  medical_emergency:'ظرف صحي طارئ',
+  family_emergency:'ظرف عائلي طارئ',
+  force_majeure:'قوة قاهرة أو ظرف خارج عن الإرادة',
+  water_unavailable:'عدم توفر الماء',
+  electricity_unavailable:'عدم توفر الكهرباء',
+  gas_unavailable:'عدم توفر الغاز',
+  missing_furniture:'نقص الأثاث أو التجهيزات',
+  location_mismatch:'اختلاف الموقع',
+  property_mismatch:'اختلاف الإقامة عن المواصفات',
+  description_mismatch:'اختلاف الإعلان عن الواقع',
+  other:'سبب آخر'
+ };
+
+ const reason = document.createElement('p');
+ reason.textContent = 'السبب: '+(reasonNames[cancellation.reason_category] || cancellation.reason_category);
+ item.appendChild(reason);
+
+ const reasonDetails = document.createElement('p');
+ reasonDetails.textContent = 'التفاصيل: '+cancellation.reason_details;
+ item.appendChild(reasonDetails);
+
+ if(cancellation.owner_response_due_at){
+  const deadline = document.createElement('p');
+  deadline.textContent = 'آخر أجل للرد: '+new Date(cancellation.owner_response_due_at).toLocaleString('ar-DZ');
+  item.appendChild(deadline);
+ }
+
+ const approveCancellation = document.createElement('button');
+ approveCancellation.textContent = 'الموافقة على الإلغاء';
+ approveCancellation.onclick = ()=>respondToCancellation(cancellation.id,'approve');
+
+ const rejectCancellation = document.createElement('button');
+ rejectCancellation.textContent = 'رفض طلب الإلغاء';
+ rejectCancellation.onclick = ()=>respondToCancellation(cancellation.id,'reject');
+
+ item.appendChild(approveCancellation);
+ item.appendChild(rejectCancellation);
+}
 
    if(b.status === 'pending'){
 
