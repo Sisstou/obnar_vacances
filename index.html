@@ -57,6 +57,73 @@ button:disabled{opacity:.5}
 #globalMessage{text-align:center;padding:10px;color:#087eae;font-weight:bold}
 .hidden{display:none}
 footer{background:#063b60;color:white;text-align:center;padding:22px;margin-top:30px}
+
+/* OBNAR VACANCES — refreshed visitor experience */
+:root{--ov-navy:#073653;--ov-blue:#087eae;--ov-teal:#22a6a1;--ov-ink:#18364b;--ov-muted:#667d8d;--ov-bg:#f5f8fa;--ov-line:#e3ebef;--ov-shadow:0 12px 34px rgba(7,54,83,.09)}
+html{scroll-behavior:smooth;scroll-padding-top:86px}
+body{font-family:Tahoma,Arial,sans-serif;background:var(--ov-bg);color:var(--ov-ink);line-height:1.65}
+header{background:linear-gradient(115deg,#052b46 0%,#075477 58%,#087eae 100%);text-align:right;padding:18px max(20px,calc((100% - 1160px)/2));position:relative;overflow:hidden}
+header:after{content:"";position:absolute;width:230px;height:230px;border:1px solid #ffffff24;border-radius:50%;left:8%;top:-155px;box-shadow:0 0 0 28px #ffffff0a,0 0 0 58px #ffffff08}
+header h1{font-size:25px;letter-spacing:.4px;position:relative;z-index:1}
+header p{font-size:13px;color:#d9edf5;margin:3px 0 0;position:relative;z-index:1}
+nav{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--ov-line);box-shadow:0 4px 18px #12384b0a;backdrop-filter:blur(12px)}
+nav a{margin:0;padding:8px 15px;border-radius:30px;font-size:14px;transition:background .2s,color .2s}
+nav a:hover,nav a:focus{background:#e8f4f7;color:var(--ov-blue)}
+.hero{position:relative;isolation:isolate;overflow:hidden;text-align:right;padding:clamp(42px,7vw,82px) max(22px,calc((100% - 1120px)/2));background:radial-gradient(ellipse at 12% 10%,#d7f0ed 0,transparent 34%),linear-gradient(120deg,#e8f3f8 0%,#d9ebf2 48%,#c7e3e9 100%);min-height:280px}
+.hero:after{content:"";position:absolute;z-index:-1;width:340px;height:340px;border-radius:50%;left:-110px;bottom:-235px;background:linear-gradient(145deg,#ffffff80,#69b9c233);border:1px solid #ffffff90}
+.hero h2{font-size:clamp(28px,4vw,42px);line-height:1.3;color:var(--ov-navy);max-width:650px;margin:0 0 12px}
+.hero p{font-size:16px;color:#476678;max-width:560px;margin:0 0 22px}
+section{padding:30px max(16px,calc((100% - 1160px)/2))}
+#search .panel{max-width:100%;margin:0 auto 25px;padding:22px 24px;border:1px solid var(--ov-line);border-radius:20px;box-shadow:var(--ov-shadow);display:grid;grid-template-columns:minmax(220px,2fr) minmax(170px,1fr) minmax(170px,1fr) auto auto;align-items:center;gap:10px}
+#search .panel h2{grid-column:1/-1;margin:0 0 4px;color:var(--ov-navy);font-size:21px}
+input,select,textarea{border:1px solid #d5e0e6;border-radius:11px;background:#fff;padding:13px 14px;margin:0;min-height:47px;color:var(--ov-ink);transition:border-color .2s,box-shadow .2s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#45a5bd;box-shadow:0 0 0 3px #45a5bd20}
+button{background:linear-gradient(120deg,var(--ov-blue),#07648c);border-radius:11px;padding:12px 19px;font-weight:700;min-height:45px;box-shadow:0 5px 13px #087eae20;transition:transform .18s,filter .18s}
+button:hover{filter:brightness(1.06);transform:translateY(-1px)}
+button.secondary{background:#edf3f6;color:#36566a;box-shadow:none}
+.grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:20px;max-width:1160px}
+.property{border:1px solid var(--ov-line);border-radius:18px;box-shadow:0 5px 22px #173b5010;transition:transform .2s,box-shadow .2s}
+.property:hover{transform:translateY(-3px);box-shadow:0 14px 30px #173b5019}
+.property img{height:220px;object-fit:cover}
+.property .info{padding:17px}
+.property .info h3{color:var(--ov-navy);margin:0 0 7px;font-size:19px}
+.price{color:#087f91;font-size:20px}
+.property-amenities-preview span{background:#f0f7f8;border-color:#e0edef;color:#356171;padding:5px 10px}
+#account>.panel{max-width:760px;border:1px solid var(--ov-line);border-radius:18px;box-shadow:var(--ov-shadow);padding:24px}
+#account h2,#account h3{color:var(--ov-navy)}
+.detail-content{border-radius:20px;box-shadow:0 20px 60px #071c2b35;padding:clamp(16px,3vw,28px)}
+.detail-content h2{color:var(--ov-navy)}
+footer{background:linear-gradient(115deg,#052b46,#075477);padding:28px 18px 90px}
+#globalMessage{max-width:1160px;margin:auto}
+section[id]{scroll-margin-top:80px}
+@media(max-width:850px){
+ #search .panel{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #search .panel h2,#search .panel input:first-of-type{grid-column:1/-1}
+ #search .panel button{width:100%;margin:0}
+}
+@media(max-width:600px){
+ header{padding:15px 18px}
+ header h1{font-size:22px}
+ nav{position:fixed;top:auto;bottom:0;right:0;left:0;z-index:50;justify-content:space-around;gap:0;padding:8px 5px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--ov-line);border-bottom:0;box-shadow:0 -5px 22px #12384b12;background:#ffffffed}
+ nav a{font-size:12px;padding:7px 8px;margin:0;white-space:nowrap}
+ .hero{min-height:245px;padding:38px 20px 34px}
+ .hero h2{font-size:29px}
+ .hero p{font-size:14px}
+ section{padding:22px 14px}
+ #search .panel{padding:17px;gap:9px;border-radius:16px}
+ #search .panel h2{font-size:19px}
+ #search .panel input:first-of-type{grid-column:1/-1}
+ #search .panel select{font-size:14px;padding:11px 9px}
+ #search .panel button{font-size:14px;padding:11px 8px}
+ .grid{grid-template-columns:1fr;gap:15px}
+ .property img{height:225px}
+ #account>.panel{padding:18px}
+ body{padding-bottom:76px}
+ .detail-modal{padding:8px}
+ .detail-content{margin:10px auto;padding:14px;border-radius:16px}
+ footer{padding-bottom:95px}
+}
+
 </style>
 </head>
 
