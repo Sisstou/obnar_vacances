@@ -2641,6 +2641,19 @@ async function loadTravelerBookings(){
 
   if(error) throw error;
 
+  const bookingIds = (bookings || []).map(b=>b.id);
+  let cancellationRequests = [];
+
+  if(bookingIds.length){
+   const {data:cancellations,error:cancellationError} = await db
+    .from('booking_cancellations')
+    .select('id,booking_id,request_status,owner_response,refund_eligibility,refund_execution_status,refund_amount,created_at')
+    .in('booking_id',bookingIds);
+
+   if(cancellationError) throw cancellationError;
+   cancellationRequests = cancellations || [];
+  }
+
   area.innerHTML = '';
 
   if(!bookings || bookings.length === 0){
@@ -2682,6 +2695,69 @@ async function loadTravelerBookings(){
     'حالة الحجز: '+(statusNames[b.status] || b.status);
 
    item.appendChild(status);
+
+   const cancellation = cancellationRequests.find(c=>c.booking_id === b.id);
+   if(cancellation){
+    const cancellationNames = {
+     submitted:'تم استلام الطلب',
+     owner_review:'بانتظار رد المالك خلال 48 ساعة',
+     admin_review:'الطلب قيد مراجعة الإدارة',
+     approved:'تمت الموافقة على الإلغاء',
+     rejected:'تم رفض طلب الإلغاء',
+     completed:'اكتمل طلب الإلغاء'
+    };
+    const ownerResponseNames = {
+     not_required:'لا يتطلب رد المالك',
+     pending:'بانتظار رد المالك',
+     approved:'وافق المالك',
+     rejected:'رفض المالك',
+     timeout:'انتهت مهلة رد المالك'
+    };
+    const refundNames = {
+     pending:'بانتظار قرار الإدارة',
+     eligible:'مستحق للاسترداد',
+     not_eligible:'غير مستحق للاسترداد',
+     admin_review:'قيد مراجعة الإدارة'
+    };
+    const executionNames = {
+     not_started:'لم يبدأ تنفيذ الاسترداد',
+     pending:'بانتظار تنفيذ الاسترداد',
+     processing:'جارٍ تنفيذ الاسترداد',
+     completed:'تم تنفيذ الاسترداد',
+     failed:'تعذر تنفيذ الاسترداد'
+    };
+
+    const cancellationStatus = document.createElement('p');
+    cancellationStatus.textContent =
+     'حالة طلب الإلغاء: '+(cancellationNames[cancellation.request_status] || cancellation.request_status);
+    item.appendChild(cancellationStatus);
+
+    const ownerResponse = document.createElement('p');
+    ownerResponse.textContent =
+     'رد المالك: '+(ownerResponseNames[cancellation.owner_response] || cancellation.owner_response);
+    item.appendChild(ownerResponse);
+
+    const refundStatus = document.createElement('p');
+    refundStatus.textContent =
+     'حالة الاسترداد: '+(refundNames[cancellation.refund_eligibility] || cancellation.refund_eligibility);
+    item.appendChild(refundStatus);
+
+    if(cancellation.refund_amount !== null && Number(cancellation.refund_amount) > 0){
+     const refundAmount = document.createElement('p');
+     refundAmount.textContent =
+      'مبلغ الاسترداد المقرر: '+Number(cancellation.refund_amount).toLocaleString('fr-DZ')+' دج';
+     item.appendChild(refundAmount);
+    }
+
+    if(cancellation.refund_eligibility === 'eligible' ||
+       cancellation.refund_execution_status !== 'not_started'){
+     const executionStatus = document.createElement('p');
+     executionStatus.textContent =
+      'تنفيذ الاسترداد: '+(executionNames[cancellation.refund_execution_status] || cancellation.refund_execution_status);
+     item.appendChild(executionStatus);
+    }
+   }
+
 const deposit = document.createElement('p');
 deposit.textContent =
  'تسبيق الليلة الأولى: '+(b.deposit_amount || 0)+' دج';
