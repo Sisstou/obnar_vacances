@@ -2488,33 +2488,87 @@ if(
 ){
 
  const cancelButton = document.createElement('button');
- cancelButton.textContent = 'إلغاء الحجز';
+ cancelButton.textContent = 'طلب إلغاء الحجز';
 
- cancelButton.onclick = async ()=>{
+ const cancellationForm = document.createElement('div');
+ cancellationForm.style.display = 'none';
 
-  if(!confirm('هل أنت متأكد من إلغاء هذا الحجز؟')) return;
+ const reasonSelect = document.createElement('select');
+
+ const reasons = [
+  ['traveler_change','تغيير في الخطط'],
+  ['medical_emergency','ظرف صحي طارئ'],
+  ['family_emergency','ظرف عائلي طارئ'],
+  ['force_majeure','قوة قاهرة أو ظرف خارج عن الإرادة'],
+  ['water_unavailable','عدم توفر الماء'],
+  ['electricity_unavailable','عدم توفر الكهرباء'],
+  ['gas_unavailable','عدم توفر الغاز المعلن عنه'],
+  ['missing_furniture','نقص الأثاث أو التجهيزات'],
+  ['location_mismatch','اختلاف الموقع'],
+  ['property_mismatch','اختلاف الإقامة عن المواصفات'],
+  ['description_mismatch','اختلاف الإعلان عن الواقع'],
+  ['other','سبب آخر']
+ ];
+
+ reasons.forEach(([value,label])=>{
+  const option = document.createElement('option');
+  option.value = value;
+  option.textContent = label;
+  reasonSelect.appendChild(option);
+ });
+
+ const reasonDetails = document.createElement('textarea');
+ reasonDetails.placeholder = 'اشرح سبب طلب الإلغاء...';
+ reasonDetails.required = true;
+
+ const submitButton = document.createElement('button');
+ submitButton.textContent = 'إرسال طلب الإلغاء';
+
+ cancelButton.onclick = ()=>{
+  cancellationForm.style.display =
+   cancellationForm.style.display === 'none' ? 'block' : 'none';
+ };
+
+ submitButton.onclick = async ()=>{
+
+  const details = reasonDetails.value.trim();
+
+  if(!details){
+   msg('يرجى كتابة تفاصيل سبب الإلغاء.');
+   return;
+  }
+
+  submitButton.disabled = true;
 
   try{
 
-   const {error} = await db.rpc('cancel_booking_by_traveler',{
-    p_booking_id:b.id
+   const {error} = await db.rpc('request_booking_cancellation',{
+    p_booking_id:b.id,
+    p_reason_category:reasonSelect.value,
+    p_reason_details:details
    });
 
    if(error) throw error;
 
-   msg('تم إلغاء الحجز بنجاح.');
+   msg('تم إرسال طلب الإلغاء بنجاح. يمكنك متابعة حالته من حسابك.');
 
    await loadTravelerBookings();
 
   }catch(e){
 
-   msg('تعذر إلغاء الحجز: '+e.message);
+   msg('تعذر إرسال طلب الإلغاء: '+e.message);
+   submitButton.disabled = false;
 
   }
 
  };
 
+ cancellationForm.appendChild(reasonSelect);
+ cancellationForm.appendChild(reasonDetails);
+ cancellationForm.appendChild(submitButton);
+
  item.appendChild(cancelButton);
+ item.appendChild(cancellationForm);
 }
 area.appendChild(item);
   });
