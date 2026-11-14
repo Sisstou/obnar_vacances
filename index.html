@@ -2861,9 +2861,10 @@ if(b.payment_due_at){
  item.appendChild(uploadButton);
 }
 if(
- b.status === 'pending' ||
- b.status === 'awaiting_payment' ||
- b.status === 'confirmed'
+ !cancellation &&
+ (b.status === 'pending' ||
+  b.status === 'awaiting_payment' ||
+  b.status === 'confirmed')
 ){
 
  const cancelButton = document.createElement('button');
