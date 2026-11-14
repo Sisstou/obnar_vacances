@@ -19,6 +19,15 @@ nav a{color:#063b60;text-decoration:none;margin:8px;font-weight:bold}
 .app-page{display:none}
 .app-page.active{display:block}
 nav a[aria-current="page"]{background:#e8f3f8;color:#087e9b;padding:10px 14px;border-radius:999px}
+.notification-bell{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:42px;min-height:40px;padding:7px 10px;margin:0;border:0;border-radius:999px;background:#edf5f8;color:#073653;box-shadow:none;font-size:19px}
+.notification-badge{position:absolute;top:-5px;left:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:20px;background:#d9485f;color:#fff;font:bold 11px/19px Arial;text-align:center}
+.notification-list{display:grid;gap:10px;margin-top:14px}
+.notification-item{padding:13px;border:1px solid #e1e9ee;border-radius:12px;background:#f9fbfc}
+.notification-item.unread{border-right:4px solid #087eae;background:#f0f8fb}
+.notification-item h4{margin:0 0 5px;color:#073653}
+.notification-item p{margin:0 0 7px}
+.notification-item small{color:#687b89}
+@media(max-width:600px){.notification-bell{min-width:36px;min-height:35px;padding:5px 8px;font-size:17px}}
 @media(max-width:600px){
  nav{display:flex;justify-content:space-around;gap:4px;padding:10px 5px}
  nav a{margin:0;padding:9px 7px;font-size:13px;white-space:nowrap}
@@ -146,6 +155,7 @@ section[id]{scroll-margin-top:80px}
 <a href="#search" onclick="showAppPage('search');return false">البحث عن سكن</a>
 <a href="#account" onclick="showAppPage('account');return false">حسابي</a>
 <a href="#contact" onclick="showAppPage('contact');return false">اتصل بنا</a>
+<button type="button" class="notification-bell" id="notificationBell" onclick="openNotifications()" aria-label="الإشعارات" title="الإشعارات">🔔<span id="notificationBadge" class="notification-badge hidden">0</span></button>
 </nav>
 
 <section id="home" class="app-page active">
@@ -222,6 +232,14 @@ section[id]{scroll-margin-top:80px}
 </div>
 
 <div id="userArea" class="hidden">
+
+<div id="notificationsPanel" class="panel hidden" aria-live="polite">
+ <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+  <h3 style="margin:0">🔔 إشعاراتي</h3>
+  <button type="button" class="secondary" onclick="loadMyNotifications()">تحديث</button>
+ </div>
+ <div id="notificationsList" class="notification-list">جارٍ تحميل الإشعارات...</div>
+</div>
 
 <p id="userInfo"></p>
 
@@ -483,6 +501,96 @@ let propertyAmenitiesById = {};
 function msg(text){
  document.getElementById('globalMessage').textContent = text;
 }
+
+function openNotifications(){
+ showAppPage('account');
+ const panel=document.getElementById('notificationsPanel');
+ if(!currentUser){
+  msg('سجّل الدخول أولاً للاطلاع على إشعاراتك.');
+  return;
+ }
+ panel.classList.remove('hidden');
+ loadMyNotifications();
+}
+
+async function updateNotificationBadge(){
+ const badge=document.getElementById('notificationBadge');
+ if(!badge) return;
+ if(!currentUser){badge.classList.add('hidden');return;}
+ try{
+  const {count,error}=await db.from('notifications')
+   .select('id',{count:'exact',head:true})
+   .eq('user_id',currentUser.id)
+   .eq('is_read',false);
+  if(error) throw error;
+  badge.textContent=count>99?'99+':String(count||0);
+  badge.classList.toggle('hidden',!count);
+ }catch(e){
+  console.warn('Notification count unavailable:',e.message);
+ }
+}
+
+async function loadMyNotifications(){
+ const list=document.getElementById('notificationsList');
+ if(!list) return;
+ if(!currentUser){list.textContent='سجّل الدخول لعرض إشعاراتك.';return;}
+ list.textContent='جارٍ تحميل الإشعارات...';
+ try{
+  const {data,error}=await db.from('notifications')
+   .select('id,event_type,title,message,entity_type,entity_id,is_read,created_at')
+   .eq('user_id',currentUser.id)
+   .order('created_at',{ascending:false})
+   .limit(50);
+  if(error) throw error;
+  list.innerHTML='';
+  if(!data||data.length===0){
+   list.textContent='لا توجد إشعارات حالياً.';
+   await updateNotificationBadge();
+   return;
+  }
+  data.forEach(item=>{
+   const card=document.createElement('article');
+   card.className='notification-item'+(item.is_read?'':' unread');
+   const title=document.createElement('h4');
+   title.textContent=item.title;
+   const message=document.createElement('p');
+   message.textContent=item.message;
+   const date=document.createElement('small');
+   date.textContent=new Date(item.created_at).toLocaleString('ar-DZ');
+   card.append(title,message,date);
+   if(!item.is_read){
+    const mark=document.createElement('button');
+    mark.type='button';
+    mark.className='secondary';
+    mark.textContent='تحديد كمقروء';
+    mark.addEventListener('click',()=>markNotificationRead(item.id,mark));
+    card.appendChild(mark);
+   }
+   list.appendChild(card);
+  });
+  await updateNotificationBadge();
+ }catch(e){
+  list.textContent='تعذر تحميل الإشعارات: '+e.message;
+ }
+}
+
+async function markNotificationRead(notificationId,button){
+ if(!currentUser) return;
+ button.disabled=true;
+ try{
+  const {error}=await db.from('notifications')
+   .update({is_read:true,read_at:new Date().toISOString()})
+   .eq('id',notificationId)
+   .eq('user_id',currentUser.id);
+  if(error) throw error;
+  await loadMyNotifications();
+ }catch(e){
+  button.disabled=false;
+  msg('تعذر تحديث الإشعار: '+e.message);
+ }
+}
+
+
 async function ensureProfile(user){
 
  const {data,error} = await db.from('profiles')
@@ -622,6 +730,7 @@ function showGuest(){
 
  document.getElementById('authForms').classList.remove('hidden');
  document.getElementById('userArea').classList.add('hidden');
+ document.getElementById('notificationBadge').classList.add('hidden');
 
 }
 
@@ -708,6 +817,8 @@ async function showUser(){
 
  document.getElementById('authForms').classList.add('hidden');
  document.getElementById('userArea').classList.remove('hidden');
+ await updateNotificationBadge();
+ if(document.getElementById('notificationsPanel') && !document.getElementById('notificationsPanel').classList.contains('hidden')) await loadMyNotifications();
 
  const adminArea = document.getElementById('adminArea');
  adminArea.classList.add('hidden');
