@@ -2270,6 +2270,36 @@ area.appendChild(item);
 
 }
 
+async function respondToCancellation(cancellationId,action){
+
+ if(!confirm(action === 'approve'
+  ? 'هل توافق على إلغاء هذا الحجز؟'
+  : 'هل تريد رفض طلب الإلغاء؟')) return;
+
+ try{
+
+  const {error} = await db.rpc('owner_respond_to_cancellation',{
+   p_cancellation_id:cancellationId,
+   p_action:action,
+   p_notes:null
+  });
+
+  if(error) throw error;
+
+  msg(action === 'approve'
+   ? 'تمت الموافقة على الإلغاء. قرار استرداد التسبيق يبقى لدى الإدارة.'
+   : 'تم رفض الطلب وتحويله إلى مراجعة الإدارة.');
+
+  await loadOwnerBookings();
+
+ }catch(e){
+
+  msg('تعذر الرد على طلب الإلغاء: '+e.message);
+
+ }
+
+}
+
 async function respondToBooking(bookingId,status){
 
  try{
