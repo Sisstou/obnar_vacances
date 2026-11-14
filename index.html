@@ -16,6 +16,13 @@ header h1{margin:0;font-size:29px}
 header p{margin:9px 0 0}
 nav{background:white;padding:14px;text-align:center;position:sticky;top:0;z-index:5}
 nav a{color:#063b60;text-decoration:none;margin:8px;font-weight:bold}
+.app-page{display:none}
+.app-page.active{display:block}
+nav a[aria-current="page"]{background:#e8f3f8;color:#087e9b;padding:10px 14px;border-radius:999px}
+@media(max-width:600px){
+ nav{display:flex;justify-content:space-around;gap:4px;padding:10px 5px}
+ nav a{margin:0;padding:9px 7px;font-size:13px;white-space:nowrap}
+}
 .hero{background:#dcecf5;text-align:center;padding:40px 15px}
 .hero h2{font-size:27px}
 section{padding:22px 15px}
@@ -134,22 +141,24 @@ section[id]{scroll-margin-top:80px}
 <p>منصتك لحجز العطلات والإقامات في أولاد بونار وجيجل</p>
 </header>
 
-<nav>
-<a href="#">الرئيسية</a>
-<a href="#search">البحث عن سكن</a>
-<a href="#account">حسابي</a>
-<a href="#contact">اتصل بنا</a>
+<nav aria-label="التنقل الرئيسي">
+<a href="#home" onclick="showAppPage('home');return false" aria-current="page">الرئيسية</a>
+<a href="#search" onclick="showAppPage('search');return false">البحث عن سكن</a>
+<a href="#account" onclick="showAppPage('account');return false">حسابي</a>
+<a href="#contact" onclick="showAppPage('contact');return false">اتصل بنا</a>
 </nav>
 
+<section id="home" class="app-page active">
 <div class="hero">
 <h2>اكتشف عطلتك في جيجل 🌊</h2>
 <p>اعثر على الإقامة المناسبة لك في أولاد بونار وجيجل.</p>
-<button onclick="document.getElementById('search').scrollIntoView()">ابحث عن إقامة</button>
+<button onclick="showAppPage('search')">ابحث عن إقامة</button>
 </div>
+</section>
 
 <div id="globalMessage"></div>
 
-<section id="search">
+<section id="search" class="app-page">
 <div class="panel">
 <h2>🔎 البحث عن إقامة</h2>
 
@@ -179,7 +188,7 @@ section[id]{scroll-margin-top:80px}
 <div id="imageLightbox" class="image-lightbox hidden" role="dialog" aria-modal="true" aria-label="عرض الصورة بالحجم الكبير" onclick="if(event.target===this)closeImageLightbox()"><button type="button" class="secondary" onclick="closeImageLightbox()">إغلاق ✕</button><button type="button" class="image-lightbox-nav image-lightbox-prev" id="lightboxPrev" aria-label="الصورة السابقة">‹</button><img id="lightboxImage" alt="صورة الإقامة بالحجم الكبير"><button type="button" class="image-lightbox-nav image-lightbox-next" id="lightboxNext" aria-label="الصورة التالية">›</button><span id="lightboxCounter" class="image-lightbox-counter"></span></div>
 </section>
 
-<section id="account">
+<section id="account" class="app-page">
 <div class="panel">
 <h2>👤 حساب المستخدم</h2>
 
@@ -418,7 +427,9 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
   تسجيل الخروج
 </button>
 
-<section id="contact">
+</section>
+
+<section id="contact" class="app-page">
 <div class="panel" style="text-align:center">
 <h2>OBNAR VACANCES</h2>
 <p>إقامتك القادمة تبدأ من هنا.</p>
@@ -428,6 +439,22 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 
 <footer>© 2026 OBNAR VACANCES</footer>
 <script>
+
+
+function showAppPage(pageId){
+ const pageIds=['home','search','account','contact'];
+ if(!pageIds.includes(pageId)) return;
+ pageIds.forEach(id=>{
+  const page=document.getElementById(id);
+  if(page) page.classList.toggle('active',id===pageId);
+ });
+ document.querySelectorAll('nav a').forEach(link=>{
+  const active=link.getAttribute('href')==='#'+pageId;
+  if(active) link.setAttribute('aria-current','page');
+  else link.removeAttribute('aria-current');
+ });
+ window.scrollTo({top:0,behavior:'smooth'});
+}
 
 const SUPABASE_URL = 'https://iuxrtgyufocblnvpaeaq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_9GfnaeaysGZ4WXssDzcECg_BRprKZfe';
