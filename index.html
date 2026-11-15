@@ -887,9 +887,12 @@ async function refreshUser(){
 function showGuest(){
 
  stopNotificationRealtime();
+ showAppPage('account');
  document.getElementById('authForms').classList.remove('hidden');
  document.getElementById('userArea').classList.add('hidden');
  document.getElementById('notificationBadge').classList.add('hidden');
+ document.getElementById('adminDashboardLink').classList.add('hidden');
+ document.getElementById('adminArea').classList.add('hidden');
 
 }
 
@@ -974,6 +977,7 @@ async function updateRecoveredPassword(){
 
 async function showUser(){
 
+ showAppPage('account');
  if(currentUser) startNotificationRealtime(currentUser.id);
  document.getElementById('authForms').classList.add('hidden');
  document.getElementById('userArea').classList.remove('hidden');
