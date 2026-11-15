@@ -229,6 +229,54 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 @media(max-width:760px){.destination-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.destination-card img{height:118px}.destination-card .destination-info{padding:9px}.destination-card h3{font-size:14px}.destination-card p{font-size:12px}}
 @media(max-width:390px){.destination-grid{grid-template-columns:1fr}.destination-card{display:grid;grid-template-columns:108px minmax(0,1fr)}.destination-card img{height:100%;min-height:100px}}
 
+
+/* Compact, organized homepage layout */
+#home .hero{min-height:0;padding:25px max(16px,calc((100% - 1120px)/2)) 22px}
+#home .hero h2{font-size:clamp(22px,3vw,30px);margin-bottom:6px}
+#home .hero p{font-size:13px;margin:0 0 12px;max-width:680px}
+#home .hero button{min-height:38px;padding:9px 15px;font-size:13px}
+#home .home-intro{padding:16px 16px 4px}
+#home .home-intro h2{font-size:19px;margin:0 0 4px}
+#home .home-intro>p{font-size:12px;margin:0 0 10px}
+#home .destination-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+#home .destination-card{display:grid;grid-template-columns:94px minmax(0,1fr);align-items:stretch;border-radius:10px;box-shadow:0 2px 8px #102d4609}
+#home .destination-card img,#home .destination-placeholder{width:94px;height:100%;min-height:88px;max-height:120px}
+#home .destination-placeholder{font-size:25px;gap:3px}
+#home .destination-placeholder span{font-size:11px}
+#home .destination-card .destination-info{padding:7px 8px;min-width:0}
+#home .destination-card h3{font-size:12px;line-height:1.4;margin:0 0 3px}
+#home .destination-card p{font-size:10px;line-height:1.45}
+#home .destination-card small{font-size:9px;line-height:1.35;margin-top:4px}
+#home .home-note{font-size:11px;line-height:1.5;margin:12px 0;padding:9px 11px}
+#home #neighborhoodBusinesses{padding-top:14px}
+#home #publicLocalBusinesses{gap:8px}
+#home .home-cta{padding:12px 12px 18px}
+#home .home-cta h3{font-size:17px}
+#home .home-cta p{font-size:12px;margin-bottom:8px}
+@media(max-width:760px){
+ #home .hero{padding:22px 16px 18px}
+ #home .hero h2{font-size:23px}
+ #home .hero p{font-size:12px}
+ #home .home-intro{padding:13px 12px 3px}
+ #home .destination-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ #home .destination-card{grid-template-columns:76px minmax(0,1fr)}
+ #home .destination-card img,#home .destination-placeholder{width:76px;min-height:78px;max-height:100px}
+ #home .destination-card .destination-info{padding:6px}
+ #home .destination-card h3{font-size:11px}
+ #home .destination-card p{font-size:9px;line-height:1.35}
+ #home .destination-card small{font-size:8px}
+ #home .destination-placeholder{font-size:21px}
+ #home .destination-placeholder span{font-size:10px}
+}
+@media(max-width:390px){
+ #home .destination-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #home .destination-card{grid-template-columns:1fr;align-content:start}
+ #home .destination-card img,#home .destination-placeholder{width:100%;height:66px;min-height:66px;max-height:66px}
+ #home .destination-card .destination-info{padding:6px}
+ #home .destination-card p{display:none}
+ #home .destination-card small{font-size:8px}
+}
+
 </style>
 </head>
 
