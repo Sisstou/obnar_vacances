@@ -590,6 +590,11 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
  <p>اضغط على عرض طلبات الإلغاء لمراجعتها.</p>
 </div>
 
+<h3>🏪 طلبات الأنشطة التجارية</h3>
+<p class="small">راجع بيانات النشاط وصوره، ثم وافق على نشره أو ارفضه مع توضيح السبب.</p>
+<button type="button" onclick="loadAdminLocalBusinesses()">عرض طلبات الأنشطة التجارية</button>
+<div id="adminLocalBusinesses"><p>اضغط على الزر لعرض طلبات الأنشطة التجارية.</p></div>
+
 <h3>🏠 طلبات الإقامات الجديدة</h3>
 
 <button type="button" onclick="loadPropertyRequests()">
@@ -1100,6 +1105,7 @@ document.getElementById('travelerBookingArea').classList.add('hidden');
    msg('تم التحقق: أنت المدير الرئيسي.');
 
    await loadPropertyRequests();
+    await loadAdminLocalBusinesses();
    await loadAdminBookings();
 
   }else{
@@ -3679,6 +3685,89 @@ document.getElementById('bookingCheckOut')
 
 document.getElementById('bookingGuests')
  .addEventListener('input', calculateBookingPrice);
+async function loadAdminLocalBusinesses(){
+ const area=document.getElementById('adminLocalBusinesses');
+ if(!area) return;
+ area.textContent='جارٍ تحميل طلبات الأنشطة التجارية...';
+ try{
+  const {data:isAdmin,error:adminError}=await db.rpc('is_main_admin');
+  if(adminError) throw adminError;
+  if(isAdmin!==true){area.textContent='غير مصرح لك بعرض هذه الطلبات.';return;}
+  const {data:businesses,error}=await db.from('local_businesses')
+   .select('id,owner_id,name,category,description,phone,address,status,rejection_reason,created_at')
+   .order('created_at',{ascending:false});
+  if(error) throw error;
+  area.innerHTML='';
+  if(!businesses || !businesses.length){area.textContent='لا توجد طلبات أنشطة تجارية حالياً.';return;}
+  const labels={restaurant:'مطعم',fast_food:'فاست فود',cafe:'مقهى',sweets:'حلويات',grocery:'مواد غذائية',shop:'محل تجاري',pharmacy:'صيدلية',services:'خدمات',other:'نشاط آخر'};
+  const statuses={pending:'قيد المراجعة',approved:'تمت الموافقة',rejected:'مرفوض'};
+  for(const item of businesses){
+   const card=document.createElement('article');
+   card.className='panel';
+   card.style.margin='12px 0';
+   const title=document.createElement('h4');title.textContent=item.name;card.appendChild(title);
+   const details=document.createElement('p');
+   details.textContent='التصنيف: '+(labels[item.category]||item.category)+' | الحالة: '+(statuses[item.status]||item.status);
+   card.appendChild(details);
+   const address=document.createElement('p');address.textContent='العنوان: '+item.address;card.appendChild(address);
+   if(item.phone){const phone=document.createElement('p');phone.textContent='الهاتف: '+item.phone;card.appendChild(phone);}
+   if(item.description){const desc=document.createElement('p');desc.textContent='الوصف: '+item.description;card.appendChild(desc);}
+   if(item.rejection_reason){const reason=document.createElement('p');reason.textContent='سبب الرفض السابق: '+item.rejection_reason;card.appendChild(reason);}
+   const {data:images,error:imageError}=await db.from('local_business_images').select('image_url').eq('business_id',item.id);
+   if(imageError){const warning=document.createElement('p');warning.textContent='تعذر تحميل صور النشاط: '+imageError.message;card.appendChild(warning);}
+   else if(images && images.length){
+    const gallery=document.createElement('div');gallery.style.display='flex';gallery.style.flexWrap='wrap';gallery.style.gap='8px';
+    images.forEach(imageRow=>{
+     const img=document.createElement('img');img.src=imageRow.image_url;img.alt='صورة '+item.name;img.loading='lazy';
+     img.style.width='110px';img.style.height='90px';img.style.objectFit='cover';img.style.borderRadius='8px';
+     gallery.appendChild(img);
+    });
+    card.appendChild(gallery);
+   }
+   const actions=document.createElement('div');actions.style.display='flex';actions.style.gap='8px';actions.style.flexWrap='wrap';
+   if(item.status!=='approved'){
+    const approve=document.createElement('button');approve.type='button';approve.textContent='الموافقة والنشر';
+    approve.addEventListener('click',()=>reviewLocalBusiness(item.id,'approve'));
+    actions.appendChild(approve);
+   }
+   if(item.status!=='rejected'){
+    const reject=document.createElement('button');reject.type='button';reject.className='secondary';reject.textContent='رفض الطلب';
+    reject.addEventListener('click',()=>reviewLocalBusiness(item.id,'reject'));
+    actions.appendChild(reject);
+   }
+   if(actions.childNodes.length) card.appendChild(actions);
+   area.appendChild(card);
+  }
+ }catch(error){
+  console.error('Admin local businesses load failed:',error);
+  area.textContent='تعذر تحميل طلبات الأنشطة: '+error.message;
+ }
+}
+
+async function reviewLocalBusiness(businessId,action){
+ const {data:isAdmin,error:adminError}=await db.rpc('is_main_admin');
+ if(adminError || isAdmin!==true){alert('غير مصرح لك بتنفيذ هذا الإجراء.');return;}
+ let updates={};
+ if(action==='approve'){
+  if(!confirm('هل توافق على نشر هذا النشاط التجاري؟')) return;
+  updates={status:'approved',rejection_reason:null,updated_at:new Date().toISOString()};
+ }else if(action==='reject'){
+  const reason=prompt('أدخل سبب رفض الطلب (3 أحرف على الأقل):');
+  if(reason===null) return;
+  if(reason.trim().length<3){alert('يجب إدخال سبب واضح للرفض.');return;}
+  updates={status:'rejected',rejection_reason:reason.trim(),updated_at:new Date().toISOString()};
+ }else return;
+ try{
+  const {error}=await db.from('local_businesses').update(updates).eq('id',businessId);
+  if(error) throw error;
+  await loadAdminLocalBusinesses();
+  alert(action==='approve'?'تمت الموافقة على النشاط ونشره.':'تم رفض الطلب وتسجيل السبب.');
+ }catch(error){
+  console.error('Local business review failed:',error);
+  alert('تعذر تنفيذ الإجراء: '+error.message);
+ }
+}
+
 async function loadMyLocalBusinesses(){
  const area=document.getElementById('myLocalBusinesses');
  if(!area || !currentUser) return;
