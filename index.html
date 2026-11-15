@@ -27,6 +27,12 @@ nav a[aria-current="page"]{background:#e8f3f8;color:#087e9b;padding:10px 14px;bo
 .notification-item h4{margin:0 0 5px;color:#073653}
 .notification-item p{margin:0 0 7px}
 .notification-item small{color:#687b89}
+.notification-item details summary{display:grid;gap:3px;cursor:pointer;list-style:none}
+.notification-item details summary::-webkit-details-marker{display:none}
+.notification-item details summary strong{color:#102d46}
+.notification-item details summary span{font-size:13px;color:#596f7d}
+.notification-item details summary small{font-size:11px}
+.notification-full-message{margin:12px 0 5px!important;padding-top:10px;border-top:1px solid #e9e1d2;white-space:pre-wrap}
 @media(max-width:600px){.notification-bell{min-width:36px;min-height:35px;padding:5px 8px;font-size:17px}}
 @media(max-width:600px){
  nav{display:flex;justify-content:space-around;gap:4px;padding:10px 5px}
@@ -141,6 +147,13 @@ section[id]{scroll-margin-top:80px}
 }
 
 
+/* Separate accommodation categories */
+.property-categories{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;max-width:1160px;margin:0 auto 18px}
+.property-category{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:68px;margin:0;padding:13px 16px;background:#fffdfa;color:#102d46;border:1px solid #e9e1d2;border-radius:14px;box-shadow:0 4px 14px #102d460c}
+.property-category strong{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;padding:0 8px;border-radius:20px;background:#f5ebd8;color:#8a682d;font-size:15px}
+.property-category.active{border-color:#c9a45c;background:#fbf5e9;box-shadow:0 5px 18px #c9a45c25}
+.property-category.active strong{background:#c9a45c;color:#102d46}
+@media(max-width:600px){.property-categories{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.property-category{min-height:58px;padding:10px 12px;font-size:14px}}
 /* OBNAR VACANCES — sand gold visual identity and compact property cards */
 :root{--ov-navy:#102d46;--ov-blue:#174b68;--ov-teal:#c9a45c;--ov-ink:#20384a;--ov-muted:#6d7d87;--ov-bg:#faf8f3;--ov-line:#e9e1d2;--ov-shadow:0 12px 34px rgba(16,45,70,.09)}
 body{background:var(--ov-bg);color:var(--ov-ink)}
@@ -237,6 +250,12 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <button class="secondary" onclick="resetSearch()">إلغاء البحث</button>
 </div>
 
+<div class="property-categories" aria-label="تصنيف الإقامات">
+ <button type="button" class="property-category active" data-category="all" onclick="setPropertyCategory('all')"><span>كل الإقامات</span><strong id="categoryCountAll">0</strong></button>
+ <button type="button" class="property-category" data-category="apartment" onclick="setPropertyCategory('apartment')"><span>الشقق</span><strong id="categoryCountApartment">0</strong></button>
+ <button type="button" class="property-category" data-category="studio" onclick="setPropertyCategory('studio')"><span>الاستوديوهات</span><strong id="categoryCountStudio">0</strong></button>
+ <button type="button" class="property-category" data-category="house" onclick="setPropertyCategory('house')"><span>المنازل</span><strong id="categoryCountHouse">0</strong></button>
+</div>
 <div id="properties" class="grid"></div>
 
 </section>
@@ -614,17 +633,23 @@ function openNotifications(){
  loadMyNotifications();
 }
 
+function isBookingNotification(item){
+ const signal=[item?.event_type,item?.title,item?.message].filter(Boolean).join(' ').toLowerCase();
+ return /(booking|reservation|payment|receipt|cancel|refund|حجز|دفع|وصل|إلغاء|الغاء|استرداد|تسبيق)/i.test(signal);
+}
+
 async function updateNotificationBadge(){
  const badge=document.getElementById('notificationBadge');
  if(!badge) return;
  if(!currentUser){badge.classList.add('hidden');return;}
  try{
-  const {count,error}=await db.from('notifications')
-   .select('id',{count:'exact',head:true})
+  const {data,error}=await db.from('notifications')
+   .select('event_type,title,message')
    .eq('user_id',currentUser.id)
    .eq('is_read',false);
   if(error) throw error;
-  badge.textContent=count>99?'99+':String(count||0);
+  const count=(data||[]).filter(isBookingNotification).length;
+  badge.textContent=count>99?'99+':String(count);
   badge.classList.toggle('hidden',!count);
  }catch(e){
   console.warn('Notification count unavailable:',e.message);
@@ -644,21 +669,30 @@ async function loadMyNotifications(){
    .limit(50);
   if(error) throw error;
   list.innerHTML='';
-  if(!data||data.length===0){
-   list.textContent='لا توجد إشعارات حالياً.';
+  const important=(data||[]).filter(isBookingNotification);
+  if(!important.length){
+   list.textContent='لا توجد إشعارات حجوزات أو دفع جديدة حالياً.';
    await updateNotificationBadge();
    return;
   }
-  data.forEach(item=>{
+  important.forEach(item=>{
    const card=document.createElement('article');
    card.className='notification-item'+(item.is_read?'':' unread');
-   const title=document.createElement('h4');
-   title.textContent=item.title;
-   const message=document.createElement('p');
-   message.textContent=item.message;
+   const details=document.createElement('details');
+   const summary=document.createElement('summary');
+   const heading=document.createElement('strong');
+   heading.textContent=item.title||'تحديث بخصوص الحجز';
+   const preview=document.createElement('span');
+   const fullMessage=item.message||'اضغط لعرض التفاصيل.';
+   preview.textContent=fullMessage.length>88?fullMessage.slice(0,88)+'…':fullMessage;
    const date=document.createElement('small');
    date.textContent=new Date(item.created_at).toLocaleString('ar-DZ');
-   card.append(title,message,date);
+   const message=document.createElement('p');
+   message.className='notification-full-message';
+   message.textContent=fullMessage;
+   summary.append(heading,preview,date);
+   details.append(summary,message);
+   card.appendChild(details);
    if(!item.is_read){
     const mark=document.createElement('button');
     mark.type='button';
@@ -3159,6 +3193,7 @@ async function loadProperties(){
  }
 }
 let selectedProperty = null;
+let selectedPropertyCategory = 'all';
 
 function openBookingForm(property){
 
@@ -3196,6 +3231,15 @@ function closeBookingForm(){
 
 }
 
+function setPropertyCategory(category){
+ selectedPropertyCategory=['all','apartment','studio','house'].includes(category)?category:'all';
+ document.querySelectorAll('.property-category').forEach(button=>{
+  button.classList.toggle('active',button.dataset.category===selectedPropertyCategory);
+ });
+ renderProperties();
+}
+window.setPropertyCategory=setPropertyCategory;
+
 function renderProperties(){
 
  const container = document.getElementById('properties');
@@ -3205,7 +3249,7 @@ function renderProperties(){
  const guestChoice=document.getElementById('guestFilter').value;
  const guests=Number(guestChoice);
 
- const filtered = allProperties.filter(p=>{
+ const matchingSearch = allProperties.filter(p=>{
 
   const location = allLocations.find(l=>l.id===p.location_id);
 
@@ -3222,6 +3266,19 @@ function renderProperties(){
    && (guestChoice==='8'?Number(p.capacity)>7:Number(p.capacity)>=guests);
 
  });
+ const counts={
+  all:matchingSearch.length,
+  apartment:matchingSearch.filter(p=>p.property_type==='apartment').length,
+  studio:matchingSearch.filter(p=>p.property_type==='studio').length,
+  house:matchingSearch.filter(p=>p.property_type==='house').length
+ };
+ document.getElementById('categoryCountAll').textContent=counts.all;
+ document.getElementById('categoryCountApartment').textContent=counts.apartment;
+ document.getElementById('categoryCountStudio').textContent=counts.studio;
+ document.getElementById('categoryCountHouse').textContent=counts.house;
+ const filtered=selectedPropertyCategory==='all'
+  ? matchingSearch
+  : matchingSearch.filter(p=>p.property_type===selectedPropertyCategory);
 
  container.innerHTML = '';
 
