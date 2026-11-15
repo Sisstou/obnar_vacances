@@ -199,6 +199,24 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
  .property-detail-page .detail-content{padding:13px}
 }
 
+
+/* Home tourism introduction */
+.home-intro{max-width:1160px;margin:0 auto;padding:26px 16px 8px}
+.home-intro h2{color:#102d46;margin:0 0 8px;font-size:25px}
+.home-intro>p{color:#586d7a;margin:0 0 18px}
+.destination-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.destination-card{overflow:hidden;background:#fff;border:1px solid #e9e1d2;border-radius:16px;box-shadow:0 5px 18px #102d460c}
+.destination-card img{display:block;width:100%;height:155px;object-fit:cover;background:#e8e1d4}
+.destination-card .destination-info{padding:12px 14px}
+.destination-card h3{margin:0 0 5px;color:#102d46;font-size:17px}
+.destination-card p{margin:0;color:#667783;font-size:13px;line-height:1.6}
+.home-note{margin:20px 0;padding:15px 17px;border-right:4px solid #c9a45c;background:#fffaf0;border-radius:10px;color:#536b79}
+.home-cta{text-align:center;padding:10px 12px 25px}
+.home-cta h3{color:#102d46;margin:0 0 8px}
+.home-cta p{margin:0 0 12px;color:#667783}
+@media(max-width:760px){.destination-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.destination-card img{height:118px}.destination-card .destination-info{padding:9px}.destination-card h3{font-size:14px}.destination-card p{font-size:12px}}
+@media(max-width:390px){.destination-grid{grid-template-columns:1fr}.destination-card{display:grid;grid-template-columns:108px minmax(0,1fr)}.destination-card img{height:100%;min-height:100px}}
+
 </style>
 </head>
 
@@ -219,9 +237,45 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 
 <section id="home" class="app-page active">
 <div class="hero">
-<h2>اكتشف عطلتك في جيجل 🌊</h2>
-<p>اعثر على الإقامة المناسبة لك في أولاد بونار وجيجل.</p>
-<button onclick="showAppPage('search')">ابحث عن إقامة</button>
+<h2>مرحباً بكم في أولاد بونار 🌊</h2>
+<p>اكتشفوا جمال الساحل الجيجلي، تعرّفوا على الشواطئ والوجهات القريبة، واختاروا إقامتكم لقضاء عطلة ممتعة.</p>
+<button onclick="showAppPage('search')">اكتشف الإقامات واحجز عطلتك</button>
+</div>
+<div class="home-intro">
+<h2>أولاد بونار وما حولها</h2>
+<p>منطقة ساحلية غرب مدينة جيجل، تجمع بين البحر والطبيعة وقربها من مرافق ووجهات ترفيهية متنوعة.</p>
+<div class="destination-grid">
+<article class="destination-card">
+<img src="https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=900&q=80" alt="منظر أمواج البحر - صورة توضيحية">
+<div class="destination-info"><h3>شاطئ أولاد بونار</h3><p>وجهة للاستجمام والاستمتاع بأجواء البحر خلال موسم الاصطياف.</p></div>
+</article>
+<article class="destination-card">
+<img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80" alt="شاطئ رملي - صورة توضيحية">
+<div class="destination-info"><h3>الخليج الصغير – لا كريك</h3><p>خليج ساحلي بطابع طبيعي وإطلالة بحرية جميلة.</p></div>
+</article>
+<article class="destination-card">
+<img src="https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=900&q=80" alt="شاطئ ساحلي - صورة توضيحية">
+<div class="destination-info"><h3>شاطئ المنار الكبير</h3><p>من الوجهات الساحلية المعروفة في محيط جيجل.</p></div>
+</article>
+<article class="destination-card">
+<img src="https://images.unsplash.com/photo-1498623116890-37e912163d5d?auto=format&fit=crop&w=900&q=80" alt="ساحل البحر - صورة توضيحية">
+<div class="destination-info"><h3>شاطئ كتامة</h3><p>شاطئ قريب من وسط مدينة جيجل، مناسب للتنزه والاستمتاع بالواجهة البحرية.</p></div>
+</article>
+<article class="destination-card">
+<img src="https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=900&q=80" alt="مشهد حضري - صورة توضيحية">
+<div class="destination-info"><h3>وسط مدينة جيجل</h3><p>للتجول والتسوق والتعرف على أجواء المدينة ومرافقها.</p></div>
+</article>
+<article class="destination-card">
+<img src="https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=900&q=80" alt="طبيعة وأشجار - صورة توضيحية">
+<div class="destination-info"><h3>حديقة الحيوانات</h3><p>وجهة ترفيهية عائلية في منطقة كسير العوانة؛ يُنصح بالتحقق من أوقات الزيارة قبل التوجه.</p></div>
+</article>
+</div>
+<div class="home-note">🏊‍♂️ <strong>السلامة أولاً:</strong> السباحة تكون في الشواطئ المسموح بها وتحت إشراف الحراسة والإنقاذ، مع احترام الرايات وتعليمات أعوان الشاطئ والمحافظة على نظافة المكان.</div>
+</div>
+<div class="home-cta">
+<h3>خططوا لعطلتكم في جيجل</h3>
+<p>تصفحوا الإقامات المتاحة في أولاد بونار وجيجل واختاروا ما يناسبكم.</p>
+<button onclick="showAppPage('search')">البحث عن سكن</button>
 </div>
 </section>
 
