@@ -140,6 +140,50 @@ section[id]{scroll-margin-top:80px}
  footer{padding-bottom:95px}
 }
 
+
+/* OBNAR VACANCES — sand gold visual identity and compact property cards */
+:root{--ov-navy:#102d46;--ov-blue:#174b68;--ov-teal:#c9a45c;--ov-ink:#20384a;--ov-muted:#6d7d87;--ov-bg:#faf8f3;--ov-line:#e9e1d2;--ov-shadow:0 12px 34px rgba(16,45,70,.09)}
+body{background:var(--ov-bg);color:var(--ov-ink)}
+header,footer{background:linear-gradient(115deg,#102d46 0%,#174b68 72%,#245d72 100%)}
+header:after{border-color:#c9a45c55;box-shadow:0 0 0 28px #c9a45c12,0 0 0 58px #c9a45c0a}
+nav a{color:var(--ov-navy)}
+nav a[aria-current="page"]{background:#f5ebd8;color:#8a682d}
+.hero{background:radial-gradient(ellipse at 12% 10%,#f5ebd8 0,transparent 38%),linear-gradient(120deg,#fbf7ed 0%,#f1e5cd 55%,#e7d5b3 100%)}
+.hero h2{color:var(--ov-navy)}
+.hero p{color:#536b79}
+button{background:linear-gradient(120deg,#c9a45c,#ad8745);color:#102d46;box-shadow:0 5px 13px #9b783322}
+button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
+#search .panel{background:#fffdfa;border-color:var(--ov-line)}
+.property-compact{display:grid;grid-template-columns:118px minmax(0,1fr);align-items:stretch;min-height:142px;cursor:pointer;text-align:right}
+.property-compact:hover,.property-compact:focus{outline:none;border-color:#c9a45c;box-shadow:0 12px 28px #102d4620}
+.property-compact:focus-visible{outline:3px solid #c9a45c;outline-offset:3px}
+.property-compact img{width:118px;height:100%;min-height:142px;max-height:190px;object-fit:cover}
+.property-compact .info{padding:11px 13px;min-width:0}
+.property-compact .info h3{font-size:16px;margin:0 0 3px}
+.property-compact .info p{font-size:12px;margin:3px 0;color:#667783}
+.property-compact .info .price{font-size:15px;color:#9a7536;font-weight:800}
+.property-compact .property-amenities-preview{gap:4px;margin:5px 0}
+.property-compact .property-amenities-preview span{font-size:10px;padding:2px 7px}
+.property-card-hint{color:#9a7536!important;font-weight:700;margin-top:7px!important}
+.property-detail-page{max-width:1160px;margin:0 auto;min-height:65vh}
+.property-detail-page .detail-content{max-width:100%;margin:8px auto;background:#fff;border:1px solid var(--ov-line)}
+.property-detail-page .detail-content>button:first-child{margin-bottom:14px}
+.property-detail-page h2{font-size:clamp(22px,3vw,30px);margin:8px 0 16px}
+.property-detail-page #detailBody{line-height:1.9}
+.property-detail-page #detailActions{margin-top:20px;padding-top:15px;border-top:1px solid var(--ov-line)}
+.property-detail-page #detailActions button{min-width:180px}
+.price{color:#9a7536}
+@media(max-width:600px){
+ .property-compact{grid-template-columns:104px minmax(0,1fr);min-height:126px}
+ .property-compact img{width:104px;min-height:126px;max-height:160px}
+ .property-compact .info{padding:9px 10px}
+ .property-compact .info h3{font-size:15px}
+ .property-compact .info .price{font-size:14px}
+ .property-compact .property-amenities-preview span{font-size:9px}
+ .property-detail-page{padding:16px 10px 25px}
+ .property-detail-page .detail-content{padding:13px}
+}
+
 </style>
 </head>
 
@@ -194,7 +238,10 @@ section[id]{scroll-margin-top:80px}
 </div>
 
 <div id="properties" class="grid"></div>
-<div id="propertyDetailsModal" class="detail-modal hidden" role="dialog" aria-modal="true"><div class="detail-content"><button type="button" class="secondary" onclick="closePropertyDetails()">إغلاق ✕</button><h2 id="detailTitle"></h2><div id="detailGallery" class="detail-gallery"><div class="gallery-main" id="galleryMain"><img id="galleryMainImage" alt="صورة الإقامة" onclick="openCurrentGalleryImage()"><button type="button" class="gallery-nav gallery-prev" id="galleryPrev" aria-label="الصورة السابقة">‹</button><button type="button" class="gallery-nav gallery-next" id="galleryNext" aria-label="الصورة التالية">›</button><span id="galleryCounter" class="gallery-counter"></span></div><div id="galleryThumbs" class="gallery-thumbs"></div></div><div id="detailBody"></div><div id="detailActions"></div></div></div>
+
+</section>
+
+<section id="propertyDetail" class="app-page property-detail-page"><div class="detail-content"><button type="button" class="secondary" onclick="closePropertyDetails()">← العودة إلى الإقامات</button><h2 id="detailTitle"></h2><div id="detailGallery" class="detail-gallery"><div class="gallery-main" id="galleryMain"><img id="galleryMainImage" alt="صورة الإقامة" onclick="openCurrentGalleryImage()"><button type="button" class="gallery-nav gallery-prev" id="galleryPrev" aria-label="الصورة السابقة">‹</button><button type="button" class="gallery-nav gallery-next" id="galleryNext" aria-label="الصورة التالية">›</button><span id="galleryCounter" class="gallery-counter"></span></div><div id="galleryThumbs" class="gallery-thumbs"></div></div><div id="detailBody"></div><div id="detailActions"></div></div></section>
 <div id="imageLightbox" class="image-lightbox hidden" role="dialog" aria-modal="true" aria-label="عرض الصورة بالحجم الكبير" onclick="if(event.target===this)closeImageLightbox()"><button type="button" class="secondary" onclick="closeImageLightbox()">إغلاق ✕</button><button type="button" class="image-lightbox-nav image-lightbox-prev" id="lightboxPrev" aria-label="الصورة السابقة">‹</button><img id="lightboxImage" alt="صورة الإقامة بالحجم الكبير"><button type="button" class="image-lightbox-nav image-lightbox-next" id="lightboxNext" aria-label="الصورة التالية">›</button><span id="lightboxCounter" class="image-lightbox-counter"></span></div>
 </section>
 
@@ -476,7 +523,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 
 
 function showAppPage(pageId){
- const pageIds=['home','search','account','contact'];
+ const pageIds=['home','search','propertyDetail','account','contact'];
  if(!pageIds.includes(pageId)) return;
  pageIds.forEach(id=>{
   const page=document.getElementById(id);
@@ -3193,7 +3240,17 @@ function renderProperties(){
   const location = allLocations.find(l=>l.id===p.location_id);
 
   const card = document.createElement('article');
-  card.className = 'property';
+  card.className = 'property property-compact';
+  card.tabIndex = 0;
+  card.setAttribute('role','button');
+  card.setAttribute('aria-label','عرض تفاصيل '+(p.title_ar||'الإقامة'));
+  card.addEventListener('click',()=>openPropertyDetails(p));
+  card.addEventListener('keydown',event=>{
+   if(event.key==='Enter' || event.key===' '){
+    event.preventDefault();
+    openPropertyDetails(p);
+   }
+  });
 
   const image = document.createElement('img');
   image.alt = 'صورة الإقامة';
@@ -3243,15 +3300,10 @@ function renderProperties(){
 
     info.appendChild(price);
 
-  const detailsButton=document.createElement('button');detailsButton.className='secondary';detailsButton.textContent='عرض التفاصيل';detailsButton.onclick=()=>openPropertyDetails(p);info.appendChild(detailsButton);
-  const bookButton = document.createElement('button');
-  bookButton.textContent = 'احجز الآن';
-
-  bookButton.onclick = function(){
-   openBookingForm(p);
-  };
-
-  info.appendChild(bookButton);
+  const hint=document.createElement('p');
+  hint.className='property-card-hint';
+  hint.textContent='اضغط لاكتشاف الإقامة والتفاصيل ←';
+  info.appendChild(hint);
 
   card.appendChild(info);
   container.appendChild(card);
@@ -3411,9 +3463,9 @@ function openPropertyDetails(property){
  if(!list.children.length){const p=document.createElement('p');p.textContent='لم يحدد المالك مزايا إضافية.';list.appendChild(p);}body.appendChild(list);
  if(property.google_maps_url){const a=document.createElement('a');a.href=property.google_maps_url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='📍 افتح موقع الإقامة على Google Maps';body.appendChild(a);}
  const actions=document.getElementById('detailActions');actions.innerHTML='';const book=document.createElement('button');book.textContent='احجز هذه الإقامة';book.onclick=()=>{closePropertyDetails();openBookingForm(property);};actions.appendChild(book);
- document.getElementById('propertyDetailsModal').classList.remove('hidden');
+ showAppPage('propertyDetail');
 }
-function closePropertyDetails(){document.getElementById('propertyDetailsModal').classList.add('hidden');}
+function closePropertyDetails(){showAppPage('search');}
 function openImageLightbox(src){const index=detailGalleryImages.indexOf(src);if(index>=0)detailGalleryIndex=index;const box=document.getElementById('imageLightbox');box.classList.remove('hidden');updateLightboxImage();}
 function closeImageLightbox(){const box=document.getElementById('imageLightbox');box.classList.add('hidden');document.getElementById('lightboxImage').src='';}
 document.addEventListener('keydown',event=>{if(event.key==='Escape'){closeImageLightbox();}});
