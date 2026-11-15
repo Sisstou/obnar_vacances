@@ -1060,7 +1060,6 @@ async function showUser(){
 
  showAppPage('account');
  if(currentUser) startNotificationRealtime(currentUser.id);
-  await loadMyLocalBusinesses();
  document.getElementById('authForms').classList.add('hidden');
  document.getElementById('userArea').classList.remove('hidden');
  await updateNotificationBadge();
@@ -1068,6 +1067,8 @@ async function showUser(){
 
  const adminArea = document.getElementById('adminArea');
  adminArea.classList.add('hidden');
+ const localBusinessSubmitArea = document.getElementById('localBusinessSubmitArea');
+ if(localBusinessSubmitArea) localBusinessSubmitArea.classList.add('hidden');
 
  document.getElementById('ownerArea').classList.remove('hidden');
  document.getElementById('ownerVerificationArea').classList.add('hidden');
@@ -1096,6 +1097,7 @@ document.getElementById('travelerBookingArea').classList.add('hidden');
 
   if(data === true){
 
+   if(localBusinessSubmitArea) localBusinessSubmitArea.classList.add('hidden');
    adminArea.classList.remove('hidden');
    document.getElementById('adminDashboardLink').classList.remove('hidden');
 
@@ -1110,6 +1112,8 @@ document.getElementById('travelerBookingArea').classList.add('hidden');
 
   }else{
 
+   if(localBusinessSubmitArea) localBusinessSubmitArea.classList.remove('hidden');
+   await loadMyLocalBusinesses();
    document.getElementById('userInfo').textContent =
     'مرحباً '+currentProfile.full_name+' — نوع الحساب: '+
     (currentProfile.role === 'owner' ? 'مالك' : 'مصطاف');
