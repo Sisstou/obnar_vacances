@@ -363,6 +363,28 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 </div>
 
 <p id="userInfo"></p>
+<div class="panel" id="localBusinessSubmitArea">
+ <hr><h3>🏪 أضف نشاطك التجاري</h3>
+ <p class="small">قدّم نشاطك لإضافته إلى دليل أولاد بونار وجيجل. لن يظهر للزوار قبل موافقة الإدارة.</p>
+ <label class="field-label" for="localBusinessName">اسم النشاط التجاري</label>
+ <input id="localBusinessName" maxlength="120" placeholder="مثال: مطعم ...">
+ <label class="field-label" for="localBusinessCategory">نوع النشاط</label>
+ <select id="localBusinessCategory">
+  <option value="">اختر نوع النشاط</option><option value="restaurant">مطعم</option><option value="fast_food">فاست فود / وجبات سريعة</option><option value="cafe">مقهى</option><option value="sweets">حلويات</option><option value="grocery">مواد غذائية</option><option value="shop">محل تجاري</option><option value="pharmacy">صيدلية</option><option value="services">خدمات</option><option value="other">نشاط آخر</option>
+ </select>
+ <label class="field-label" for="localBusinessAddress">العنوان</label>
+ <input id="localBusinessAddress" maxlength="250" placeholder="الحي، الشارع أو علامة قريبة">
+ <label class="field-label" for="localBusinessPhone">رقم الهاتف (اختياري)</label>
+ <input id="localBusinessPhone" type="tel" maxlength="30" placeholder="رقم التواصل">
+ <label class="field-label" for="localBusinessDescription">نبذة عن النشاط (اختياري)</label>
+ <textarea id="localBusinessDescription" maxlength="1000" placeholder="الخدمات أو المنتجات التي يقدمها النشاط"></textarea>
+ <label class="field-label" for="localBusinessPhotos">صور النشاط (اختياري)</label>
+ <p class="small">حتى 5 صور بصيغة JPG أو PNG أو WebP، بحد أقصى 5 ميغابايت للصورة.</p>
+ <input id="localBusinessPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+ <div class="owner-form-actions"><button type="button" id="submitLocalBusinessButton" onclick="submitLocalBusiness()">إرسال النشاط للمراجعة</button></div>
+ <p id="localBusinessMessage" aria-live="polite"></p>
+ <hr><h4>طلباتي في دليل الأنشطة</h4><div id="myLocalBusinesses" class="small">جارٍ تحميل طلباتك...</div>
+</div>
 <button type="button" id="adminDashboardLink" class="hidden" onclick="showAppPage('adminDashboard')">لوحة تحكم المدير الرئيسي</button>
 
 <hr>
@@ -1033,6 +1055,7 @@ async function showUser(){
 
  showAppPage('account');
  if(currentUser) startNotificationRealtime(currentUser.id);
+  await loadMyLocalBusinesses();
  document.getElementById('authForms').classList.add('hidden');
  document.getElementById('userArea').classList.remove('hidden');
  await updateNotificationBadge();
@@ -3656,6 +3679,70 @@ document.getElementById('bookingCheckOut')
 
 document.getElementById('bookingGuests')
  .addEventListener('input', calculateBookingPrice);
+async function loadMyLocalBusinesses(){
+ const area=document.getElementById('myLocalBusinesses');
+ if(!area || !currentUser) return;
+ area.textContent='جارٍ تحميل طلباتك...';
+ try{
+  const {data,error}=await db.from('local_businesses').select('id,name,category,address,status,rejection_reason,created_at').eq('owner_id',currentUser.id).order('created_at',{ascending:false});
+  if(error) throw error;
+  area.innerHTML='';
+  if(!data || !data.length){area.textContent='لم ترسل أي نشاط تجاري بعد.';return;}
+  const labels={restaurant:'مطعم',fast_food:'فاست فود',cafe:'مقهى',sweets:'حلويات',grocery:'مواد غذائية',shop:'محل تجاري',pharmacy:'صيدلية',services:'خدمات',other:'نشاط آخر'};
+  const statuses={pending:'قيد المراجعة',approved:'تمت الموافقة والنشر',rejected:'مرفوض'};
+  data.forEach(item=>{
+   const card=document.createElement('div');card.className='notification-item';
+   const title=document.createElement('strong');title.textContent=item.name;card.appendChild(title);
+   const detail=document.createElement('p');detail.textContent=(labels[item.category]||'نشاط')+' — '+item.address;card.appendChild(detail);
+   const status=document.createElement('p');status.textContent='الحالة: '+(statuses[item.status]||item.status);card.appendChild(status);
+   if(item.status==='rejected' && item.rejection_reason){const reason=document.createElement('p');reason.textContent='سبب الرفض: '+item.rejection_reason;card.appendChild(reason);}
+   area.appendChild(card);
+  });
+ }catch(error){area.textContent='تعذر تحميل طلباتك: '+error.message;}
+}
+async function submitLocalBusiness(){
+ const button=document.getElementById('submitLocalBusinessButton');
+ const output=document.getElementById('localBusinessMessage');
+ if(!currentUser){output.textContent='يرجى تسجيل الدخول أولاً لإرسال نشاطك التجاري.';return;}
+ const name=document.getElementById('localBusinessName').value.trim();
+ const category=document.getElementById('localBusinessCategory').value;
+ const address=document.getElementById('localBusinessAddress').value.trim();
+ const phone=document.getElementById('localBusinessPhone').value.trim();
+ const description=document.getElementById('localBusinessDescription').value.trim();
+ const files=Array.from(document.getElementById('localBusinessPhotos').files||[]);
+ const allowedTypes=['image/jpeg','image/png','image/webp'];
+ if(!name || !category || !address){output.textContent='يرجى إدخال اسم النشاط ونوعه وعنوانه.';return;}
+ if(files.length>5){output.textContent='يمكن إضافة 5 صور كحد أقصى.';return;}
+ for(const file of files){
+  if(!allowedTypes.includes(file.type)){output.textContent='إحدى الصور ليست بصيغة JPG أو PNG أو WebP.';return;}
+  if(file.size>5*1024*1024){output.textContent='يجب ألا يتجاوز حجم كل صورة 5 ميغابايت.';return;}
+ }
+ button.disabled=true;button.textContent='جارٍ إرسال الطلب...';output.textContent='يتم حفظ بيانات النشاط والصور...';
+ let businessId=null;
+ try{
+  const {data:business,error}=await db.from('local_businesses').insert({owner_id:currentUser.id,name,category,address,phone:phone||null,description:description||null,status:'pending'}).select('id').single();
+  if(error) throw error;
+  businessId=business.id;
+  for(let index=0;index<files.length;index++){
+   const file=files[index];
+   const extension=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';
+   const path=currentUser.id+'/'+businessId+'/'+Date.now()+'-'+index+'.'+extension;
+   const {error:uploadError}=await db.storage.from('business-images').upload(path,file,{contentType:file.type,upsert:false});
+   if(uploadError) throw uploadError;
+   const imageUrl=db.storage.from('business-images').getPublicUrl(path).data.publicUrl;
+   const {error:imageError}=await db.from('local_business_images').insert({business_id:businessId,image_url:imageUrl});
+   if(imageError) throw imageError;
+  }
+  output.textContent='تم إرسال نشاطك التجاري بنجاح، وهو الآن قيد مراجعة الإدارة.';
+  ['localBusinessName','localBusinessCategory','localBusinessAddress','localBusinessPhone','localBusinessDescription','localBusinessPhotos'].forEach(id=>document.getElementById(id).value='');
+  await loadMyLocalBusinesses();
+ }catch(error){
+  console.error('Local business submission failed:',error);
+  output.textContent='تعذر إكمال الإرسال: '+error.message+(businessId?' — تم حفظ طلب النشاط؛ راجع الإدارة قبل إعادة إرساله.':'');
+  if(businessId) await loadMyLocalBusinesses();
+ }finally{button.disabled=false;button.textContent='إرسال النشاط للمراجعة';}
+}
+
 function resetSearch(){
 
  document.getElementById('searchText').value = '';
