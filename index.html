@@ -483,15 +483,17 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 <h3>📋 متابعة جميع الحجوزات</h3>
 <label for="adminBookingFilter">تصفية الحجوزات</label>
 <select id="adminBookingFilter" onchange="filterAdminBookings()">
-  <option value="all">جميع الحجوزات</option>
-  <option value="active">الحجوزات النشطة</option>
-  <option value="pending">بانتظار رد المالك</option>
+  <option value="active" selected>الحجوزات النشطة والإجراءات المطلوبة</option>
   <option value="awaiting_admin_approval">بانتظار موافقة الإدارة</option>
   <option value="awaiting_payment">بانتظار التسبيق</option>
-  <option value="receipt_submitted">وصل مرفوع - ينتظر التحقق</option>
-  <option value="verified">تم التحقق من الدفع</option>
-  <option value="cancelled">الحجوزات الملغاة</option>
-  <option value="rejected">الحجوزات المرفوضة</option>
+  <option value="receipt_submitted">وصولات تنتظر التحقق</option>
+  <option value="pending">بانتظار رد المالك</option>
+  <option value="verified">حجوزات تم التحقق من دفعها</option>
+  <option value="archive">السجل السابق: ملغاة ومرفوضة ومكتملة</option>
+  <option value="cancelled">الحجوزات الملغاة فقط</option>
+  <option value="rejected">الحجوزات المرفوضة فقط</option>
+  <option value="completed">الحجوزات المكتملة فقط</option>
+  <option value="all">كل الحجوزات (بما فيها السجل السابق)</option>
 </select>
 <button type="button" onclick="loadAdminBookings()">تحديث بيانات الحجوزات</button>
 <p id="adminBookingsRefreshStatus" role="status" aria-live="polite" style="margin:8px 0;color:#64748b"></p>
@@ -636,8 +638,26 @@ function openNotifications(){
 }
 
 function isBookingNotification(item){
- const signal=[item?.event_type,item?.title,item?.message].filter(Boolean).join(' ').toLowerCase();
- return /(booking|reservation|payment|receipt|cancel|refund|حجز|دفع|وصل|إلغاء|الغاء|استرداد|تسبيق)/i.test(signal);
+ const allowedEvents = new Set([
+  'booking_rejected',
+  'booking_confirmed',
+  'owner_booking_approved',
+  'owner_booking_rejected',
+  'payment_receipt_submitted',
+  'payment_rejected',
+  'payment_verified',
+  'booking_cancellation_requested',
+  'booking_cancellation_approved',
+  'booking_cancellation_rejected',
+  'cancellation_requested',
+  'cancellation_approved',
+  'cancellation_rejected',
+  'refund_approved',
+  'refund_rejected',
+  'refund_processed'
+ ]);
+ const event = String(item?.event_type || '').toLowerCase();
+ return item?.entity_type === 'booking' && allowedEvents.has(event);
 }
 
 async function updateNotificationBadge(){
@@ -1837,18 +1857,21 @@ function renderAdminBookingStats(bookings){
 }
 
 function filterAdminBookings(){
- const filter = document.getElementById('adminBookingFilter')?.value || 'all';
+ const filter = document.getElementById('adminBookingFilter')?.value || 'active';
  renderAdminBookingList(adminBookingCache,filter);
 }
 
 function renderAdminBookingList(bookings,filter='all'){
  const container = document.getElementById('adminBookings');
  if(!container) return;
+ const activeStatuses = ['pending','awaiting_admin_approval','awaiting_payment','confirmed'];
+ const archiveStatuses = ['cancelled','rejected','completed'];
  const filtered = bookings.filter(b=>{
   if(filter === 'all') return true;
-  if(filter === 'active') return ['pending','awaiting_admin_approval','awaiting_payment','confirmed'].includes(b.status);
-  if(filter === 'receipt_submitted') return b.payment_status === 'receipt_submitted';
-  if(filter === 'verified') return b.payment_status === 'verified';
+  if(filter === 'active') return activeStatuses.includes(b.status);
+  if(filter === 'archive') return archiveStatuses.includes(b.status);
+  if(filter === 'receipt_submitted') return b.status === 'awaiting_payment' && b.payment_status === 'receipt_submitted';
+  if(filter === 'verified') return b.payment_status === 'verified' && activeStatuses.includes(b.status);
   return b.status === filter;
  });
  container.innerHTML = '';
