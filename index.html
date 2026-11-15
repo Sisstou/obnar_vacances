@@ -243,6 +243,7 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <a href="#home" onclick="showAppPage('home');return false" aria-current="page">الرئيسية</a>
 <a href="#search" onclick="showAppPage('search');return false">البحث عن سكن</a>
 <a href="#account" onclick="showAppPage('account');return false">حسابي</a>
+<a href="#localBusinessAdvertising" id="localBusinessNavLink" onclick="showAppPage('localBusinessAdvertising');return false">إشهار المحلات</a>
 <a href="#contact" onclick="showAppPage('contact');return false">اتصل بنا</a>
 <button type="button" class="notification-bell" id="notificationBell" onclick="openNotifications()" aria-label="الإشعارات" title="الإشعارات">🔔<span id="notificationBadge" class="notification-badge hidden">0</span></button>
 </nav>
@@ -396,28 +397,9 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 </div>
 
 <p id="userInfo"></p>
-<div class="panel" id="localBusinessSubmitArea">
- <hr><h3>🏪 أضف نشاطك التجاري</h3>
- <p class="small">قدّم نشاطك لإضافته إلى دليل أولاد بونار وجيجل. لن يظهر للزوار قبل موافقة الإدارة.</p>
- <label class="field-label" for="localBusinessName">اسم النشاط التجاري</label>
- <input id="localBusinessName" maxlength="120" placeholder="مثال: مطعم ...">
- <label class="field-label" for="localBusinessCategory">نوع النشاط</label>
- <select id="localBusinessCategory">
-  <option value="">اختر نوع النشاط</option><option value="restaurant">مطعم</option><option value="fast_food">فاست فود / وجبات سريعة</option><option value="cafe">مقهى</option><option value="sweets">حلويات</option><option value="grocery">مواد غذائية</option><option value="shop">محل تجاري</option><option value="pharmacy">صيدلية</option><option value="services">خدمات</option><option value="other">نشاط آخر</option>
- </select>
- <label class="field-label" for="localBusinessAddress">العنوان</label>
- <input id="localBusinessAddress" maxlength="250" placeholder="الحي، الشارع أو علامة قريبة">
- <label class="field-label" for="localBusinessPhone">رقم الهاتف (اختياري)</label>
- <input id="localBusinessPhone" type="tel" maxlength="30" placeholder="رقم التواصل">
- <label class="field-label" for="localBusinessDescription">نبذة عن النشاط (اختياري)</label>
- <textarea id="localBusinessDescription" maxlength="1000" placeholder="الخدمات أو المنتجات التي يقدمها النشاط"></textarea>
- <label class="field-label" for="localBusinessPhotos">صور النشاط (اختياري)</label>
- <p class="small">حتى 5 صور بصيغة JPG أو PNG أو WebP، بحد أقصى 5 ميغابايت للصورة.</p>
- <input id="localBusinessPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
- <div class="owner-form-actions"><button type="button" id="submitLocalBusinessButton" onclick="submitLocalBusiness()">إرسال النشاط للمراجعة</button></div>
- <p id="localBusinessMessage" aria-live="polite"></p>
- <hr><h4>طلباتي في دليل الأنشطة</h4><div id="myLocalBusinesses" class="small">جارٍ تحميل طلباتك...</div>
-</div>
+<div id="myLocalBusinessesPanel" class="panel"><h3>🏪 طلباتي في دليل الأنشطة</h3><div id="myLocalBusinesses" class="small">جارٍ تحميل طلباتك...</div></div>
+
+
 <button type="button" id="adminDashboardLink" class="hidden" onclick="showAppPage('adminDashboard')">لوحة تحكم المدير الرئيسي</button>
 
 <hr>
@@ -575,6 +557,34 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 
 </section>
 
+<section id="localBusinessAdvertising" class="app-page">
+<section class="home-intro">
+<div class="panel" id="localBusinessSubmitArea">
+<h2>📢 إشهار المحلات والأنشطة التجارية</h2>
+ <p class="small">أضف نشاطك التجاري إلى دليل أولاد بونار وجيجل. يُنشر النشاط بعد مراجعة الإدارة والموافقة عليه. <strong>إرسال الطلب يتطلب تسجيل الدخول إلى حسابك.</strong></p>
+ <label class="field-label" for="localBusinessName">اسم النشاط التجاري</label>
+ <input id="localBusinessName" maxlength="120" placeholder="مثال: مطعم ...">
+ <label class="field-label" for="localBusinessCategory">نوع النشاط</label>
+ <select id="localBusinessCategory">
+  <option value="">اختر نوع النشاط</option><option value="restaurant">مطعم</option><option value="fast_food">فاست فود / وجبات سريعة</option><option value="cafe">مقهى</option><option value="sweets">حلويات</option><option value="grocery">مواد غذائية</option><option value="shop">محل تجاري</option><option value="pharmacy">صيدلية</option><option value="services">خدمات</option><option value="other">نشاط آخر</option>
+ </select>
+ <label class="field-label" for="localBusinessAddress">العنوان</label>
+ <input id="localBusinessAddress" maxlength="250" placeholder="الحي، الشارع أو علامة قريبة">
+ <label class="field-label" for="localBusinessPhone">رقم الهاتف (اختياري)</label>
+ <input id="localBusinessPhone" type="tel" maxlength="30" placeholder="رقم التواصل">
+ <label class="field-label" for="localBusinessDescription">نبذة عن النشاط (اختياري)</label>
+ <textarea id="localBusinessDescription" maxlength="1000" placeholder="الخدمات أو المنتجات التي يقدمها النشاط"></textarea>
+ <label class="field-label" for="localBusinessPhotos">صور النشاط (اختياري)</label>
+ <p class="small">حتى 5 صور بصيغة JPG أو PNG أو WebP، بحد أقصى 5 ميغابايت للصورة.</p>
+ <input id="localBusinessPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+ <div class="owner-form-actions"><button type="button" id="submitLocalBusinessButton" onclick="submitLocalBusiness()">إرسال النشاط للمراجعة</button></div>
+ <p id="localBusinessMessage" aria-live="polite"></p>
+ 
+</div>
+</div>
+</section>
+</section>
+
 <section id="adminDashboard" class="app-page"><div class="panel"><div id="adminArea">
   <hr>
   <h2>لوحة تحكم المدير الرئيسي</h2>
@@ -675,7 +685,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 
 
 function showAppPage(pageId){
- const pageIds=['home','search','propertyDetail','account','adminDashboard','contact'];
+ const pageIds=['home','search','propertyDetail','account','localBusinessAdvertising','adminDashboard','contact'];
  if(!pageIds.includes(pageId)) return;
  pageIds.forEach(id=>{
   const page=document.getElementById(id);
@@ -1014,6 +1024,8 @@ async function refreshUser(){
 
 
 function showGuest(){
+ const localBusinessNavLink=document.getElementById('localBusinessNavLink');
+ if(localBusinessNavLink) localBusinessNavLink.classList.remove('hidden');
 
  stopNotificationRealtime();
  showAppPage('account');
@@ -1115,8 +1127,8 @@ async function showUser(){
 
  const adminArea = document.getElementById('adminArea');
  adminArea.classList.add('hidden');
- const localBusinessSubmitArea = document.getElementById('localBusinessSubmitArea');
- if(localBusinessSubmitArea) localBusinessSubmitArea.classList.add('hidden');
+ const localBusinessNavLink=document.getElementById('localBusinessNavLink');
+ if(localBusinessNavLink) localBusinessNavLink.classList.add('hidden');
 
  document.getElementById('ownerArea').classList.remove('hidden');
  document.getElementById('ownerVerificationArea').classList.add('hidden');
@@ -1145,7 +1157,7 @@ document.getElementById('travelerBookingArea').classList.add('hidden');
 
   if(data === true){
 
-   if(localBusinessSubmitArea) localBusinessSubmitArea.classList.add('hidden');
+   if(localBusinessNavLink) localBusinessNavLink.classList.add('hidden');
    adminArea.classList.remove('hidden');
    document.getElementById('adminDashboardLink').classList.remove('hidden');
 
@@ -1160,7 +1172,7 @@ document.getElementById('travelerBookingArea').classList.add('hidden');
 
   }else{
 
-   if(localBusinessSubmitArea) localBusinessSubmitArea.classList.remove('hidden');
+   if(localBusinessNavLink) localBusinessNavLink.classList.remove('hidden');
    await loadMyLocalBusinesses();
    document.getElementById('userInfo').textContent =
     'مرحباً '+currentProfile.full_name+' — نوع الحساب: '+
