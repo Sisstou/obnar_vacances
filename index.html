@@ -2037,11 +2037,21 @@ function renderAdminBookingList(bookings,filter='all'){
  filtered.forEach(b=>{
   const property = properties.find(p=>p.id === b.property_id);
   const traveler = profiles.find(p=>p.id === b.traveler_id);
-  const card = document.createElement('div');
+  const card = document.createElement('details');
   card.className = 'panel admin-booking-card';
+  const summary = document.createElement('summary');
+  summary.className = 'admin-booking-summary';
+  summary.textContent =
+   (traveler?.full_name || 'مصطاف غير معروف')+' — '+
+   (property?.title_ar || 'إقامة غير معروفة')+' | '+
+   b.check_in+' إلى '+b.check_out+' | '+
+   (statusNames[b.status] || b.status || 'حالة غير محددة');
+  card.appendChild(summary);
+  const details = document.createElement('div');
+  details.className = 'admin-booking-details';
   const title = document.createElement('h3');
   title.textContent = property?.title_ar || 'إقامة غير معروفة';
-  card.appendChild(title);
+  details.appendChild(title);
   const lines = [
    'المصطاف: '+(traveler?.full_name || 'غير متوفر'),
    'الوصول: '+b.check_in,
@@ -2063,13 +2073,13 @@ function renderAdminBookingList(bookings,filter='all'){
   lines.forEach(value=>{
    const p = document.createElement('p');
    p.textContent = value;
-   card.appendChild(p);
+   details.appendChild(p);
   });
 
   if(b.payment_rejection_reason){
    const reason = document.createElement('p');
    reason.textContent = 'سبب رفض الوصل السابق: '+b.payment_rejection_reason;
-   card.appendChild(reason);
+   details.appendChild(reason);
   }
 
   if(b.status === 'awaiting_admin_approval'){
@@ -2092,7 +2102,7 @@ function renderAdminBookingList(bookings,filter='all'){
      approveOwnerBooking.disabled = false;
     }
    };
-   card.appendChild(approveOwnerBooking);
+   details.appendChild(approveOwnerBooking);
 
    const rejectOwnerBooking = document.createElement('button');
    rejectOwnerBooking.className = 'secondary';
@@ -2120,7 +2130,7 @@ function renderAdminBookingList(bookings,filter='all'){
      rejectOwnerBooking.disabled = false;
     }
    };
-   card.appendChild(rejectOwnerBooking);
+   details.appendChild(rejectOwnerBooking);
   }
 
   if(b.payment_status === 'receipt_submitted' &&
@@ -2133,7 +2143,7 @@ function renderAdminBookingList(bookings,filter='all'){
      ? new Date(b.receipt_uploaded_at).toLocaleString('ar-DZ')
      : 'غير متوفر'
    );
-   card.appendChild(receiptInfo);
+   details.appendChild(receiptInfo);
 
    const viewReceipt = document.createElement('button');
    viewReceipt.textContent = 'عرض وصل التحويل';
@@ -2151,7 +2161,7 @@ function renderAdminBookingList(bookings,filter='all'){
      viewReceipt.disabled = false;
     }
    };
-   card.appendChild(viewReceipt);
+   details.appendChild(viewReceipt);
 
    const verifyReceipt = document.createElement('button');
    verifyReceipt.textContent = 'تأكيد الدفع والحجز';
@@ -2172,7 +2182,7 @@ function renderAdminBookingList(bookings,filter='all'){
      verifyReceipt.disabled = false;
     }
    };
-   card.appendChild(verifyReceipt);
+   details.appendChild(verifyReceipt);
 
    const rejectReceipt = document.createElement('button');
    rejectReceipt.className = 'secondary';
@@ -2200,15 +2210,16 @@ function renderAdminBookingList(bookings,filter='all'){
      rejectReceipt.disabled = false;
     }
    };
-   card.appendChild(rejectReceipt);
+   details.appendChild(rejectReceipt);
   }
 
   if(b.payment_reviewed_at){
    const reviewed = document.createElement('p');
    reviewed.textContent = 'تاريخ المراجعة: '+new Date(b.payment_reviewed_at).toLocaleString('ar-DZ');
-   card.appendChild(reviewed);
+   details.appendChild(reviewed);
   }
 
+  card.appendChild(details);
   container.appendChild(card);
  });
 }
