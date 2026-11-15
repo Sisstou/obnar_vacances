@@ -2577,14 +2577,9 @@ async function respondToBooking(bookingId,status){
 
  try{
 
-  const newStatus =
-   status === 'confirmed'
-   ? 'awaiting_payment'
-   : status;
-
   const {error} = await db.rpc('respond_to_booking',{
    p_booking_id:bookingId,
-   p_status:newStatus
+   p_status:status
   });
 
   if(error) throw error;
