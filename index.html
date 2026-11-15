@@ -207,6 +207,12 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 .destination-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .destination-card{overflow:hidden;background:#fff;border:1px solid #e9e1d2;border-radius:16px;box-shadow:0 5px 18px #102d460c}
 .destination-card img{display:block;width:100%;height:155px;object-fit:cover;background:#e8e1d4}
+.destination-card small{display:block;margin-top:8px;font-size:10px;line-height:1.5;color:#71808a}
+.destination-card small a{color:#315f7c;text-decoration:underline}
+.destination-placeholder{height:155px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#dce7e7,#b9c9c4);color:#24475a;font-size:38px}
+.destination-placeholder span{font-size:16px;font-weight:700}
+@media(max-width:760px){.destination-placeholder{height:118px;font-size:30px}}
+@media(max-width:390px){.destination-placeholder{height:100%;min-height:100px}}
 .destination-card .destination-info{padding:12px 14px}
 .destination-card h3{margin:0 0 5px;color:#102d46;font-size:17px}
 .destination-card p{margin:0;color:#667783;font-size:13px;line-height:1.6}
@@ -268,6 +274,22 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <article class="destination-card">
 <img src="https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=900&q=80" alt="طبيعة وأشجار - صورة توضيحية">
 <div class="destination-info"><h3>حديقة الحيوانات</h3><p>وجهة ترفيهية عائلية في منطقة كسير العوانة؛ يُنصح بالتحقق من أوقات الزيارة قبل التوجه.</p></div>
+</article>
+</div>
+<h2 style="margin-top:26px">وجهات طبيعية وسياحية قريبة من جيجل</h2>
+<p>لمن يرغب في توسيع جولته خارج أولاد بونار، توجد وجهات أخرى في ولاية جيجل تستحق التعرف عليها.</p>
+<div class="destination-grid">
+<article class="destination-card">
+<img src="https://commons.wikimedia.org/wiki/Special:FilePath/Oued_El_Kebir_1.jpg?width=900" alt="منظر لوادي الكبير قرب الميلية">
+<div class="destination-info"><h3>الواد الكبير – جهة الميلية</h3><p>وجهة طبيعية للنزهة والاستمتاع بمشهد الوادي والمناظر المحيطة به. يُرجى اختيار مكان آمن ومسموح للتوقف والتنزه.</p><small>الصورة: LBM1948، عبر Wikimedia Commons، بترخيص CC BY-SA 4.0. <a href="https://commons.wikimedia.org/wiki/File:Oued_El_Kebir_1.jpg" target="_blank" rel="noopener">تفاصيل الصورة والترخيص</a>.</small></div>
+</article>
+<article class="destination-card">
+<img src="https://commons.wikimedia.org/wiki/Special:FilePath/Les_grottes_merveilleuses_Jijel_ziama_mansouria.jpg?width=900" alt="التشكيلات الطبيعية داخل الكهوف العجيبة بزيامة منصورية">
+<div class="destination-info"><h3>الكهوف العجيبة – زيامة منصورية</h3><p>مغارة طبيعية معروفة بتشكيلاتها الكلسية، تقع بزيامة منصورية غرب ولاية جيجل، وليست داخل أولاد بونار.</p><small>الصورة: Tine hinane Mouzaoui، عبر Wikimedia Commons، بترخيص CC BY-SA 4.0. <a href="https://commons.wikimedia.org/wiki/File:Les_grottes_merveilleuses_Jijel_ziama_mansouria.jpg" target="_blank" rel="noopener">تفاصيل الصورة والترخيص</a>.</small></div>
+</article>
+<article class="destination-card">
+<div class="destination-placeholder" role="img" aria-label="بطاقة تعريفية لغار الباز">⛰️<span>غار الباز</span></div>
+<div class="destination-info"><h3>غار الباز – زيامة منصورية</h3><p>موقع ذو طابع تاريخي وتراثي في منطقة زيامة منصورية. أدرجناه كوجهة قريبة، على أن نضيف صورة موثقة خاصة به لاحقاً.</p></div>
 </article>
 </div>
 <div class="home-note">🏊‍♂️ <strong>السلامة أولاً:</strong> السباحة تكون في الشواطئ المسموح بها وتحت إشراف الحراسة والإنقاذ، مع احترام الرايات وتعليمات أعوان الشاطئ والمحافظة على نظافة المكان.</div>
