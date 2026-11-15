@@ -300,6 +300,11 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 </div>
 <div class="home-note">🏊‍♂️ <strong>السلامة أولاً:</strong> السباحة تكون في الشواطئ المسموح بها وتحت إشراف الحراسة والإنقاذ، مع احترام الرايات وتعليمات أعوان الشاطئ والمحافظة على نظافة المكان.</div>
 </div>
+<section class="home-intro" id="neighborhoodBusinesses">
+<h2>🏘️ ماذا ستجد في أولاد بونار؟</h2>
+<p>تعرّفوا على المطاعم والمقاهي والمحلات والخدمات الموجودة في الحي. لا تظهر هنا إلا الأنشطة التي وافقت الإدارة على نشرها.</p>
+<div id="publicLocalBusinesses" class="destination-grid"><p>جارٍ تحميل دليل الأنشطة...</p></div>
+</section>
 <div class="home-cta">
 <h3>خططوا لعطلتكم في جيجل</h3>
 <p>تصفحوا الإقامات المتاحة في أولاد بونار وجيجل واختاروا ما يناسبكم.</p>
@@ -3743,6 +3748,74 @@ document.getElementById('bookingCheckOut')
 
 document.getElementById('bookingGuests')
  .addEventListener('input', calculateBookingPrice);
+async function loadPublicLocalBusinesses(){
+ const area=document.getElementById('publicLocalBusinesses');
+ if(!area) return;
+ area.textContent='جارٍ تحميل دليل الأنشطة...';
+ try{
+  const {data:businesses,error}=await db.from('local_businesses')
+   .select('id,name,category,description,phone,address')
+   .eq('status','approved')
+   .order('name',{ascending:true});
+  if(error) throw error;
+  area.innerHTML='';
+  if(!businesses || !businesses.length){
+   area.textContent='سيتم عرض الأنشطة المحلية هنا فور اعتماد أول نشاط تجاري.';
+   return;
+  }
+  const labels={restaurant:'مطعم',fast_food:'فاست فود ووجبات سريعة',cafe:'مقهى',sweets:'حلويات',grocery:'مواد غذائية',shop:'محل تجاري',pharmacy:'صيدلية',services:'خدمات',other:'نشاط محلي'};
+  const icons={restaurant:'🍽️',fast_food:'🍔',cafe:'☕',sweets:'🍰',grocery:'🛒',shop:'🏪',pharmacy:'💊',services:'🧰',other:'📍'};
+  const ids=businesses.map(item=>item.id);
+  let images=[];
+  if(ids.length){
+   const {data,error:imageError}=await db.from('local_business_images')
+    .select('business_id,image_url,created_at')
+    .in('business_id',ids)
+    .order('created_at',{ascending:true});
+   if(imageError) throw imageError;
+   images=data||[];
+  }
+  const imagesByBusiness={};
+  images.forEach(row=>{
+   if(!imagesByBusiness[row.business_id]) imagesByBusiness[row.business_id]=[];
+   imagesByBusiness[row.business_id].push(row.image_url);
+  });
+  businesses.forEach(item=>{
+   const card=document.createElement('article');
+   card.className='destination-card';
+   const photoList=imagesByBusiness[item.id]||[];
+   if(photoList.length){
+    const img=document.createElement('img');
+    img.src=photoList[0];img.alt='صورة '+item.name;img.loading='lazy';
+    card.appendChild(img);
+   }else{
+    const placeholder=document.createElement('div');
+    placeholder.className='destination-placeholder';
+    placeholder.setAttribute('role','img');
+    placeholder.setAttribute('aria-label','لا توجد صورة للنشاط');
+    placeholder.textContent=icons[item.category]||'📍';
+    card.appendChild(placeholder);
+   }
+   const info=document.createElement('div');info.className='destination-info';
+   const title=document.createElement('h3');title.textContent=item.name;info.appendChild(title);
+   const category=document.createElement('p');
+   category.textContent=(icons[item.category]||'📍')+' '+(labels[item.category]||'نشاط محلي');info.appendChild(category);
+   const address=document.createElement('p');address.textContent='📍 '+item.address;info.appendChild(address);
+   if(item.description){
+    const description=document.createElement('p');description.textContent=item.description;info.appendChild(description);
+   }
+   if(item.phone){
+    const phone=document.createElement('a');phone.href='tel:'+item.phone.replace(/[^+0-9]/g,'');
+    phone.textContent='اتصل بالنشاط: '+item.phone;info.appendChild(phone);
+   }
+   card.appendChild(info);area.appendChild(card);
+  });
+ }catch(error){
+  console.error('Public local businesses load failed:',error);
+  area.textContent='تعذر تحميل دليل الأنشطة حالياً. يرجى المحاولة لاحقاً.';
+ }
+}
+
 async function loadAdminLocalBusinesses(){
  const area=document.getElementById('adminLocalBusinesses');
  if(!area) return;
@@ -3917,6 +3990,7 @@ db.auth.onAuthStateChange((event)=>{
  await loadLocations();
  await loadAmenities();
  await loadProperties();
+ await loadPublicLocalBusinesses();
 
 })();
 </script>
