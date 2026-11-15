@@ -419,6 +419,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
   <option value="all">جميع الحجوزات</option>
   <option value="active">الحجوزات النشطة</option>
   <option value="pending">بانتظار رد المالك</option>
+  <option value="awaiting_admin_approval">بانتظار موافقة الإدارة</option>
   <option value="awaiting_payment">بانتظار التسبيق</option>
   <option value="receipt_submitted">وصل مرفوع - ينتظر التحقق</option>
   <option value="verified">تم التحقق من الدفع</option>
@@ -1720,7 +1721,7 @@ async function submitSavedProperty(){
 let adminBookingCache = [];
 
 function renderAdminBookingStats(bookings){
- const active = bookings.filter(b=>['pending','awaiting_payment','confirmed'].includes(b.status));
+ const active = bookings.filter(b=>['pending','awaiting_admin_approval','awaiting_payment','confirmed'].includes(b.status));
  const cancelled = bookings.filter(b=>b.status === 'cancelled');
  const receipts = bookings.filter(b=>b.payment_status === 'receipt_submitted');
  const outstanding = bookings
@@ -1763,7 +1764,7 @@ function renderAdminBookingList(bookings,filter='all'){
  if(!container) return;
  const filtered = bookings.filter(b=>{
   if(filter === 'all') return true;
-  if(filter === 'active') return ['pending','awaiting_payment','confirmed'].includes(b.status);
+  if(filter === 'active') return ['pending','awaiting_admin_approval','awaiting_payment','confirmed'].includes(b.status);
   if(filter === 'receipt_submitted') return b.payment_status === 'receipt_submitted';
   if(filter === 'verified') return b.payment_status === 'verified';
   return b.status === filter;
@@ -1778,6 +1779,7 @@ function renderAdminBookingList(bookings,filter='all'){
  const profiles = window.adminBookingProfiles || [];
  const statusNames = {
   pending:'بانتظار رد المالك',
+  awaiting_admin_approval:'بانتظار موافقة الإدارة',
   awaiting_payment:'بانتظار التسبيق',
   confirmed:'مؤكد',
   rejected:'مرفوض',
@@ -1810,6 +1812,13 @@ function renderAdminBookingList(bookings,filter='all'){
    'حالة الدفع: '+(paymentNames[b.payment_status] || b.payment_status || 'غير محددة'),
    'آخر أجل للدفع: '+(b.payment_due_at ? new Date(b.payment_due_at).toLocaleString('ar-DZ') : 'غير محدد')
   ];
+  if(b.owner_price_per_night !== null && b.owner_price_per_night !== undefined){
+   lines.splice(5,0,
+    'سعر المالك لليلة: '+Number(b.owner_price_per_night).toLocaleString('fr-DZ')+' دج',
+    'عمولة المنصة لليلة: '+Number(b.platform_commission_per_night || 0).toLocaleString('fr-DZ')+' دج',
+    'السعر النهائي لليلة: '+Number(b.final_price_per_night || 0).toLocaleString('fr-DZ')+' دج'
+   );
+  }
   lines.forEach(value=>{
    const p = document.createElement('p');
    p.textContent = value;
@@ -1820,6 +1829,57 @@ function renderAdminBookingList(bookings,filter='all'){
    const reason = document.createElement('p');
    reason.textContent = 'سبب رفض الوصل السابق: '+b.payment_rejection_reason;
    card.appendChild(reason);
+  }
+
+  if(b.status === 'awaiting_admin_approval'){
+   const approveOwnerBooking = document.createElement('button');
+   approveOwnerBooking.textContent = 'موافقة الإدارة على الحجز';
+   approveOwnerBooking.onclick = async ()=>{
+    if(!confirm('تأكيد اعتماد قبول المالك؟ ستبدأ مهلة دفع العربون لمدة 24 ساعة.')) return;
+    approveOwnerBooking.disabled = true;
+    try{
+     const {error} = await db.rpc('admin_review_owner_booking',{
+      p_booking_id:b.id,
+      p_action:'approve',
+      p_reason:null
+     });
+     if(error) throw error;
+     msg('تم اعتماد قبول المالك، وأصبح الحجز ينتظر دفع العربون خلال 24 ساعة.');
+     await loadAdminBookings();
+    }catch(e){
+     msg('تعذرت الموافقة على الحجز: '+e.message);
+     approveOwnerBooking.disabled = false;
+    }
+   };
+   card.appendChild(approveOwnerBooking);
+
+   const rejectOwnerBooking = document.createElement('button');
+   rejectOwnerBooking.className = 'secondary';
+   rejectOwnerBooking.textContent = 'رفض اعتماد الحجز';
+   rejectOwnerBooking.onclick = async ()=>{
+    const reason = prompt('أدخل سبب رفض اعتماد الحجز (3 أحرف على الأقل):');
+    if(reason === null) return;
+    if(reason.trim().length < 3){
+     msg('يجب إدخال سبب واضح لا يقل عن 3 أحرف.');
+     return;
+    }
+    if(!confirm('تأكيد رفض اعتماد الحجز؟ سيتم إشعار المصطاف والمالك بالسبب.')) return;
+    rejectOwnerBooking.disabled = true;
+    try{
+     const {error} = await db.rpc('admin_review_owner_booking',{
+      p_booking_id:b.id,
+      p_action:'reject',
+      p_reason:reason.trim()
+     });
+     if(error) throw error;
+     msg('تم رفض اعتماد الحجز وإشعار المصطاف والمالك.');
+     await loadAdminBookings();
+    }catch(e){
+     msg('تعذر رفض اعتماد الحجز: '+e.message);
+     rejectOwnerBooking.disabled = false;
+    }
+   };
+   card.appendChild(rejectOwnerBooking);
   }
 
   if(b.payment_status === 'receipt_submitted' &&
@@ -2130,7 +2190,7 @@ async function loadAdminBookings(){
 
   const {data:bookings,error} = await db
    .from('bookings')
-   .select('id,property_id,traveler_id,check_in,check_out,guests,total_price,status,payment_status,deposit_amount,payment_due_at,payment_receipt_path,receipt_uploaded_at,payment_rejection_reason,payment_reviewed_at,payment_reviewed_by,created_at')
+   .select('id,property_id,traveler_id,check_in,check_out,guests,total_price,status,payment_status,deposit_amount,payment_due_at,owner_price_per_night,platform_commission_per_night,final_price_per_night,payment_receipt_path,receipt_uploaded_at,payment_rejection_reason,payment_reviewed_at,payment_reviewed_by,created_at')
    .order('created_at',{ascending:false});
   if(error) throw error;
 
