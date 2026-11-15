@@ -309,6 +309,7 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 </div>
 
 <p id="userInfo"></p>
+<button type="button" id="adminDashboardLink" class="hidden" onclick="showAppPage('adminDashboard')">لوحة تحكم المدير الرئيسي</button>
 
 <hr>
 <h3>⚙️ تعديل بيانات حسابي</h3>
@@ -459,7 +460,13 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 
 </div>
 </div>
-<div id="adminArea" class="hidden">
+<button type="button" class="secondary" onclick="logout()">
+  تسجيل الخروج
+</button>
+
+</section>
+
+<section id="adminDashboard" class="app-page"><div class="panel"><div id="adminArea">
   <hr>
   <h2>لوحة تحكم المدير الرئيسي</h2>
 
@@ -515,13 +522,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 
 <div id="propertyRequests"></div>
 
-</div>
-
-<button type="button" class="secondary" onclick="logout()">
-  تسجيل الخروج
-</button>
-
-</section>
+</div></div></section>
 
 <section id="contact" class="app-page">
 <div class="panel" style="text-align:center">
@@ -545,7 +546,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 
 
 function showAppPage(pageId){
- const pageIds=['home','search','propertyDetail','account','contact'];
+ const pageIds=['home','search','propertyDetail','account','adminDashboard','contact'];
  if(!pageIds.includes(pageId)) return;
  pageIds.forEach(id=>{
   const page=document.getElementById(id);
@@ -1010,6 +1011,7 @@ document.getElementById('travelerBookingArea').classList.add('hidden');
   if(data === true){
 
    adminArea.classList.remove('hidden');
+   document.getElementById('adminDashboardLink').classList.remove('hidden');
 
    document.getElementById('userInfo').textContent =
     'مرحباً '+currentProfile.full_name+' — نوع الحساب: مدير رئيسي';
