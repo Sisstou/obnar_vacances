@@ -666,7 +666,7 @@ async function updateNotificationBadge(){
  if(!currentUser){badge.classList.add('hidden');return;}
  try{
   const {data,error}=await db.from('notifications')
-   .select('event_type,title,message')
+   .select('event_type,entity_type')
    .eq('user_id',currentUser.id)
    .eq('is_read',false);
   if(error) throw error;
