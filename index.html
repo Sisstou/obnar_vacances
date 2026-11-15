@@ -574,13 +574,15 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
   <hr>
   <h2>لوحة تحكم المدير الرئيسي</h2>
 
-  <button type="button" onclick="loadVerificationRequests()">
-  عرض طلبات التوثيق
-</button>
-
-<div id="verificationRequests">
-  <p>طلبات التوثيق ستظهر هنا.</p>
-</div>
+  <details class="booking-accordion">
+   <summary>🏠 طلبات توثيق الإقامات</summary>
+   <div class="booking-accordion-content">
+    <button type="button" onclick="loadVerificationRequests()">عرض طلبات التوثيق</button>
+    <div id="verificationRequests">
+      <p>طلبات التوثيق ستظهر هنا.</p>
+    </div>
+   </div>
+  </details>
 <details class="booking-accordion">
  <summary>📋 الحجوزات ومؤشرات الدفع</summary>
  <div class="booking-accordion-content">
@@ -617,24 +619,32 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
  </div>
 </details>
 
-<h3>طلبات إلغاء الحجوزات والاسترداد</h3>
-<button type="button" onclick="loadAdminCancellationRequests()">عرض طلبات الإلغاء</button>
-<div id="adminCancellationRequests">
- <p>اضغط على عرض طلبات الإلغاء لمراجعتها.</p>
-</div>
+<details class="booking-accordion">
+ <summary>↩️ طلبات إلغاء الحجوزات والاسترداد</summary>
+ <div class="booking-accordion-content">
+  <button type="button" onclick="loadAdminCancellationRequests()">عرض طلبات الإلغاء</button>
+  <div id="adminCancellationRequests">
+   <p>اضغط على عرض طلبات الإلغاء لمراجعتها.</p>
+  </div>
+ </div>
+</details>
 
-<h3>🏪 طلبات الأنشطة التجارية</h3>
-<p class="small">راجع بيانات النشاط وصوره، ثم وافق على نشره أو ارفضه مع توضيح السبب.</p>
-<button type="button" onclick="loadAdminLocalBusinesses()">عرض طلبات الأنشطة التجارية</button>
-<div id="adminLocalBusinesses"><p>اضغط على الزر لعرض طلبات الأنشطة التجارية.</p></div>
+<details class="booking-accordion">
+ <summary>🏪 طلبات الأنشطة التجارية</summary>
+ <div class="booking-accordion-content">
+  <p class="small">راجع بيانات النشاط وصوره، ثم وافق على نشره أو ارفضه مع توضيح السبب.</p>
+  <button type="button" onclick="loadAdminLocalBusinesses()">عرض طلبات الأنشطة التجارية</button>
+  <div id="adminLocalBusinesses"><p>اضغط على الزر لعرض طلبات الأنشطة التجارية.</p></div>
+ </div>
+</details>
 
-<h3>🏠 طلبات الإقامات الجديدة</h3>
-
-<button type="button" onclick="loadPropertyRequests()">
-  عرض الإقامات المنتظرة للمراجعة
-</button>
-
-<div id="propertyRequests"></div>
+<details class="booking-accordion">
+ <summary>🏘️ طلبات الإقامات الجديدة</summary>
+ <div class="booking-accordion-content">
+  <button type="button" onclick="loadPropertyRequests()">عرض الإقامات المنتظرة للمراجعة</button>
+  <div id="propertyRequests"></div>
+ </div>
+</details>
 
 </div></div></section>
 
