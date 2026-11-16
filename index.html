@@ -4059,6 +4059,12 @@ attachGallerySwipe(document.getElementById('galleryMain'));
 attachGallerySwipe(document.getElementById('imageLightbox'));
 let activeAvailabilityProperty=null,activeAvailabilityBookings=[],availabilityCanExport=false;
 function availabilityDateKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function getAvailabilityStatusForDate(key){
+ const matches=activeAvailabilityBookings.filter(x=>key>=String(x.check_in).slice(0,10)&&key<String(x.check_out).slice(0,10)&&x.status!=='cancelled');
+ if(matches.some(x=>['confirmed','completed'].includes(x.status)))return 'booked';
+ if(matches.length)return 'pending';
+ return 'free';
+}
 function availabilityEscape(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function renderPropertyAvailabilityCalendar(){
  const input=document.getElementById('availabilityMonth'),grid=document.getElementById('availabilityCalendar');
@@ -4069,9 +4075,9 @@ function renderPropertyAvailabilityCalendar(){
  for(let i=0;i<offset;i++){const b=document.createElement('div');b.className='availability-day empty';grid.appendChild(b);}
  for(let day=1;day<=new Date(year,month,0).getDate();day++){
   const key=availabilityDateKey(new Date(year,month-1,day));
-  const b=activeAvailabilityBookings.find(x=>key>=String(x.check_in).slice(0,10)&&key<String(x.check_out).slice(0,10)&&x.status!=='cancelled');
-  const cell=document.createElement('div');cell.className='availability-day'+(['confirmed','completed'].includes(b?.status)?' booked':b&&availabilityCanExport?' pending':'');
-  cell.textContent=String(day);cell.title=['confirmed','completed'].includes(b?.status)?'محجوز':b&&availabilityCanExport?'طلب قيد المعالجة':'متاح';grid.appendChild(cell);
+  const dayStatus=getAvailabilityStatusForDate(key);
+  const cell=document.createElement('div');cell.className='availability-day'+(dayStatus==='booked'?' booked':dayStatus==='pending'&&availabilityCanExport?' pending':'');
+  cell.textContent=String(day);cell.title=dayStatus==='booked'?'محجوز':dayStatus==='pending'&&availabilityCanExport?'طلب قيد المعالجة':'متاح';grid.appendChild(cell);
  }
  const hint=document.getElementById('availabilityHint');
  if(hint)hint.textContent=availabilityCanExport?'الأحمر: حجز مؤكد. الأصفر: طلب ينتظر المعالجة ولا يُعد حجزاً مؤكداً. يوم المغادرة متاح.':'الأيام الحمراء محجوزة بحجوزات مؤكدة ومدفوعة فقط. يوم المغادرة يبقى متاحاً.';
@@ -4099,8 +4105,8 @@ function getAvailabilityYearRows(year){
  if(!activeAvailabilityProperty)throw new Error('لا توجد إقامة محددة.');
  const rows=[['التاريخ','اليوم','الحالة']];
  for(let d=new Date(year,0,1),end=new Date(year+1,0,1);d<end;d.setDate(d.getDate()+1)){
-  const key=availabilityDateKey(d),b=activeAvailabilityBookings.find(x=>key>=String(x.check_in).slice(0,10)&&key<String(x.check_out).slice(0,10)&&x.status!=='cancelled');
-  rows.push([key,d.toLocaleDateString('ar-DZ',{weekday:'long'}),['confirmed','completed'].includes(b?.status)?'محجوز':b?'طلب قيد المعالجة':'متاح']);
+  const key=availabilityDateKey(d),status=getAvailabilityStatusForDate(key);
+  rows.push([key,d.toLocaleDateString('ar-DZ',{weekday:'long'}),status==='booked'?'محجوز':status==='pending'?'طلب قيد المعالجة':'متاح']);
  }return rows;
 }
 function exportPropertyAvailability(format){
