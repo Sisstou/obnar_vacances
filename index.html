@@ -338,6 +338,17 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 .availability-export{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:15px;padding-top:13px;border-top:1px solid #eee5d7}
 .availability-export button{margin:0}
 @media(max-width:520px){.availability-panel{padding:12px}.availability-day{min-height:43px;font-size:13px}.availability-weekday{font-size:10px}.availability-calendar{gap:3px}.availability-head{align-items:flex-start}}
+
+/* Owner bookings: responsive table with expandable action details */
+.owner-booking-table-wrap{width:100%;overflow-x:auto;margin:12px 0;border:1px solid #e9e1d2;border-radius:12px;background:#fff}
+.owner-booking-table{width:100%;min-width:850px;border-collapse:collapse;text-align:right;font-size:13px}
+.owner-booking-table th{background:#f5f0e5;color:#102d46;font-weight:700;white-space:nowrap}
+.owner-booking-table th,.owner-booking-table td{padding:11px 10px;border-bottom:1px solid #eee8dc;vertical-align:middle}
+.owner-booking-table tbody tr:not(.owner-booking-detail-row):hover{background:#fcfaf5}
+.owner-booking-table .owner-booking-details-toggle{min-height:36px;padding:7px 12px;margin:0;white-space:nowrap;font-size:12px}
+.owner-booking-detail-row>td{padding:12px;background:#fbfaf7}
+.owner-booking-detail-row .panel{max-width:none;width:100%;margin:0;box-shadow:none;border:1px solid #e9e1d2}
+@media(max-width:600px){.owner-booking-table{font-size:12px}.owner-booking-table th,.owner-booking-table td{padding:9px 8px}}
 </style>
 </head>
 
@@ -3135,10 +3146,10 @@ async function loadOwnerBookings(){
    const selected = bookingCategories.find(c=>c.id===categoryId);
    if(!selected) return;
    detailsContainer.innerHTML = '';
-   const heading = document.createElement('h3');
-   heading.textContent = selected.label+' — '+bookings.filter(selected.matches).length;
-   detailsContainer.appendChild(heading);
    const matches = bookings.filter(selected.matches);
+   const heading = document.createElement('h3');
+   heading.textContent = selected.label+' — '+matches.length;
+   detailsContainer.appendChild(heading);
    if(!matches.length){
     const empty = document.createElement('p');
     empty.className = 'small';
@@ -3146,10 +3157,27 @@ async function loadOwnerBookings(){
     detailsContainer.appendChild(empty);
     return;
    }
+   const wrapper=document.createElement('div');wrapper.className='owner-booking-table-wrap';
+   const table=document.createElement('table');table.className='owner-booking-table';
+   const thead=document.createElement('thead');const headerRow=document.createElement('tr');
+   ['الإقامة','الوصول / المغادرة','الأشخاص','السعر الإجمالي','التسبيق','حالة الدفع','التفاصيل'].forEach(label=>{const th=document.createElement('th');th.textContent=label;headerRow.appendChild(th);});
+   thead.appendChild(headerRow);table.appendChild(thead);
+   const tbody=document.createElement('tbody');
    matches.forEach(b=>{
-    const node = ownerBookingCards.get(b.id);
-    if(node) detailsContainer.appendChild(node);
+    const property=properties.find(p=>p.id===b.property_id);
+    const row=document.createElement('tr');
+    const values=[property?.title_ar||'إقامة',(b.check_in||'—')+' → '+(b.check_out||'—'),String(b.guests??'—'),Number(b.total_price||0).toLocaleString('fr-DZ')+' دج',Number(b.deposit_amount||0).toLocaleString('fr-DZ')+' دج',({unpaid:'لم يتم الدفع',receipt_submitted:'تم رفع الوصل',verified:'تم التحقق من الدفع',rejected:'الوصل مرفوض'}[b.payment_status]||b.payment_status||'—')];
+    values.forEach(value=>{const td=document.createElement('td');td.textContent=value;row.appendChild(td);});
+    const actionCell=document.createElement('td');const toggle=document.createElement('button');
+    toggle.type='button';toggle.className='secondary owner-booking-details-toggle';toggle.textContent='عرض التفاصيل';
+    const detailRow=document.createElement('tr');detailRow.className='owner-booking-detail-row hidden';
+    const detailCell=document.createElement('td');detailCell.colSpan=7;
+    const node=ownerBookingCards.get(b.id);if(node) detailCell.appendChild(node);
+    detailRow.appendChild(detailCell);
+    toggle.onclick=()=>{const opening=detailRow.classList.contains('hidden');detailRow.classList.toggle('hidden',!opening);toggle.textContent=opening?'إخفاء التفاصيل':'عرض التفاصيل';};
+    actionCell.appendChild(toggle);row.appendChild(actionCell);tbody.appendChild(row);tbody.appendChild(detailRow);
    });
+   table.appendChild(tbody);wrapper.appendChild(table);detailsContainer.appendChild(wrapper);
   }
 
   const ownerBookingCards = new Map();
