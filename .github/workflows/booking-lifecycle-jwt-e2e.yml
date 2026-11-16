@@ -30,6 +30,9 @@ jobs:
       - name: Validate test script syntax
         run: node --check tests/booking-lifecycle-jwt-e2e.test.cjs
 
+      - name: Validate property verification test script syntax
+        run: node --check tests/property-verification-jwt-e2e.test.cjs
+
       - name: Run Staging-only booking lifecycle JWT end-to-end tests
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -42,3 +45,16 @@ jobs:
           ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: node tests/booking-lifecycle-jwt-e2e.test.cjs
+
+      - name: Run Staging-only property verification JWT end-to-end tests
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TRAVELER_EMAIL: ${{ secrets.TRAVELER_EMAIL }}
+          TRAVELER_PASSWORD: ${{ secrets.TRAVELER_PASSWORD }}
+          OWNER_EMAIL: ${{ secrets.OWNER_EMAIL }}
+          OWNER_PASSWORD: ${{ secrets.OWNER_PASSWORD }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+        run: node tests/property-verification-jwt-e2e.test.cjs
