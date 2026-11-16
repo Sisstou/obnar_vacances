@@ -10,7 +10,7 @@ const anon=process.env.SUPABASE_ANON_KEY,service=process.env.SUPABASE_SERVICE_RO
 async function login(email,password){const r=await fetch(base+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:anon,'content-type':'application/json'},body:JSON.stringify({email,password})});const d=await r.json();assert.equal(r.ok,true,'Sign-in failed '+r.status);return d.access_token;}
 async function api(path,{method='GET',token,admin=false,body,prefer}={}){const h={apikey:admin?service:anon,Authorization:'Bearer '+(admin?service:token)};if(body!==undefined)h['content-type']='application/json';if(prefer)h.Prefer=prefer;const r=await fetch(base+'/rest/v1/'+path,{method,headers:h,body:body===undefined?undefined:JSON.stringify(body)});const raw=await r.text();let d=null;try{d=raw?JSON.parse(raw):null}catch{d=raw;}return {ok:r.ok,status:r.status,data:d,raw};}
 async function storage(path,{method='POST',token,admin=false,body=PNG}={}){const h={apikey:admin?service:anon,Authorization:'Bearer '+(admin?service:token),'content-type':'image/png'};return fetch(base+'/storage/v1/object/owner-documents/'+path,{method,headers:h,body});}
-const fixture={path:TRAVELER_ID+'/ci-owner-verification.png',id:null,profileChanged:false,uploaded:false};
+const fixture={path:TRAVELER_ID+'/ci-owner-verification.png',foreignPath:OWNER_ID+'/ci-foreign-owner-document.png',id:null,profileChanged:false,uploaded:false,foreignUploaded:false};
 async function main(){
  const [traveler,admin]=await Promise.all([login(process.env.TRAVELER_EMAIL,process.env.TRAVELER_PASSWORD),login(process.env.ADMIN_EMAIL,process.env.ADMIN_PASSWORD)]);
  const profile=await api('profiles?id=eq.'+TRAVELER_ID+'&select=id,role,requested_account_type',{admin:true});
@@ -22,12 +22,22 @@ async function main(){
  let res=await storage(fixture.path,{token:traveler});
  assert.equal(res.ok,true,'Eligible traveler owner-document upload failed: '+res.status+' '+await res.text());fixture.uploaded=true;
  console.log('PASS: traveler requesting owner status can upload a document under their own UID folder.');
+ let foreign=await storage(fixture.foreignPath,{admin:true});
+ assert.equal(foreign.ok,true,'Could not seed synthetic foreign document: '+foreign.status+' '+await foreign.text());fixture.foreignUploaded=true;
+ const wrongPath=await api('owner_verifications',{method:'POST',token:traveler,body:[{owner_id:TRAVELER_ID,document_path:fixture.foreignPath,status:'pending'}]});
+ assert.equal(wrongPath.ok,false,'Applicant referenced a document stored in another user folder.');
+ const missingPath=await api('owner_verifications',{method:'POST',token:traveler,body:[{owner_id:TRAVELER_ID,document_path:TRAVELER_ID+'/ci-missing-document.png',status:'pending'}]});
+ assert.equal(missingPath.ok,false,'Applicant submitted a request with a missing storage object.');
+ console.log('PASS: request must reference an existing owner-document object in the applicant own folder.');
 
  const insert=await api('owner_verifications?select=id,owner_id,document_path,status',{method:'POST',token:traveler,prefer:'return=representation',body:[{owner_id:TRAVELER_ID,document_path:fixture.path,status:'pending'}]});
  assert.equal(insert.ok,true,'Eligible owner-verification insert failed: '+insert.status+' '+insert.raw);
  fixture.id=insert.data[0].id;
  assert.equal(insert.data[0].status,'pending');
  console.log('PASS: eligible traveler can submit a pending owner-verification request.');
+ const duplicate=await api('owner_verifications',{method:'POST',token:traveler,body:[{owner_id:TRAVELER_ID,document_path:fixture.path,status:'pending'}]});
+ assert.equal(duplicate.ok,false,'Applicant created duplicate pending verification request.');
+ console.log('PASS: only one pending owner-verification request per applicant is allowed.');
 
  const own=await api('owner_verifications?select=id,owner_id,status&id=eq.'+fixture.id,{token:traveler});
  assert.equal(own.ok,true);assert.equal(own.data.length,1);
@@ -69,6 +79,6 @@ async function main(){
 main().catch(e=>{console.error('FAIL:',e.message);process.exitCode=1;}).finally(async()=>{
  if(fixture.profileChanged){const r=await api('profiles?id=eq.'+TRAVELER_ID,{method:'PATCH',admin:true,body:{role:'traveler',requested_account_type:'traveler'}});if(!r.ok){console.error('CLEANUP FAILURE: profile restoration failed',r.status,r.raw);process.exitCode=1;}else console.log('CLEANUP: test profile role and requested account type restored.');}
  if(fixture.id){const r=await api('owner_verifications?id=eq.'+fixture.id,{method:'DELETE',admin:true});if(!r.ok){console.error('CLEANUP FAILURE: verification row removal failed',r.status,r.raw);process.exitCode=1;}}
- if(fixture.uploaded){const r=await fetch(base+'/storage/v1/object/owner-documents',{method:'DELETE',headers:{apikey:service,Authorization:'Bearer '+service,'content-type':'application/json'},body:JSON.stringify({prefixes:[fixture.path]})});if(!r.ok){console.error('CLEANUP FAILURE: synthetic document removal failed',r.status,await r.text());process.exitCode=1;}}
+ if(fixture.uploaded||fixture.foreignUploaded){const prefixes=[];if(fixture.uploaded)prefixes.push(fixture.path);if(fixture.foreignUploaded)prefixes.push(fixture.foreignPath);const r=await fetch(base+'/storage/v1/object/owner-documents',{method:'DELETE',headers:{apikey:service,Authorization:'Bearer '+service,'content-type':'application/json'},body:JSON.stringify({prefixes})});if(!r.ok){console.error('CLEANUP FAILURE: synthetic document removal failed',r.status,await r.text());process.exitCode=1;}}
  console.log('CLEANUP: temporary owner-verification row and synthetic document cleanup attempted.');
 });
