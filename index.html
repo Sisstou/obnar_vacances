@@ -3968,7 +3968,6 @@ async function confirmBooking(){
   msg('عدد الأشخاص غير صالح.');
   return;
  }
- try{
  // Availability is enforced atomically by the database exclusion constraint.
  // Client-side SELECT cannot see other travelers' private bookings under RLS.
  const button = document.querySelector(
