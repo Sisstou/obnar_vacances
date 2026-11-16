@@ -4631,7 +4631,13 @@ async function loadPublicLocalBusinesses(){
   const icons={restaurant:'🍽️',fast_food:'🍔',cafe:'☕',sweets:'🍰',grocery:'🛒',shop:'🏪',pharmacy:'💊',crafts:'🧵',home_cleaning:'🧹',home_services:'🏠',professional_services:'🧑‍💼',maintenance:'🛠️',beauty:'💇',transport:'🚗',services:'🧰',other:'📍'};
   const ids=businesses.map(item=>item.id);let images=[];
   if(ids.length){const {data,error:imageError}=await db.from('local_business_images').select('business_id,image_url,created_at').in('business_id',ids).order('created_at',{ascending:true});if(imageError)throw imageError;images=data||[];}
-  const imagesByBusiness={};images.forEach(row=>{if(!imagesByBusiness[row.business_id])imagesByBusiness[row.business_id]=[];imagesByBusiness[row.business_id].push(row.image_url);});
+  const imagesByBusiness={};
+  for(const row of images){
+   const {data:signed,error:signedError}=await db.storage.from('business-images').createSignedUrl(row.image_url,3600);
+   if(signedError) continue;
+   if(!imagesByBusiness[row.business_id])imagesByBusiness[row.business_id]=[];
+   imagesByBusiness[row.business_id].push(signed.signedUrl);
+  }
   businesses.forEach(item=>{
    const photoList=imagesByBusiness[item.id]||[];
    areas.forEach(area=>{
@@ -4682,11 +4688,13 @@ async function loadAdminLocalBusinesses(){
    if(imageError){const warning=document.createElement('p');warning.textContent='تعذر تحميل صور النشاط: '+imageError.message;card.appendChild(warning);}
    else if(images && images.length){
     const gallery=document.createElement('div');gallery.style.display='flex';gallery.style.flexWrap='wrap';gallery.style.gap='8px';
-    images.forEach(imageRow=>{
-     const img=document.createElement('img');img.src=imageRow.image_url;img.alt='صورة '+item.name;img.loading='lazy';
+    for(const imageRow of images){
+     const {data:signed,error:signedError}=await db.storage.from('business-images').createSignedUrl(imageRow.image_url,300);
+     if(signedError) continue;
+     const img=document.createElement('img');img.src=signed.signedUrl;img.alt='صورة '+item.name;img.loading='lazy';
      img.style.width='110px';img.style.height='90px';img.style.objectFit='cover';img.style.borderRadius='8px';
      gallery.appendChild(img);
-    });
+    }
     card.appendChild(gallery);
    }
    const actions=document.createElement('div');actions.style.display='flex';actions.style.gap='8px';actions.style.flexWrap='wrap';
@@ -4794,8 +4802,7 @@ async function submitLocalBusiness(){
    const path=currentUser.id+'/'+businessId+'/'+Date.now()+'-'+index+'.'+extension;
    const {error:uploadError}=await db.storage.from('business-images').upload(path,file,{contentType:file.type,upsert:false});
    if(uploadError) throw uploadError;
-   const imageUrl=db.storage.from('business-images').getPublicUrl(path).data.publicUrl;
-   const {error:imageError}=await db.from('local_business_images').insert({business_id:businessId,image_url:imageUrl});
+   const {error:imageError}=await db.from('local_business_images').insert({business_id:businessId,image_url:path});
    if(imageError) throw imageError;
   }
   output.textContent='تم إرسال نشاطك التجاري بنجاح، وهو الآن قيد مراجعة الإدارة.';
