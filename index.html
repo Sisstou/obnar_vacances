@@ -7,6 +7,7 @@
 <title>OBNAR VACANCES</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <style>
 *{box-sizing:border-box}
@@ -315,6 +316,28 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 .activity-public-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:14px;max-width:1160px;margin:16px auto}
 .signup-role-note{font-size:13px;color:#526777;background:#f5f8fa;border:1px solid #e1e8ed;border-radius:9px;padding:10px;margin:8px 0}
 @media(max-width:600px){.public-rentals-section{padding:18px 12px 4px}.public-rentals-heading h2{font-size:19px}.property-strip .property{flex-basis:84vw}.property-strip .property img{height:150px}}
+
+.availability-panel{margin:22px 0;padding:18px;border:1px solid #e9e1d2;border-radius:16px;background:#fffdfa}
+.availability-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.availability-head h3{margin:0;color:#102d46}
+.availability-head label,.availability-export label{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px}
+.availability-head input,.availability-export input{width:auto;min-width:145px;margin:0;padding:8px 10px}
+.availability-legend{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0;font-size:12px;color:#526777}
+.availability-legend span{display:inline-flex;align-items:center;gap:5px}
+.availability-dot{display:inline-block;width:11px;height:11px;border-radius:3px}
+.availability-dot.free{background:#dcefe0;border:1px solid #9fc7a7}
+.availability-dot.booked{background:#f6dede;border:1px solid #d99b9b}
+.availability-dot.pending{background:#fff0c9;border:1px solid #d9b75c}
+.availability-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.availability-weekday{text-align:center;font-size:12px;font-weight:700;color:#647785;padding:6px 1px}
+.availability-day{min-height:54px;display:flex;align-items:center;justify-content:center;border:1px solid #e1e8e5;border-radius:9px;background:#eaf4eb;color:#244b31;font-weight:700}
+.availability-day.booked{background:#f8e5e5;border-color:#e4b6b6;color:#8b3030}
+.availability-day.pending{background:#fff3d7;border-color:#e7ce8a;color:#795b17}
+.availability-day.empty{background:transparent;border-color:transparent}
+.availability-hint{font-size:12px;color:#687b89;margin:10px 0}
+.availability-export{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:15px;padding-top:13px;border-top:1px solid #eee5d7}
+.availability-export button{margin:0}
+@media(max-width:520px){.availability-panel{padding:12px}.availability-day{min-height:43px;font-size:13px}.availability-weekday{font-size:10px}.availability-calendar{gap:3px}.availability-head{align-items:flex-start}}
 </style>
 </head>
 
@@ -482,7 +505,19 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 
 </section>
 
-<section id="propertyDetail" class="app-page property-detail-page"><div class="detail-content"><button type="button" class="secondary" onclick="closePropertyDetails()">← العودة إلى الإقامات</button><h2 id="detailTitle"></h2><div id="detailGallery" class="detail-gallery"><div class="gallery-main" id="galleryMain"><img id="galleryMainImage" alt="صورة الإقامة" onclick="openCurrentGalleryImage()"><button type="button" class="gallery-nav gallery-prev" id="galleryPrev" aria-label="الصورة السابقة">‹</button><button type="button" class="gallery-nav gallery-next" id="galleryNext" aria-label="الصورة التالية">›</button><span id="galleryCounter" class="gallery-counter"></span></div><div id="galleryThumbs" class="gallery-thumbs"></div></div><div id="detailBody"></div><div id="detailActions"></div></div></section>
+<section id="propertyDetail" class="app-page property-detail-page"><div class="detail-content"><button type="button" class="secondary" onclick="closePropertyDetails()">← العودة إلى الإقامات</button><h2 id="detailTitle"></h2><div id="detailGallery" class="detail-gallery"><div class="gallery-main" id="galleryMain"><img id="galleryMainImage" alt="صورة الإقامة" onclick="openCurrentGalleryImage()"><button type="button" class="gallery-nav gallery-prev" id="galleryPrev" aria-label="الصورة السابقة">‹</button><button type="button" class="gallery-nav gallery-next" id="galleryNext" aria-label="الصورة التالية">›</button><span id="galleryCounter" class="gallery-counter"></span></div><div id="galleryThumbs" class="gallery-thumbs"></div></div><div id="detailBody"></div>
+<div id="propertyAvailability" class="availability-panel">
+ <div class="availability-head"><h3>📅 رزنامة توفر الإقامة</h3><label for="availabilityMonth">الشهر <input id="availabilityMonth" type="month"></label></div>
+ <p id="availabilityHint" class="availability-hint">الأيام المحجوزة تظهر باللون الأحمر، ويوم المغادرة يبقى متاحاً.</p>
+ <div class="availability-legend"><span><i class="availability-dot free"></i> متاح</span><span><i class="availability-dot booked"></i> محجوز</span><span id="availabilityPendingLegend" class="hidden"><i class="availability-dot pending"></i> طلب قيد المعالجة</span></div>
+ <div id="availabilityCalendar" class="availability-calendar" aria-live="polite"></div>
+ <div id="availabilityExportControls" class="availability-export hidden">
+  <label for="availabilityExportYear">السنة <input id="availabilityExportYear" type="number" min="2020" max="2100"></label>
+  <button type="button" onclick="exportPropertyAvailability('xlsx')">تحميل Excel</button>
+  <button type="button" class="secondary" onclick="exportPropertyAvailability('pdf')">تحميل PDF</button>
+ </div>
+</div>
+<div id="detailActions"></div></div></section>
 <div id="imageLightbox" class="image-lightbox hidden" role="dialog" aria-modal="true" aria-label="عرض الصورة بالحجم الكبير" onclick="if(event.target===this)closeImageLightbox()"><button type="button" class="secondary" onclick="closeImageLightbox()">إغلاق ✕</button><button type="button" class="image-lightbox-nav image-lightbox-prev" id="lightboxPrev" aria-label="الصورة السابقة">‹</button><img id="lightboxImage" alt="صورة الإقامة بالحجم الكبير"><button type="button" class="image-lightbox-nav image-lightbox-next" id="lightboxNext" aria-label="الصورة التالية">›</button><span id="lightboxCounter" class="image-lightbox-counter"></span></div>
 
 <section id="account" class="app-page">
@@ -4022,6 +4057,71 @@ function attachGallerySwipe(element){
 }
 attachGallerySwipe(document.getElementById('galleryMain'));
 attachGallerySwipe(document.getElementById('imageLightbox'));
+let activeAvailabilityProperty=null,activeAvailabilityBookings=[],availabilityCanExport=false;
+function availabilityDateKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function availabilityEscape(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function renderPropertyAvailabilityCalendar(){
+ const input=document.getElementById('availabilityMonth'),grid=document.getElementById('availabilityCalendar');
+ if(!input||!grid||!input.value)return;
+ const [year,month]=input.value.split('-').map(Number);grid.innerHTML='';
+ ['الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت','الأحد'].forEach(n=>{const h=document.createElement('div');h.className='availability-weekday';h.textContent=n;grid.appendChild(h);});
+ const offset=(new Date(year,month-1,1).getDay()+6)%7;
+ for(let i=0;i<offset;i++){const b=document.createElement('div');b.className='availability-day empty';grid.appendChild(b);}
+ for(let day=1;day<=new Date(year,month,0).getDate();day++){
+  const key=availabilityDateKey(new Date(year,month-1,day));
+  const b=activeAvailabilityBookings.find(x=>key>=String(x.check_in).slice(0,10)&&key<String(x.check_out).slice(0,10)&&x.status!=='cancelled');
+  const cell=document.createElement('div');cell.className='availability-day'+(b?.status==='confirmed'?' booked':b?.status==='awaiting_payment'&&availabilityCanExport?' pending':'');
+  cell.textContent=String(day);cell.title=b?.status==='confirmed'?'محجوز':b?.status==='awaiting_payment'&&availabilityCanExport?'طلب قيد المعالجة':'متاح';grid.appendChild(cell);
+ }
+ const hint=document.getElementById('availabilityHint');
+ if(hint)hint.textContent=availabilityCanExport?'الأحمر: حجز مؤكد. الأصفر: طلب ينتظر المعالجة ولا يُعد حجزاً مؤكداً. يوم المغادرة متاح.':'الأيام الحمراء محجوزة بحجوزات مؤكدة ومدفوعة فقط. يوم المغادرة يبقى متاحاً.';
+}
+async function loadPropertyAvailability(property){
+ activeAvailabilityProperty=property;activeAvailabilityBookings=[];availabilityCanExport=false;
+ const month=document.getElementById('availabilityMonth'),yearInput=document.getElementById('availabilityExportYear'),now=new Date();
+ if(month)month.value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');if(yearInput)yearInput.value=String(now.getFullYear());
+ const controls=document.getElementById('availabilityExportControls'),pending=document.getElementById('availabilityPendingLegend'),hint=document.getElementById('availabilityHint');
+ if(hint)hint.textContent='جارٍ تحميل التواريخ...';
+ try{
+  let admin=false;if(currentUser){const {data,error}=await db.rpc('is_main_admin');if(error)throw error;admin=!!data;}
+  availabilityCanExport=!!(admin||(currentUser&&currentProfile?.role==='owner'&&property.owner_id===currentUser.id));
+  if(availabilityCanExport){
+   const {data,error}=await db.from('bookings').select('check_in,check_out,status,payment_status').eq('property_id',property.id).in('status',['confirmed','awaiting_payment']);
+   if(error)throw error;activeAvailabilityBookings=data||[];
+  }else{
+   const {data,error}=await db.from('property_public_booked_dates').select('check_in,check_out').eq('property_id',property.id);
+   if(error)throw error;activeAvailabilityBookings=(data||[]).map(x=>({...x,status:'confirmed'}));
+  }
+  if(controls)controls.classList.toggle('hidden',!availabilityCanExport);if(pending)pending.classList.toggle('hidden',!availabilityCanExport);renderPropertyAvailabilityCalendar();
+ }catch(e){if(controls)controls.classList.add('hidden');if(hint)hint.textContent='تعذر تحميل رزنامة التوفر حالياً: '+e.message;console.error('Availability calendar load failed:',e);}
+}
+function getAvailabilityYearRows(year){
+ if(!activeAvailabilityProperty)throw new Error('لا توجد إقامة محددة.');
+ const rows=[['التاريخ','اليوم','الحالة']];
+ for(let d=new Date(year,0,1),end=new Date(year+1,0,1);d<end;d.setDate(d.getDate()+1)){
+  const key=availabilityDateKey(d),b=activeAvailabilityBookings.find(x=>key>=String(x.check_in).slice(0,10)&&key<String(x.check_out).slice(0,10)&&x.status!=='cancelled');
+  rows.push([key,d.toLocaleDateString('ar-DZ',{weekday:'long'}),b?.status==='confirmed'?'محجوز':b?.status==='awaiting_payment'?'طلب قيد المعالجة':'متاح']);
+ }return rows;
+}
+function exportPropertyAvailability(format){
+ if(!availabilityCanExport||!activeAvailabilityProperty){alert('التنزيل متاح لمالك الإقامة أو المدير الرئيسي فقط.');return;}
+ const year=Number(document.getElementById('availabilityExportYear')?.value);
+ if(!Number.isInteger(year)||year<2020||year>2100){alert('يرجى اختيار سنة صحيحة.');return;}
+ const rows=getAvailabilityYearRows(year),title=activeAvailabilityProperty.title_ar||'إقامة',safe=title.replace(/[\\/:*?"<>|]/g,'-'),filename='OBNAR-'+safe+'-'+year;
+ if(format==='xlsx'){
+  if(!window.XLSX){alert('تعذر تحميل أداة Excel. أعد تحميل الصفحة وحاول مجدداً.');return;}
+  const ws=XLSX.utils.aoa_to_sheet([['رزنامة توفر الإقامة',title],['السنة',year],[],...rows]);ws['!cols']=[{wch:16},{wch:18},{wch:24}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'التوفر');XLSX.writeFile(wb,filename+'.xlsx');return;
+ }
+ if(format==='pdf'){
+  const body=rows.slice(1).map(r=>'<tr>'+r.map(c=>'<td>'+availabilityEscape(c)+'</td>').join('')+'</tr>').join(''),w=window.open('','_blank');
+  if(!w){alert('اسمح بفتح نافذة الطباعة لإنشاء PDF.');return;}
+  w.document.open();w.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+availabilityEscape(title)+'</title><style>body{font-family:Tahoma,Arial,sans-serif;padding:20px;color:#102d46}h2,p{text-align:center}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #ccd5dc;padding:6px;text-align:center}th{background:#eaf0f3}@media print{body{padding:0}@page{size:A4 portrait;margin:12mm}}</style></head><body><h2>رزنامة توفر الإقامة</h2><p>'+availabilityEscape(title)+' — '+year+'</p><table><thead><tr><th>التاريخ</th><th>اليوم</th><th>الحالة</th></tr></thead><tbody>'+body+'</tbody></table></body></html>');
+  w.document.close();w.focus();setTimeout(()=>w.print(),350);
+ }
+}
+document.getElementById('availabilityMonth')?.addEventListener('change',renderPropertyAvailabilityCalendar);
+
 function openPropertyDetails(property){
  document.getElementById('detailTitle').textContent=property.title_ar||'تفاصيل الإقامة';
  renderPropertyGallery(property.images||[]);
@@ -4037,7 +4137,8 @@ function openPropertyDetails(property){
  if(!list.children.length){const p=document.createElement('p');p.textContent='لم يحدد المالك مزايا إضافية.';list.appendChild(p);}body.appendChild(list);
  if(property.google_maps_url){const a=document.createElement('a');a.href=property.google_maps_url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='📍 افتح موقع الإقامة على Google Maps';body.appendChild(a);}
  const actions=document.getElementById('detailActions');actions.innerHTML='';const book=document.createElement('button');book.textContent='احجز هذه الإقامة';book.onclick=()=>{closePropertyDetails();openBookingForm(property);};actions.appendChild(book);
- showAppPage('propertyDetail');
+ loadPropertyAvailability(property);
+  showAppPage('propertyDetail');
 }
 function closePropertyDetails(){showAppPage('search');}
 function openImageLightbox(src){const index=detailGalleryImages.indexOf(src);if(index>=0)detailGalleryIndex=index;const box=document.getElementById('imageLightbox');box.classList.remove('hidden');updateLightboxImage();}
