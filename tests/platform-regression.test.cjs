@@ -16,8 +16,8 @@ test('all inline JavaScript parses without syntax errors', () => {
   assert.ok(scripts.length > 0, 'Expected at least one inline script');
   scripts.forEach((source, index) => {
     assert.doesNotThrow(
-      () => new vm.Script(source, { filename: \`index.html:inline-script-\${index + 1}\` }),
-      \`Inline script \${index + 1} must parse\`
+      () => new vm.Script(source, { filename: 'index.html:inline-script-' + (index + 1) }),
+      'Inline script ' + (index + 1) + ' must parse'
     );
   });
 });
@@ -52,7 +52,7 @@ test('mandatory material-mismatch refund cannot be rejected in admin UI', () => 
   assert.match(html, /'location_mismatch'/);
   assert.match(html, /'property_mismatch'/);
   assert.match(html, /'description_mismatch'/);
-  assert.match(html, /mandatoryMismatchRefund \? \[\['none'.*?\['approve'/s);
+  assert.match(html, /const refundOptions = mandatoryMismatchRefund\s*\?\s*\[\s*\['none'[\s\S]*?\['approve'/);
 });
 
 test('traveler cancellation and payment receipt use server-side RPCs', () => {
