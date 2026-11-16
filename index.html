@@ -2308,7 +2308,7 @@ async function loadAdminCancellationRequests(){
 
   if(error) throw error;
   const refundProofUrls = {};
-  for(const request of (requests || []).filter(r=>r.requester_role === 'owner' && r.refund_execution_status === 'processing' && r.refund_proof_path)){
+  for(const request of (requests || []).filter(r=>r.refund_eligibility === 'eligible' && r.refund_execution_status === 'processing' && r.refund_proof_path)){
    const {data:signedData} = await db.storage.from('refund-proofs').createSignedUrl(request.refund_proof_path,600);
    if(signedData?.signedUrl) refundProofUrls[request.id] = signedData.signedUrl;
   }
@@ -2454,7 +2454,6 @@ async function loadAdminCancellationRequests(){
     );
     card.appendChild(save);
    }else if(
-    request.requester_role === 'owner' &&
     request.request_status === 'approved' &&
     request.refund_eligibility === 'eligible' &&
     request.refund_execution_status === 'processing' &&
@@ -2939,7 +2938,6 @@ if(ownerCancellationStatus && ownerCancellationStatus.refund_eligibility === 'ad
 
 const ownerRefund = cancellationRequests.find(c=>
  c.booking_id === b.id &&
- c.requester_role === 'owner' &&
  c.refund_eligibility === 'eligible'
 );
 if(ownerRefund){
