@@ -2421,6 +2421,12 @@ async function loadAdminCancellationRequests(){
     request.refund_eligibility === 'admin_review'
    ){
 
+    if(request.requester_role === 'owner'){
+     const rerentNote = document.createElement('p');
+     rerentNote.textContent = 'لا يُعتمد استرداد المالك إلا بعد وجود حجز بديل مؤكد ومدفوع للعقار نفسه ولتواريخ الإقامة نفسها تماماً.';
+     card.appendChild(rerentNote);
+    }
+
     const amount = document.createElement('p');
     amount.textContent = 'التسبيق الأصلي: '+Number(request.refund_amount || 0).toLocaleString('fr-DZ')+' دج';
     card.appendChild(amount);
@@ -2488,7 +2494,7 @@ async function loadAdminCancellationRequests(){
    }
 
    const note = document.createElement('p');
-   note.textContent = 'تنبيه: تسجيل الموافقة لا يحوّل الأموال تلقائياً؛ تنفيذ الاسترداد يتم خارج الموقع وتُسجّل حالته لاحقاً.';
+   note.textContent = 'تنبيه: المنصة لا تستلم الأموال ولا تنفذ التحويلات. إعادة المبلغ تتم مباشرة بين الطرفين، وتتابع المنصة إثبات التنفيذ فقط.';
    card.appendChild(note);
 
    container.appendChild(card);
