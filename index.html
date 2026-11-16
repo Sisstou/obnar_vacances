@@ -1448,11 +1448,6 @@ async function loadVerificationRequests(){
 
   if(error) throw error;
 
-  const refundProofUrls = {};
-  for(const request of (requests || []).filter(r=>r.requester_role === 'owner' && r.refund_execution_status === 'processing' && r.refund_proof_path)){
-   const {data:signedData} = await db.storage.from('refund-proofs').createSignedUrl(request.refund_proof_path,600);
-   if(signedData?.signedUrl) refundProofUrls[request.id] = signedData.signedUrl;
-  }
 
   container.innerHTML = '';
 
@@ -2312,6 +2307,11 @@ async function loadAdminCancellationRequests(){
    .order('created_at',{ascending:false});
 
   if(error) throw error;
+  const refundProofUrls = {};
+  for(const request of (requests || []).filter(r=>r.requester_role === 'owner' && r.refund_execution_status === 'processing' && r.refund_proof_path)){
+   const {data:signedData} = await db.storage.from('refund-proofs').createSignedUrl(request.refund_proof_path,600);
+   if(signedData?.signedUrl) refundProofUrls[request.id] = signedData.signedUrl;
+  }
 
   container.innerHTML = '';
 
