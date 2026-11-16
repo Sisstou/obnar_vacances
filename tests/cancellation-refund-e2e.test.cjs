@@ -50,7 +50,13 @@ async function request(path, { method = 'GET', token, service = false, body, pre
   const headers = {
     apikey: service ? serviceKey : anonKey,
   };
-  if (!service && token) headers.Authorization = 'Bearer ' + token;
+  if (service && serviceKey.startsWith('eyJ')) {
+    // Legacy service_role keys are JWTs; send them as both the API key
+    // and bearer credential so PostgREST receives the service_role claim.
+    headers.Authorization = 'Bearer ' + serviceKey;
+  } else if (!service && token) {
+    headers.Authorization = 'Bearer ' + token;
+  }
   if (body !== undefined) headers['content-type'] = 'application/json';
   if (prefer) headers.Prefer = prefer;
 
