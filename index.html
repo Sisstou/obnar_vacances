@@ -1428,6 +1428,7 @@ if(currentProfile.role === 'owner'){
  document.getElementById('ownerImagesArea')
   .classList.remove('hidden');
  await loadOwnerProperties();
+ await loadOwnerBookings();
 }
 if(currentProfile.role === 'traveler'){
  document.getElementById('travelerBookingArea')
@@ -3401,6 +3402,8 @@ function exportOwnerBookings(format){
   win.document.close();
  }
 }
+
+window.exportOwnerBookings = exportOwnerBookings;
 
 async function respondToCancellation(cancellationId,action){
 
