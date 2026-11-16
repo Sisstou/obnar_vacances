@@ -1437,6 +1437,8 @@ async function showUser(){
 
  document.getElementById('ownerArea').classList.remove('hidden');
  document.getElementById('ownerVerificationArea').classList.add('hidden');
+ document.getElementById('ownerVerificationStatusArea').classList.add('hidden');
+ document.getElementById('ownerVerificationStatus').textContent='جارٍ تحميل حالة التوثيق...';
 document.getElementById('editFullName').value =
   currentProfile?.full_name || '';
 document.getElementById('profileDisplayName').textContent =
@@ -1760,7 +1762,7 @@ async function loadOwnerSignupVerificationStatus(){
   const latest=data?.[0];
   if(latest){
    area.classList.remove('hidden');
-   const names={pending:'طلب توثيق المالك قيد مراجعة الإدارة.',approved:'تم قبول توثيق حسابك. إذا لم تتحول صلاحيات الحساب بعد، أعد تسجيل الدخول.',rejected:'تم رفض طلب التوثيق. يمكنك إرسال وثيقة جديدة.'};
+   const names={pending:'طلب توثيق المالك قيد مراجعة الإدارة.',approved:(currentProfile?.role==='owner'?'تم قبول توثيق حساب المالك.':'الوثيقة مسجلة كمقبولة، لكن نوع حسابك ما زال مصطافاً. يلزم مراجعة الإدارة لتصحيح حالة الحساب.'),rejected:'تم رفض طلب التوثيق. يمكنك إرسال وثيقة جديدة.'};
    content.textContent=(names[latest.status]||latest.status)+' تاريخ الطلب: '+new Date(latest.created_at).toLocaleDateString('ar-DZ')+' — انتهاء الوثيقة: '+(latest.expires_at||'غير محدد');
   }else{
    area.classList.add('hidden');
