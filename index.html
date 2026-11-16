@@ -3606,6 +3606,7 @@ async function loadTravelerBookings(){
   }
 
   area.innerHTML = '';
+  const bookingDetailNodes = new Map();
 
   if(!bookings || bookings.length === 0){
    area.textContent = 'ليس لديك حجوزات حالياً.';
@@ -3901,8 +3902,70 @@ if(
  item.appendChild(cancelButton);
  item.appendChild(cancellationForm);
 }
-area.appendChild(item);
+bookingDetailNodes.set(b.id,item);
   });
+
+  const categories=[
+   {id:'pending',label:'طلبات قيد المعالجة',match:b=>['pending','awaiting_admin_approval'].includes(b.status)},
+   {id:'payment',label:'بانتظار التسبيق',match:b=>b.status==='awaiting_payment' && ['unpaid','rejected'].includes(b.payment_status)},
+   {id:'receipt',label:'الوصل مرفوع',match:b=>b.payment_status==='receipt_submitted'},
+   {id:'confirmed',label:'حجوزات مؤكدة',match:b=>b.status==='confirmed'},
+   {id:'completed',label:'إقامات مكتملة',match:b=>b.status==='completed'},
+   {id:'cancelled',label:'حجوزات ملغاة',match:b=>b.status==='cancelled'},
+   {id:'rejected',label:'طلبات مرفوضة',match:b=>b.status==='rejected'}
+  ];
+  const categoryGrid=document.createElement('div');
+  categoryGrid.className='traveler-booking-categories';
+  categoryGrid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:14px 0';
+  const categoryContent=document.createElement('div');
+  categoryContent.id='travelerBookingCategoryContent';
+  area.append(categoryGrid,categoryContent);
+
+  function showTravelerCategory(categoryId){
+   const selected=categories.find(x=>x.id===categoryId);
+   if(!selected)return;
+   categoryContent.innerHTML='';
+   const matches=bookings.filter(selected.match);
+   const heading=document.createElement('h3');
+   heading.textContent=selected.label+' — '+matches.length;
+   categoryContent.appendChild(heading);
+   if(!matches.length){
+    const empty=document.createElement('p');empty.className='small';empty.textContent='لا توجد حجوزات في هذا التصنيف.';categoryContent.appendChild(empty);return;
+   }
+   const wrapper=document.createElement('div');wrapper.className='owner-booking-table-wrap';
+   const table=document.createElement('table');table.className='owner-booking-table';
+   const thead=document.createElement('thead'),hr=document.createElement('tr');
+   ['الإقامة','الوصول','المغادرة','الأشخاص','السعر الإجمالي','حالة الحجز','الدفع','التفاصيل'].forEach(label=>{const th=document.createElement('th');th.textContent=label;hr.appendChild(th);});
+   thead.appendChild(hr);table.appendChild(thead);
+   const tbody=document.createElement('tbody');
+   const bookingStatusNames={pending:'قيد الانتظار',awaiting_admin_approval:'بانتظار الإدارة',awaiting_payment:'بانتظار التسبيق',confirmed:'مؤكد',completed:'مكتمل',cancelled:'ملغى',rejected:'مرفوض'};
+   const paymentStatusNames={unpaid:'غير مدفوع',receipt_submitted:'الوصل قيد المراجعة',verified:'تم التحقق',rejected:'الوصل مرفوض'};
+   matches.forEach(b=>{
+    const row=document.createElement('tr');
+    const vals=[b.properties?.title_ar||'إقامة',b.check_in||'—',b.check_out||'—',String(b.guests??'—'),Number(b.total_price||0).toLocaleString('fr-DZ')+' دج',bookingStatusNames[b.status]||b.status,paymentStatusNames[b.payment_status]||b.payment_status||'—'];
+    vals.forEach(value=>{const td=document.createElement('td');td.textContent=value;row.appendChild(td);});
+    const action=document.createElement('td'),toggle=document.createElement('button');
+    toggle.type='button';toggle.className='secondary owner-booking-details-toggle';toggle.textContent='عرض التفاصيل';
+    const detailRow=document.createElement('tr');detailRow.className='owner-booking-detail-row hidden';
+    const detailCell=document.createElement('td');detailCell.colSpan=8;
+    const detailNode=bookingDetailNodes.get(b.id);if(detailNode)detailCell.appendChild(detailNode);
+    detailRow.appendChild(detailCell);
+    toggle.onclick=()=>{const opening=detailRow.classList.contains('hidden');detailRow.classList.toggle('hidden',!opening);toggle.textContent=opening?'إخفاء التفاصيل':'عرض التفاصيل';};
+    action.appendChild(toggle);row.appendChild(action);tbody.append(row,detailRow);
+   });
+   table.appendChild(tbody);wrapper.appendChild(table);categoryContent.appendChild(wrapper);
+  }
+
+  categories.forEach((category,index)=>{
+   const button=document.createElement('button');button.type='button';button.className='traveler-booking-category';
+   button.style.cssText='display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:66px;margin:0;padding:12px;background:#fff;border:1px solid #e5dfd2;border-radius:12px;color:#17324d;text-align:right';
+   const label=document.createElement('span');label.textContent=category.label;
+   const count=document.createElement('strong');count.textContent=String(bookings.filter(category.match).length);
+   button.append(label,count);button.onclick=()=>showTravelerCategory(category.id);categoryGrid.appendChild(button);
+   if(index===0)button.dataset.defaultCategory='true';
+  });
+  const initial=categories.find(x=>bookings.some(x.match))||categories[0];
+  showTravelerCategory(initial.id);
 
  }catch(e){
 
