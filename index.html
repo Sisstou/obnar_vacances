@@ -2286,7 +2286,7 @@ function renderAdminBookingList(bookings,filter='all'){
    const approveOwnerBooking = document.createElement('button');
    approveOwnerBooking.textContent = 'موافقة الإدارة على الحجز';
    approveOwnerBooking.onclick = async ()=>{
-    if(!confirm('تأكيد اعتماد قبول المالك؟ ستبدأ مهلة دفع العربون لمدة 24 ساعة.')) return;
+    if(!confirm('تأكيد اعتماد قبول المالك؟ سينتقل الحجز إلى انتظار دفع العربون.')) return;
     approveOwnerBooking.disabled = true;
     try{
      const {error} = await db.rpc('admin_review_owner_booking',{
@@ -2295,7 +2295,7 @@ function renderAdminBookingList(bookings,filter='all'){
       p_reason:null
      });
      if(error) throw error;
-     msg('تم اعتماد قبول المالك، وأصبح الحجز ينتظر دفع العربون خلال 24 ساعة.');
+     msg('تم اعتماد قبول المالك، وأصبح الحجز ينتظر دفع العربون.');
      await loadAdminBookings();
     }catch(e){
      msg('تعذرت الموافقة على الحجز: '+e.message);
