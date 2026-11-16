@@ -24,6 +24,8 @@ nav a[aria-current="page"]{background:#e8f3f8;color:#087e9b;padding:10px 14px;bo
 .notification-list{display:grid;gap:10px;margin-top:14px}
 .notification-item{padding:13px;border:1px solid #e1e9ee;border-radius:12px;background:#f9fbfc}
 .notification-item.unread{border-right:4px solid #087eae;background:#f0f8fb}
+#notificationsPanel:not(.hidden){position:fixed;z-index:1001;top:50%;left:50%;transform:translate(-50%,-50%);width:min(92vw,620px);max-width:620px;max-height:82dvh;overflow-y:auto;margin:0;box-shadow:0 0 0 100vmax rgba(4,20,32,.58),0 18px 55px #071c2b55;border:1px solid #dce7ed}
+body.notifications-open{overflow:hidden}
 .notification-item h4{margin:0 0 5px;color:#073653}
 .notification-item p{margin:0 0 7px}
 .notification-item small{color:#687b89}
@@ -437,10 +439,13 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 
 <div id="userArea" class="hidden">
 
-<div id="notificationsPanel" class="panel hidden" aria-live="polite">
+<div id="notificationsPanel" class="panel hidden" role="dialog" aria-modal="true" aria-labelledby="notificationsTitle" aria-live="polite">
  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
-  <h3 style="margin:0">🔔 إشعاراتي</h3>
-  <button type="button" class="secondary" onclick="loadMyNotifications()">تحديث</button>
+  <h3 id="notificationsTitle" style="margin:0">🔔 إشعاراتي</h3>
+  <div style="display:flex;gap:8px;align-items:center">
+   <button type="button" class="secondary" onclick="loadMyNotifications()">تحديث</button>
+   <button type="button" class="secondary" onclick="closeNotifications()" aria-label="إغلاق الإشعارات">إغلاق ✕</button>
+  </div>
  </div>
  <div id="notificationsList" class="notification-list">جارٍ تحميل الإشعارات...</div>
 </div>
@@ -820,7 +825,14 @@ function openNotifications(){
   return;
  }
  panel.classList.remove('hidden');
+ document.body.classList.add('notifications-open');
  loadMyNotifications();
+}
+
+function closeNotifications(){
+ const panel=document.getElementById('notificationsPanel');
+ if(panel) panel.classList.add('hidden');
+ document.body.classList.remove('notifications-open');
 }
 
 function isBookingNotification(item){
