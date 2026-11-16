@@ -607,7 +607,7 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 </div>
 
 <p id="userInfo"></p>
-<div id="myLocalBusinessesPanel" class="panel"><h3>🏪 طلباتي في دليل الأنشطة</h3><button type="button" class="secondary" onclick="loadMyLocalBusinesses()">تحديث نشاطاتي</button><div id="myLocalBusinesses" class="small">جارٍ تحميل طلباتك...</div></div>
+<div id="myLocalBusinessesPanel" class="panel hidden"><h3>🏪 طلباتي في دليل الأنشطة</h3><button type="button" class="secondary" onclick="loadMyLocalBusinesses()">تحديث نشاطاتي</button><div id="myLocalBusinesses" class="small">جارٍ تحميل طلباتك...</div></div>
 
 
 <button type="button" id="adminDashboardLink" class="hidden" onclick="openAdminDashboard()">لوحة تحكم المدير الرئيسي</button>
@@ -1442,6 +1442,7 @@ document.getElementById('travelerBookingArea').classList.add('hidden');
   if(error) throw error;
 
   if(data === true){
+   document.getElementById('myLocalBusinessesPanel')?.classList.add('hidden');
 
    if(localBusinessNavLink) localBusinessNavLink.classList.add('hidden');
    adminArea.classList.remove('hidden');
@@ -1453,7 +1454,6 @@ document.getElementById('travelerBookingArea').classList.add('hidden');
 
    msg('تم التحقق: أنت المدير الرئيسي.');
 
-   await loadMyLocalBusinesses();
    await loadVerificationRequests();
    await loadPropertyRequests();
    await loadAdminLocalBusinesses();
@@ -1461,6 +1461,7 @@ document.getElementById('travelerBookingArea').classList.add('hidden');
 
   }else{
 
+   document.getElementById('myLocalBusinessesPanel')?.classList.remove('hidden');
    if(localBusinessNavLink) localBusinessNavLink.classList.remove('hidden');
    await loadMyLocalBusinesses();
    document.getElementById('userInfo').textContent =
