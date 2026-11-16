@@ -3116,6 +3116,43 @@ async function loadOwnerBookings(){
    return;
   }
 
+  const categoryBar = document.createElement('div');
+  categoryBar.id = 'ownerBookingCategories';
+  categoryBar.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin:14px 0';
+  const detailsContainer = document.createElement('div');
+  detailsContainer.id = 'ownerBookingCategoryDetails';
+  area.append(categoryBar,detailsContainer);
+
+  const bookingCategories = [
+   {id:'paid',label:'💰 مدفوع',matches:b=>b.status!=='cancelled' && b.payment_status==='verified'},
+   {id:'unpaid',label:'⏳ غير مدفوع',matches:b=>b.status!=='cancelled' && b.payment_status==='unpaid'},
+   {id:'uploaded',label:'📎 تم رفع الوصل',matches:b=>b.status!=='cancelled' && !!b.payment_receipt_path},
+   {id:'not_uploaded',label:'📭 لم يرفع الوصل',matches:b=>b.status==='awaiting_payment' && !b.payment_receipt_path},
+   {id:'cancelled',label:'🚫 ملغى',matches:b=>b.status==='cancelled'}
+  ];
+
+  function showOwnerBookingCategory(categoryId){
+   const selected = bookingCategories.find(c=>c.id===categoryId);
+   if(!selected) return;
+   detailsContainer.innerHTML = '';
+   const heading = document.createElement('h3');
+   heading.textContent = selected.label+' — '+bookings.filter(selected.matches).length;
+   detailsContainer.appendChild(heading);
+   const matches = bookings.filter(selected.matches);
+   if(!matches.length){
+    const empty = document.createElement('p');
+    empty.className = 'small';
+    empty.textContent = 'لا توجد حجوزات ضمن هذه الفئة.';
+    detailsContainer.appendChild(empty);
+    return;
+   }
+   matches.forEach(b=>{
+    const node = ownerBookingCards.get(b.id);
+    if(node) detailsContainer.appendChild(node);
+   });
+  }
+
+  const ownerBookingCards = new Map();
   bookings.forEach(b=>{
 
    const property = properties.find(p=>p.id === b.property_id);
@@ -3319,9 +3356,22 @@ if(
  // تأكيد الدفع محصور بالمدير الرئيسي عبر admin_review_payment_receipt.
 }
 
-area.appendChild(item);
+ownerBookingCards.set(b.id,item);
 
 });
+
+  bookingCategories.forEach(category=>{
+   const button = document.createElement('button');
+   button.type = 'button';
+   button.className = 'secondary';
+   button.style.cssText = 'min-height:76px;white-space:normal;text-align:center;font-weight:600';
+   const count = bookings.filter(category.matches).length;
+   button.textContent = category.label+' ('+count+')';
+   button.onclick = ()=>showOwnerBookingCategory(category.id);
+   categoryBar.appendChild(button);
+  });
+
+  showOwnerBookingCategory('paid');
 
  }catch(e){
 
