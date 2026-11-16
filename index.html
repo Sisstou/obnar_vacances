@@ -1448,6 +1448,12 @@ async function loadVerificationRequests(){
 
   if(error) throw error;
 
+  const refundProofUrls = {};
+  for(const request of (requests || []).filter(r=>r.requester_role === 'owner' && r.refund_execution_status === 'processing' && r.refund_proof_path)){
+   const {data:signedData} = await db.storage.from('refund-proofs').createSignedUrl(request.refund_proof_path,600);
+   if(signedData?.signedUrl) refundProofUrls[request.id] = signedData.signedUrl;
+  }
+
   container.innerHTML = '';
 
   if(!requests || requests.length === 0){
@@ -2301,8 +2307,8 @@ async function loadAdminCancellationRequests(){
 
   const {data:requests,error} = await db
    .from('booking_cancellations')
-   .select('id,booking_id,requester_role,reason_category,reason_details,request_status,owner_response,refund_eligibility,refund_amount,refund_execution_status,created_at')
-   .or('request_status.eq.admin_review,and(request_status.eq.approved,refund_eligibility.eq.admin_review)')
+   .select('id,booking_id,requester_role,reason_category,reason_details,request_status,owner_response,refund_eligibility,refund_amount,refund_execution_status,refund_proof_path,created_at')
+   .or('request_status.eq.admin_review,and(request_status.eq.approved,refund_eligibility.eq.admin_review),and(request_status.eq.approved,refund_execution_status.eq.processing)')
    .order('created_at',{ascending:false});
 
   if(error) throw error;
@@ -2441,6 +2447,44 @@ async function loadAdminCancellationRequests(){
      request.id,'none',refundSelect.value
     );
     card.appendChild(save);
+   }else if(
+    request.requester_role === 'owner' &&
+    request.request_status === 'approved' &&
+    request.refund_eligibility === 'eligible' &&
+    request.refund_execution_status === 'processing' &&
+    request.refund_proof_path
+   ){
+    const proofLabel = document.createElement('p');
+    proofLabel.textContent = 'إثبات التحويل الذي رفعه المالك:';
+    card.appendChild(proofLabel);
+
+    const proofUrl = refundProofUrls[request.id];
+    if(proofUrl){
+     const proofLink = document.createElement('a');
+     proofLink.href = proofUrl;
+     proofLink.target = '_blank';
+     proofLink.rel = 'noopener';
+     proofLink.textContent = 'فتح إثبات الاسترداد';
+     card.appendChild(proofLink);
+    }else{
+     const unavailable = document.createElement('p');
+     unavailable.textContent = 'تعذر إنشاء رابط مؤقت لعرض الإثبات.';
+     card.appendChild(unavailable);
+    }
+
+    const verifyNote = document.createElement('p');
+    verifyNote.textContent = 'تحقق من أن المبلغ أُعيد فعلاً إلى المصطاف قبل تأكيد التنفيذ.';
+    card.appendChild(verifyNote);
+
+    const confirmProof = document.createElement('button');
+    confirmProof.textContent = 'تأكيد استلام المصطاف للمبلغ';
+    confirmProof.onclick = ()=>submitAdminRefundExecutionDecision(request.id,'confirm');
+    card.appendChild(confirmProof);
+
+    const rejectProof = document.createElement('button');
+    rejectProof.textContent = 'رفض الإثبات';
+    rejectProof.onclick = ()=>submitAdminRefundExecutionDecision(request.id,'reject');
+    card.appendChild(rejectProof);
    }
 
    const note = document.createElement('p');
@@ -2456,6 +2500,23 @@ async function loadAdminCancellationRequests(){
 
  }
 
+}
+
+async function submitAdminRefundExecutionDecision(cancellationId,action){
+ const notes = prompt('ملاحظات التحقق (اختياري):');
+ if(notes === null) return;
+ try{
+  const {error} = await db.rpc('admin_review_refund_execution',{
+   p_cancellation_id:cancellationId,
+   p_action:action,
+   p_notes:notes.trim() || null
+  });
+  if(error) throw error;
+  msg(action === 'confirm' ? 'تم تسجيل التحقق من تنفيذ الاسترداد.' : 'تم رفض الإثبات وإعادة الطلب إلى المالك.');
+  await loadAdminCancellationRequests();
+ }catch(e){
+  msg('تعذر مراجعة إثبات الاسترداد: '+e.message);
+ }
 }
 
 async function submitAdminCancellationDecision(cancellationId,cancelAction,refundAction){
@@ -2760,10 +2821,8 @@ async function loadOwnerBookings(){
   if(bookingIds.length){
    const {data:cancellations,error:cancellationError} = await db
     .from('booking_cancellations')
-    .select('id,booking_id,reason_category,reason_details,owner_response_due_at')
-    .in('booking_id',bookingIds)
-    .eq('request_status','owner_review')
-    .eq('owner_response','pending');
+    .select('id,booking_id,requester_role,request_status,owner_response,refund_eligibility,refund_amount,refund_execution_status,refund_proof_path,reason_category,reason_details,owner_response_due_at')
+    .in('booking_id',bookingIds);
 
    if(cancellationError) throw cancellationError;
    cancellationRequests = cancellations || [];
@@ -2811,7 +2870,7 @@ payment.textContent =
  'حالة الدفع: '+(paymentNames[b.payment_status] || b.payment_status);
 item.appendChild(payment);
 
-const cancellation = cancellationRequests.find(c=>c.booking_id === b.id);
+const cancellation = cancellationRequests.find(c=>c.booking_id === b.id && c.request_status === 'owner_review' && c.owner_response === 'pending');
 if(cancellation){
  const cancellationTitle = document.createElement('h4');
  cancellationTitle.textContent = 'طلب إلغاء ينتظر ردك';
@@ -2856,6 +2915,66 @@ if(cancellation){
 
  item.appendChild(approveCancellation);
  item.appendChild(rejectCancellation);
+}
+
+const ownerRefund = cancellationRequests.find(c=>
+ c.booking_id === b.id &&
+ c.requester_role === 'owner' &&
+ c.refund_eligibility === 'eligible'
+);
+if(ownerRefund){
+ const refundHeading = document.createElement('h4');
+ refundHeading.textContent = 'إعادة العربون للمصطاف';
+ item.appendChild(refundHeading);
+
+ const refundAmount = document.createElement('p');
+ refundAmount.textContent = 'المبلغ المعتمد للاسترداد: '+Number(ownerRefund.refund_amount || 0).toLocaleString('fr-DZ')+' دج';
+ item.appendChild(refundAmount);
+
+ const refundState = document.createElement('p');
+ const executionNames = {
+  pending:'بانتظار رفع إثبات إعادة المبلغ',
+  processing:'تم رفع الإثبات، بانتظار تحقق الإدارة',
+  completed:'تم التحقق من إعادة المبلغ للمصطاف',
+  failed:'الإثبات السابق لم يُقبل، يرجى رفع إثبات جديد'
+ };
+ refundState.textContent = 'حالة تنفيذ الاسترداد: '+(executionNames[ownerRefund.refund_execution_status] || ownerRefund.refund_execution_status);
+ item.appendChild(refundState);
+
+ if(['pending','failed'].includes(ownerRefund.refund_execution_status)){
+  const proofInput = document.createElement('input');
+  proofInput.type = 'file';
+  proofInput.accept = 'image/jpeg,image/png,image/webp,application/pdf';
+  const proofButton = document.createElement('button');
+  proofButton.textContent = 'رفع إثبات إعادة العربون';
+  proofButton.onclick = async ()=>{
+   const proofFile = proofInput.files[0];
+   if(!proofFile){ msg('اختر إثبات التحويل أولاً.'); return; }
+   if(proofFile.size > 5 * 1024 * 1024){ msg('حجم الملف يجب ألا يتجاوز 5 ميغابايت.'); return; }
+   if(!['image/jpeg','image/png','image/webp','application/pdf'].includes(proofFile.type)){
+    msg('نوع الملف غير مسموح.'); return;
+   }
+   try{
+    proofButton.disabled = true;
+    const safeName = proofFile.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const proofPath = ownerRefund.id+'/'+Date.now()+'-'+safeName;
+    const {error:uploadError} = await db.storage.from('refund-proofs').upload(proofPath,proofFile);
+    if(uploadError) throw uploadError;
+    const {error:submitError} = await db.rpc('submit_owner_refund_proof',{
+     p_cancellation_id:ownerRefund.id,
+     p_storage_path:proofPath
+    });
+    if(submitError) throw submitError;
+    msg('تم رفع إثبات إعادة العربون، وهو الآن بانتظار تحقق الإدارة.');
+    await loadOwnerBookings();
+   }catch(e){
+    msg('تعذر رفع إثبات الاسترداد: '+e.message);
+    proofButton.disabled = false;
+   }
+  };
+  item.appendChild(proofInput);
+  item.appendChild(proofButton);
+ }
 }
 
    if(b.status === 'pending'){
