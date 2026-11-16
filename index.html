@@ -233,6 +233,31 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 @media(max-width:390px){.destination-grid{grid-template-columns:1fr}.destination-card{display:grid;grid-template-columns:108px minmax(0,1fr)}.destination-card img{height:100%;min-height:100px}}
 
 
+
+/* Auto-scrolling tourism destinations strip */
+.destination-marquee{direction:ltr;overflow:hidden;position:relative;width:100%;padding:3px 0 12px;mask-image:linear-gradient(to right,transparent 0,#000 4%,#000 96%,transparent 100%)}
+.destination-marquee-track{display:flex;width:max-content;animation:ov-destination-scroll 42s linear infinite;will-change:transform}
+.destination-marquee-group{display:flex;align-items:stretch;gap:14px;padding-inline-end:14px;direction:ltr}
+.destination-marquee .destination-card{direction:rtl;display:flex;flex:0 0 280px;flex-direction:column;min-width:0}
+.destination-marquee .destination-card img,.destination-marquee .destination-card .destination-placeholder{display:flex;width:100%;height:155px;min-height:155px;max-height:155px;object-fit:cover}
+.destination-marquee .destination-card .destination-info{padding:12px 14px}
+.destination-marquee .destination-card h3{font-size:16px}
+.destination-marquee .destination-card p{font-size:13px}
+@keyframes ov-destination-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(hover:hover){.destination-marquee:hover .destination-marquee-track{animation-play-state:paused}}
+.destination-marquee:focus-within .destination-marquee-track{animation-play-state:paused}
+@media(max-width:600px){
+ .destination-marquee-track{animation-duration:34s}
+ .destination-marquee-group{gap:10px;padding-inline-end:10px}
+ .destination-marquee .destination-card{flex-basis:78vw;max-width:290px}
+ .destination-marquee .destination-card img,.destination-marquee .destination-card .destination-placeholder{height:125px;min-height:125px;max-height:125px}
+}
+@media(prefers-reduced-motion:reduce){
+ .destination-marquee{overflow-x:auto;mask-image:none}
+ .destination-marquee-track{animation:none;transform:none}
+ .destination-marquee-group[aria-hidden="true"]{display:none}
+}
+
 /* Compact, organized homepage layout */
 #home .hero{min-height:0;padding:25px max(16px,calc((100% - 1120px)/2)) 22px}
 #home .hero h2{font-size:clamp(22px,3vw,30px);margin-bottom:6px}
@@ -348,7 +373,9 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 </div>
 <h2 style="margin-top:26px">وجهات طبيعية وسياحية قريبة من جيجل</h2>
 <p>لمن يرغب في توسيع جولته خارج أولاد بونار، توجد وجهات أخرى في ولاية جيجل تستحق التعرف عليها.</p>
-<div class="destination-grid">
+<div class="destination-marquee" aria-label="وجهات طبيعية وسياحية قريبة من جيجل">
+ <div class="destination-marquee-track">
+  <div class="destination-marquee-group">
 <article class="destination-card">
 <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Oued_El_Kebir_1.jpg?width=900" alt="منظر لوادي الكبير قرب الميلية">
 <div class="destination-info"><h3>الواد الكبير – جهة الميلية</h3><p>وجهة طبيعية للنزهة والاستمتاع بمشهد الوادي والمناظر المحيطة به. يُرجى اختيار مكان آمن ومسموح للتوقف والتنزه.</p><small>الصورة: LBM1948، عبر Wikimedia Commons، بترخيص CC BY-SA 4.0. <a href="https://commons.wikimedia.org/wiki/File:Oued_El_Kebir_1.jpg" target="_blank" rel="noopener">تفاصيل الصورة والترخيص</a>.</small></div>
@@ -361,6 +388,22 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <div class="destination-placeholder" role="img" aria-label="بطاقة تعريفية لغار الباز">⛰️<span>غار الباز</span></div>
 <div class="destination-info"><h3>غار الباز – زيامة منصورية</h3><p>موقع ذو طابع تاريخي وتراثي في منطقة زيامة منصورية. أدرجناه كوجهة قريبة، على أن نضيف صورة موثقة خاصة به لاحقاً.</p></div>
 </article>
+  </div>
+  <div class="destination-marquee-group" aria-hidden="true" inert>
+<article class="destination-card">
+<img src="https://commons.wikimedia.org/wiki/Special:FilePath/Oued_El_Kebir_1.jpg?width=900" alt="منظر لوادي الكبير قرب الميلية">
+<div class="destination-info"><h3>الواد الكبير – جهة الميلية</h3><p>وجهة طبيعية للنزهة والاستمتاع بمشهد الوادي والمناظر المحيطة به. يُرجى اختيار مكان آمن ومسموح للتوقف والتنزه.</p><small>الصورة: LBM1948، عبر Wikimedia Commons، بترخيص CC BY-SA 4.0. <a href="https://commons.wikimedia.org/wiki/File:Oued_El_Kebir_1.jpg" target="_blank" rel="noopener">تفاصيل الصورة والترخيص</a>.</small></div>
+</article>
+<article class="destination-card">
+<img src="https://commons.wikimedia.org/wiki/Special:FilePath/Les_grottes_merveilleuses_Jijel_ziama_mansouria.jpg?width=900" alt="التشكيلات الطبيعية داخل الكهوف العجيبة بزيامة منصورية">
+<div class="destination-info"><h3>الكهوف العجيبة – زيامة منصورية</h3><p>مغارة طبيعية معروفة بتشكيلاتها الكلسية، تقع بزيامة منصورية غرب ولاية جيجل، وليست داخل أولاد بونار.</p><small>الصورة: Tine hinane Mouzaoui، عبر Wikimedia Commons، بترخيص CC BY-SA 4.0. <a href="https://commons.wikimedia.org/wiki/File:Les_grottes_merveilleuses_Jijel_ziama_mansouria.jpg" target="_blank" rel="noopener">تفاصيل الصورة والترخيص</a>.</small></div>
+</article>
+<article class="destination-card">
+<div class="destination-placeholder" role="img" aria-label="بطاقة تعريفية لغار الباز">⛰️<span>غار الباز</span></div>
+<div class="destination-info"><h3>غار الباز – زيامة منصورية</h3><p>موقع ذو طابع تاريخي وتراثي في منطقة زيامة منصورية. أدرجناه كوجهة قريبة، على أن نضيف صورة موثقة خاصة به لاحقاً.</p></div>
+</article>
+  </div>
+ </div>
 </div>
 <div class="home-note">🏊‍♂️ <strong>السلامة أولاً:</strong> السباحة تكون في الشواطئ المسموح بها وتحت إشراف الحراسة والإنقاذ، مع احترام الرايات وتعليمات أعوان الشاطئ والمحافظة على نظافة المكان.</div>
 </div>
