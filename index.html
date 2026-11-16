@@ -1737,6 +1737,9 @@ async function loadVerificationCenter(){
 
 async function loadVerificationRequests(){
  const container=document.getElementById('verificationRequests');
+ if(!container)return;
+ if(container.dataset.loading==='true')return;
+ container.dataset.loading='true';
  container.textContent='جارٍ تحميل الطلبات...';
  try{
   const {data:isAdmin,error:adminError}=await db.rpc('is_main_admin');
@@ -1792,6 +1795,7 @@ async function loadVerificationRequests(){
   }
   table.appendChild(tbody);wrap.appendChild(table);container.appendChild(wrap);
  }catch(e){container.textContent='تعذر تحميل الطلبات: '+e.message;}
+ finally{container.dataset.loading='false';}
 }
 
 function updatePropertyFormFields(){
