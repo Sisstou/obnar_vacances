@@ -564,6 +564,7 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <select id="signupRole" onchange="updateSignupRoleNote()">
  <option value="traveler">مصطاف — أبحث عن إقامة وأحجز</option>
  <option value="owner">مالك — أريد عرض إقامتي للكراء</option>
+ <option value="activity_provider">صاحب نشاط — أريد تسجيل نشاط تجاري أو خدمة</option>
 </select>
 <p id="signupRoleNote" class="signup-role-note" aria-live="polite">يمكنك التسجيل كمصطاف والبدء في البحث عن إقامة.</p>
 
@@ -1180,7 +1181,7 @@ async function ensureProfile(user){
    id:user.id,
    full_name:user.user_metadata?.full_name || 'مستخدم جديد',
    phone:user.user_metadata?.phone || null,
-   requested_account_type:user.user_metadata?.requested_account_type === 'owner' ? 'owner' : 'traveler'
+   requested_account_type:['owner','activity_provider'].includes(user.user_metadata?.requested_account_type) ? user.user_metadata.requested_account_type : 'traveler'
 })
   .select()
   .single();
@@ -1282,7 +1283,7 @@ async function saveMyProfile(){
   document.getElementById('userInfo').textContent =
     'مرحباً ' + result.profile.full_name +
     ' — نوع الحساب: ' +
-    (result.profile.role === 'owner' ? 'مالك' : 'مصطاف');
+    (result.profile.role === 'owner' ? 'مالك' : result.profile.requested_account_type === 'activity_provider' ? 'صاحب نشاط' : 'مصطاف');
 
   if(email !== currentEmail){
     const {data:emailUpdate,error:emailError} = await db.auth.updateUser({email});
@@ -1492,7 +1493,7 @@ document.getElementById('travelerBookingArea').classList.add('hidden');
    await loadMyLocalBusinesses();
    document.getElementById('userInfo').textContent =
     'مرحباً '+currentProfile.full_name+' — نوع الحساب: '+
-    (currentProfile.role === 'owner' ? 'مالك' : 'مصطاف');
+    (currentProfile.role === 'owner' ? 'مالك' : currentProfile.requested_account_type === 'activity_provider' ? 'صاحب نشاط' : 'مصطاف');
 if(currentProfile.role === 'owner'){
  document.getElementById('ownerPropertyArea')
   .classList.remove('hidden');
@@ -1537,7 +1538,9 @@ function updateSignupRoleNote(){
  if(!note) return;
  note.textContent=role==='owner'
   ? 'سيُنشأ حسابك كطلب تسجيل مالك. بعد تأكيد البريد، ارفع وثيقة المالك من حسابك؛ وتُفعّل صلاحيات المالك بعد مراجعة الإدارة والموافقة.'
-  : 'يمكنك التسجيل كمصطاف والبدء في البحث عن إقامة وإرسال طلبات الحجز.';
+  : role==='activity_provider'
+   ? 'أنشئ حساب صاحب نشاط لتسجيل محل تجاري أو حرفة أو خدمة مهنية أو منزلية. بعد الدخول، أرسل بيانات نشاطك إلى الإدارة؛ ولن يظهر في الدليل إلا بعد الموافقة.'
+   : 'يمكنك التسجيل كمصطاف والبدء في البحث عن إقامة وإرسال طلبات الحجز.';
 }
 function updateActivitySubmissionAccess(isAdmin=false){
  const form=document.getElementById('localBusinessSubmitArea');
@@ -1586,13 +1589,17 @@ async function signup(){
    showUser();
    msg(requestedRole==='owner'
     ? 'تم إنشاء طلب حساب مالك. افتح حسابك بعد تأكيد البريد لإرسال وثيقة التوثيق؛ لن تُمنح صلاحيات المالك قبل موافقة الإدارة.'
-    : 'تم إنشاء الحساب بنجاح.');
+    : requestedRole==='activity_provider'
+     ? 'تم إنشاء حساب صاحب نشاط. افتح دليل نشاطات الحي لإرسال نشاطك إلى الإدارة للمراجعة.'
+     : 'تم إنشاء الحساب بنجاح.');
 
   }else{
 
    msg(requestedRole==='owner'
     ? 'تم التسجيل كطالب حساب مالك. تحقق من بريدك الإلكتروني ثم ادخل إلى حسابك لإرسال وثيقة التوثيق. لا تُفعّل صلاحيات المالك إلا بعد موافقة الإدارة.'
-    : 'تم التسجيل. تحقق من بريدك الإلكتروني ثم سجّل الدخول.');
+    : requestedRole==='activity_provider'
+     ? 'تم التسجيل كصاحب نشاط. تحقق من بريدك الإلكتروني ثم سجّل الدخول لإرسال نشاطك إلى دليل الحي ومراجعته من الإدارة.'
+     : 'تم التسجيل. تحقق من بريدك الإلكتروني ثم سجّل الدخول.');
 
   }
 
