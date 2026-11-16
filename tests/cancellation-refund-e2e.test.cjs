@@ -164,8 +164,15 @@ async function readBooking(id) {
 }
 
 async function cleanup() {
+  // Discover cancellations by booking as well as by captured id, so cleanup still works
+  // if an assertion fails immediately after a successful RPC response.
+  const cancellationIds = new Set(created.cancellations);
+  for (const bookingId of created.bookings) {
+    const rows = await request('booking_cancellations?select=id&booking_id=eq.' + bookingId, { service: true });
+    for (const row of rows) cancellationIds.add(row.id);
+  }
   // History and notifications are written by the real RPCs; remove dependent rows first.
-  for (const id of created.cancellations) {
+  for (const id of cancellationIds) {
     await request('booking_cancellation_history?cancellation_id=eq.' + id, {
       method: 'DELETE', service: true,
     });
@@ -183,6 +190,13 @@ async function cleanup() {
 }
 
 async function main() {
+  // Validate the privileged key and known Staging identities before creating any fixtures.
+  const adminRows = await request('platform_admins?select=user_id,is_main_admin&user_id=eq.' + USERS.admin, { service: true });
+  assert.equal(adminRows.length, 1, 'Configured Staging admin row is missing');
+  assert.equal(adminRows[0].is_main_admin, true, 'Configured Staging admin is not marked as main admin');
+  const profileRows = await request('profiles?select=id&id=in.(' + [USERS.traveler, USERS.owner, USERS.admin].join(',') + ')', { service: true });
+  assert.equal(profileRows.length, 3, 'Expected all three known Staging test profiles');
+
   const [traveler, owner, admin] = await Promise.all([
     signIn(process.env.TRAVELER_EMAIL, process.env.TRAVELER_PASSWORD),
     signIn(process.env.OWNER_EMAIL, process.env.OWNER_PASSWORD),
