@@ -114,7 +114,11 @@ async function uploadSyntheticReceipt(bookingId, attempt) {
   const pdf = Buffer.from('%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Count 0/Kids[]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n');
   const response = await fetch(base + '/storage/v1/object/payment-receipts/' + path, {
     method: 'POST',
-    headers: serviceHeaders({ 'content-type': 'application/pdf', 'x-upsert': 'true' }),
+    headers: {
+      apikey: anonKey,
+      Authorization: 'Bearer ' + traveler,
+      'content-type': 'application/pdf',
+    },
     body: pdf,
   });
   const raw = await response.text();
