@@ -607,9 +607,6 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 </div>
 
 <p id="userInfo"></p>
-<div id="myLocalBusinessesPanel" class="panel hidden"><h3>🏪 طلباتي في دليل الأنشطة</h3><button type="button" class="secondary" onclick="loadMyLocalBusinesses()">تحديث نشاطاتي</button><div id="myLocalBusinesses" class="small">جارٍ تحميل طلباتك...</div></div>
-
-
 <button type="button" id="adminDashboardLink" class="hidden" onclick="openAdminDashboard()">لوحة تحكم المدير الرئيسي</button>
 
 <hr>
@@ -1467,8 +1464,6 @@ document.getElementById('travelerBookingArea').classList.add('hidden');
   if(error) throw error;
 
   if(data === true){
-   document.getElementById('myLocalBusinessesPanel')?.classList.add('hidden');
-
    if(localBusinessNavLink) localBusinessNavLink.classList.add('hidden');
    adminArea.classList.remove('hidden');
    document.getElementById('adminDashboardLink').classList.remove('hidden');
@@ -1486,9 +1481,7 @@ document.getElementById('travelerBookingArea').classList.add('hidden');
 
   }else{
 
-   document.getElementById('myLocalBusinessesPanel')?.classList.remove('hidden');
    if(localBusinessNavLink) localBusinessNavLink.classList.remove('hidden');
-   await loadMyLocalBusinesses();
    document.getElementById('userInfo').textContent =
     'مرحباً '+currentProfile.full_name+' — نوع الحساب: '+
     (currentProfile.role === 'owner' ? 'مالك' : 'مصطاف');
@@ -1506,8 +1499,13 @@ if(currentProfile.role === 'owner'){
 if(currentProfile.role === 'traveler'){
  document.getElementById('travelerBookingArea')
   .classList.remove('hidden');
+ const requestedOwner=currentUser?.user_metadata?.requested_account_type==='owner';
  document.getElementById('ownerVerificationArea')
-  .classList.remove('hidden');
+  .classList.toggle('hidden',!requestedOwner);
+ if(requestedOwner){
+  const verificationHeading=document.querySelector('#ownerVerificationArea h3');
+  if(verificationHeading) verificationHeading.textContent='طلب توثيق حساب المالك';
+ }
 }
    msg('');
 
@@ -1527,7 +1525,7 @@ function updateSignupRoleNote(){
  const note=document.getElementById('signupRoleNote');
  if(!note) return;
  note.textContent=role==='owner'
-  ? 'سيبدأ الحساب دون صلاحيات نشر كمالك. بعد التسجيل، أرسل طلب توثيق المالك من حسابك؛ وتُفعّل صلاحيات المالك بعد مراجعة الإدارة والموافقة.'
+  ? 'سيُنشأ حسابك كطلب تسجيل مالك. بعد تأكيد البريد، ارفع وثيقة المالك من حسابك؛ وتُفعّل صلاحيات المالك بعد مراجعة الإدارة والموافقة.'
   : 'يمكنك التسجيل كمصطاف والبدء في البحث عن إقامة وإرسال طلبات الحجز.';
 }
 function updateActivitySubmissionAccess(){
@@ -1559,7 +1557,8 @@ async function signup(){
     data:{
      full_name:name,
      phone:phone,
-     role:'traveler'
+     role:'traveler',
+     requested_account_type:requestedRole
     }
    }
   });
@@ -1573,13 +1572,13 @@ async function signup(){
 
    showUser();
    msg(requestedRole==='owner'
-    ? 'تم إنشاء الحساب. أرسل الآن طلب توثيق المالك من حسابك؛ وتُفعّل صلاحيات المالك بعد موافقة الإدارة.'
+    ? 'تم إنشاء طلب حساب مالك. افتح حسابك بعد تأكيد البريد لإرسال وثيقة التوثيق؛ لن تُمنح صلاحيات المالك قبل موافقة الإدارة.'
     : 'تم إنشاء الحساب بنجاح.');
 
   }else{
 
    msg(requestedRole==='owner'
-    ? 'تم التسجيل. تحقق من بريدك الإلكتروني ثم ادخل إلى حسابك لإرسال طلب توثيق المالك. لا تُفعّل صلاحيات المالك إلا بعد موافقة الإدارة.'
+    ? 'تم التسجيل كطالب حساب مالك. تحقق من بريدك الإلكتروني ثم ادخل إلى حسابك لإرسال وثيقة التوثيق. لا تُفعّل صلاحيات المالك إلا بعد موافقة الإدارة.'
     : 'تم التسجيل. تحقق من بريدك الإلكتروني ثم سجّل الدخول.');
 
   }
