@@ -689,9 +689,18 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 <div id="ownerBookingArea" class="hidden">
  <hr>
  <h3>📅 طلبات الحجوزات</h3>
-<button type="button" onclick="window.loadOwnerBookings()">
-عرض طلبات الحجوزات
-</button>
+ <button type="button" onclick="window.loadOwnerBookings()">عرض طلبات الحجوزات</button>
+ <div id="ownerBookingExport" class="panel">
+  <h4>📥 تحميل ملف حجوزات إقاماتي</h4>
+  <p class="small">يشمل حجوزات جميع إقاماتك فقط، ويمكن اختيار سنة الوصول.</p>
+  <label class="field-label" for="ownerBookingExportYear">السنة</label>
+  <input id="ownerBookingExportYear" type="number" min="2020" max="2100">
+  <div class="owner-form-actions">
+   <button type="button" onclick="exportOwnerBookings('xlsx')">تحميل Excel</button>
+   <button type="button" class="secondary" onclick="exportOwnerBookings('pdf')">طباعة / حفظ PDF</button>
+  </div>
+  <p id="ownerBookingExportStatus" class="small" aria-live="polite">حمّل طلبات الحجوزات أولاً لتجهيز الملف.</p>
+ </div>
  <div id="ownerBookings"></div>
 </div>
 
@@ -3032,6 +3041,13 @@ async function loadPropertyRequests(){
 
 }
 
+let ownerBookingExportCache=[],ownerBookingExportProperties=[];
+
+function setOwnerBookingExportStatus(message){
+ const el=document.getElementById('ownerBookingExportStatus');
+ if(el) el.textContent=message;
+}
+
 async function loadOwnerBookings(){
 
  const area = document.getElementById('ownerBookings');
@@ -3052,10 +3068,17 @@ async function loadOwnerBookings(){
 
   if(propertyError) throw propertyError;
 
+  ownerBookingExportProperties=properties||[];
+  ownerBookingExportCache=[];
+  const exportYear=document.getElementById('ownerBookingExportYear');
+  if(exportYear && !exportYear.value) exportYear.value=String(new Date().getFullYear());
+  setOwnerBookingExportStatus('جارٍ تجهيز بيانات التصدير...');
+
   const ids = (properties || []).map(p=>p.id);
 
   if(ids.length === 0){
    area.textContent = 'لا توجد إقامات مسجلة لهذا المالك.';
+   setOwnerBookingExportStatus('لا توجد إقامات مرتبطة بحسابك.');
    return;
   }
 
@@ -3066,6 +3089,11 @@ async function loadOwnerBookings(){
    .order('created_at',{ascending:false});
 
   if(error) throw error;
+
+  ownerBookingExportCache=bookings||[];
+  setOwnerBookingExportStatus(ownerBookingExportCache.length
+   ? 'تم تجهيز '+ownerBookingExportCache.length+' حجزاً. اختر السنة ثم صيغة الملف.'
+   : 'لا توجد حجوزات مسجلة لإقاماتك حالياً.');
 
   const bookingIds = (bookings || []).map(b=>b.id);
   let cancellationRequests = [];
@@ -3300,6 +3328,78 @@ area.appendChild(item);
 
  }
 
+}
+
+function exportOwnerBookings(format){
+ if(!currentUser || currentProfile?.role!=='owner'){
+  msg('تحميل الحجوزات متاح للمالك المسجل فقط.');
+  return;
+ }
+ if(!ownerBookingExportProperties.length){
+  msg('لا توجد إقامات مرتبطة بحسابك. حدّث طلبات الحجوزات أولاً.');
+  return;
+ }
+ const year=Number(document.getElementById('ownerBookingExportYear')?.value);
+ if(!Number.isInteger(year)||year<2020||year>2100){
+  msg('أدخل سنة صحيحة بين 2020 و2100.');
+  return;
+ }
+ const propertiesById=new Map(ownerBookingExportProperties.map(p=>[p.id,p]));
+ const rows=ownerBookingExportCache
+  .filter(b=>String(b.check_in||'').slice(0,4)===String(year))
+  .map(b=>{
+   const property=propertiesById.get(b.property_id);
+   const statusNames={
+    pending:'بانتظار رد المالك',
+    awaiting_admin_approval:'بانتظار موافقة الإدارة',
+    awaiting_payment:'بانتظار التسبيق',
+    confirmed:'مؤكد',
+    completed:'مكتمل',
+    cancelled:'ملغى',
+    rejected:'مرفوض'
+   };
+   const paymentNames={
+    unpaid:'لم يتم الدفع',
+    receipt_submitted:'تم رفع وصل التحويل',
+    verified:'تم التحقق من الدفع',
+    rejected:'تم رفض الوصل'
+   };
+   return [
+    property?.title_ar||'إقامة',
+    b.check_in||'',
+    b.check_out||'',
+    Number(b.guests||0),
+    Number(b.total_price||0),
+    statusNames[b.status]||b.status||'',
+    paymentNames[b.payment_status]||b.payment_status||'',
+    Number(b.deposit_amount||0),
+    b.created_at?new Date(b.created_at).toLocaleDateString('ar-DZ'):''
+   ];
+  });
+ if(!rows.length){
+  msg('لا توجد حجوزات بتاريخ وصول خلال سنة '+year+'.');
+  return;
+ }
+ const headers=['الإقامة','تاريخ الوصول','تاريخ المغادرة','عدد الأشخاص','السعر الإجمالي (دج)','حالة الحجز','حالة الدفع','التسبيق (دج)','تاريخ الطلب'];
+ const filename='OBNAR-VACANCES-Bookings-'+year;
+ if(format==='xlsx'){
+  if(!window.XLSX){msg('تعذر تحميل أداة Excel. أعد تحميل الصفحة وحاول مجدداً.');return;}
+  const ws=XLSX.utils.aoa_to_sheet([['حجوزات إقامات المالك'],['السنة',year],[],headers,...rows]);
+  ws['!cols']=[{wch:28},{wch:16},{wch:16},{wch:14},{wch:20},{wch:24},{wch:24},{wch:16},{wch:18}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'الحجوزات');
+  XLSX.writeFile(wb,filename+'.xlsx');
+  msg('تم تجهيز ملف Excel لحجوزات سنة '+year+'.');
+  return;
+ }
+ if(format==='pdf'){
+  const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const tableRows=rows.map(row=>'<tr>'+row.map(cell=>'<td>'+escapeHtml(cell)+'</td>').join('')+'</tr>').join('');
+  const win=window.open('','_blank');
+  if(!win){msg('اسمح بفتح النوافذ المنبثقة لإعداد ملف PDF.');return;}
+  win.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+filename+'</title><style>body{font-family:Arial,sans-serif;padding:20px;color:#222}h2,p{text-align:center}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #888;padding:7px;text-align:center}th{background:#eee} @page{size:landscape;margin:12mm}</style></head><body><h2>OBNAR VACANCES — حجوزات إقامات المالك</h2><p>السنة: '+year+' | عدد الحجوزات: '+rows.length+'</p><table><thead><tr>'+headers.map(h=>'<th>'+escapeHtml(h)+'</th>').join('')+'</tr></thead><tbody>'+tableRows+'</tbody></table><script>window.onload=()=>window.print();</script></body></html>');
+  win.document.close();
+ }
 }
 
 async function respondToCancellation(cancellationId,action){
