@@ -3125,7 +3125,7 @@ async function loadOwnerBookings(){
 
   const bookingCategories = [
    {id:'paid',label:'💰 مدفوع',matches:b=>b.status!=='cancelled' && b.payment_status==='verified'},
-   {id:'unpaid',label:'⏳ غير مدفوع',matches:b=>b.status!=='cancelled' && b.payment_status==='unpaid'},
+   {id:'unpaid',label:'⏳ غير مدفوع',matches:b=>b.status==='awaiting_payment' && b.payment_status!=='verified'},
    {id:'uploaded',label:'📎 تم رفع الوصل',matches:b=>b.status!=='cancelled' && !!b.payment_receipt_path},
    {id:'not_uploaded',label:'📭 لم يرفع الوصل',matches:b=>b.status==='awaiting_payment' && !b.payment_receipt_path},
    {id:'cancelled',label:'🚫 ملغى',matches:b=>b.status==='cancelled'}
@@ -3371,7 +3371,7 @@ ownerBookingCards.set(b.id,item);
    categoryBar.appendChild(button);
   });
 
-  showOwnerBookingCategory('paid');
+  showOwnerBookingCategory('unpaid');
 
  }catch(e){
 
