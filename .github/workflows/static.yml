@@ -41,6 +41,7 @@ jobs:
 
   # Production deployment runs only for main pushes and only after tests pass.
   deploy:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     needs: regression-tests
     environment:
       name: github-pages
