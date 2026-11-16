@@ -349,6 +349,19 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 .owner-booking-detail-row>td{padding:12px;background:#fbfaf7}
 .owner-booking-detail-row .panel{max-width:none;width:100%;margin:0;box-shadow:none;border:1px solid #e9e1d2}
 @media(max-width:600px){.owner-booking-table{font-size:12px}.owner-booking-table th,.owner-booking-table td{padding:9px 8px}}
+
+/* Admin verification center and request tables */
+.verification-table-wrap{width:100%;overflow-x:auto;margin:12px 0;border:1px solid #e6eaf0;border-radius:12px;background:#fff}
+.verification-table{width:100%;min-width:720px;border-collapse:collapse;text-align:right;font-size:13px}
+.verification-table th{background:#f1f5f9;color:#17324d;font-weight:700;white-space:nowrap}
+.verification-table th,.verification-table td{padding:11px 10px;border-bottom:1px solid #e8edf2;vertical-align:middle}
+.verification-table tbody tr:not(.verification-detail-row):hover{background:#f8fafc}
+.verification-detail-row>td{padding:12px;background:#f8fafc}
+.verification-detail-panel{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px;border:1px solid #e2e8f0;border-radius:10px;background:#fff}
+.verification-detail-panel p{margin:4px 8px}
+.verification-detail-panel input[type=date]{max-width:190px}
+.verification-detail-panel button{margin:4px}
+@media(max-width:600px){.verification-table{font-size:12px}.verification-table th,.verification-table td{padding:9px 8px}}
 </style>
 </head>
 
@@ -800,7 +813,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
   <h2>لوحة تحكم المدير الرئيسي</h2>
 
   <details class="booking-accordion">
-   <summary>🏠 طلبات توثيق الإقامات</summary>
+   <summary>👤 طلبات توثيق المالكين</summary>
    <div class="booking-accordion-content">
     <button type="button" onclick="loadVerificationRequests()">عرض طلبات التوثيق</button>
     <div id="verificationRequests">
@@ -1659,216 +1672,126 @@ async function loadVerificationCenter(){
  ids.forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='جارٍ تحميل التوثيقات...';});
  try{
   const {data:admin,error:ae}=await db.rpc('is_main_admin');if(ae)throw ae;if(admin!==true)throw new Error('هذه الصفحة متاحة للمدير الرئيسي فقط.');
-  const [o,p]=await Promise.all([db.from('owner_verifications').select('*').order('created_at',{ascending:false}),db.from('property_verifications').select('*').order('created_at',{ascending:false})]);
+  const [o,p]=await Promise.all([
+   db.from('owner_verifications').select('*').order('created_at',{ascending:false}),
+   db.from('property_verifications').select('*').order('created_at',{ascending:false})
+  ]);
   if(o.error)throw o.error;if(p.error)throw p.error;
   const today=new Date().toISOString().slice(0,10);
   async function draw(rows,kind,expiredId,validId){
-   const ex=document.getElementById(expiredId),va=document.getElementById(validId);ex.innerHTML='';va.innerHTML='';
-   const expired=(rows||[]).filter(x=>x.expires_at&&x.expires_at<today),valid=(rows||[]).filter(x=>!x.expires_at||x.expires_at>=today);
-   async function cardFor(rec,target){
-    const c=document.createElement('div');c.className='panel';
-    let who='غير متوفر';
-    if(kind==='owner'){const q=await db.from('profiles').select('full_name,phone').eq('id',rec.owner_id).maybeSingle();if(q.error)throw q.error;who=(q.data?.full_name||'مالك بدون اسم')+(q.data?.phone?' — '+q.data.phone:'');}
-    else{const q=await db.from('properties').select('title_ar,title_fr').eq('id',rec.property_id).maybeSingle();if(q.error)throw q.error;who=(q.data?.title_ar||q.data?.title_fr||'إقامة غير معروفة')+' — '+rec.property_id;}
-    const h=document.createElement('h4');h.textContent=who;c.appendChild(h);
-    const st=document.createElement('p');st.textContent='حالة الطلب: '+(rec.status||'غير محددة');c.appendChild(st);
-    const dt=document.createElement('p');dt.textContent=rec.expires_at?'ينتهي في: '+rec.expires_at:'تاريخ الانتهاء غير محدد';c.appendChild(dt);
-    const a=document.createElement('a');const f=await db.storage.from('owner-documents').createSignedUrl(rec.document_path,300);
-    if(!f.error){a.href=f.data.signedUrl;a.target='_blank';a.rel='noopener noreferrer';a.textContent='عرض الوثيقة';}else a.textContent='تعذر فتح الوثيقة: '+f.error.message;c.appendChild(a);
-    const lab=document.createElement('label');lab.textContent='تعديل تاريخ الانتهاء';lab.style.display='block';c.appendChild(lab);
-    const input=document.createElement('input');input.type='date';input.value=rec.expires_at||'';c.appendChild(input);
-    const b=document.createElement('button');b.textContent='حفظ تاريخ الانتهاء';b.onclick=async()=>{b.disabled=true;try{const table=kind==='owner'?'owner_verifications':'property_verifications';const u=await db.from(table).update({expires_at:input.value||null}).eq('id',rec.id).select('id').maybeSingle();if(u.error)throw u.error;if(!u.data)throw new Error('لم يتم التحديث؛ تحقق من صلاحيات المدير.');msg('تم حفظ تاريخ انتهاء الوثيقة.');await loadVerificationCenter();}catch(e){msg('تعذر الحفظ: '+e.message);b.disabled=false;}};c.appendChild(b);target.appendChild(c);
+   const ex=document.getElementById(expiredId),va=document.getElementById(validId);
+   ex.innerHTML='';va.innerHTML='';
+   const expired=(rows||[]).filter(x=>x.expires_at&&x.expires_at<today);
+   const valid=(rows||[]).filter(x=>!x.expires_at||x.expires_at>=today);
+   async function renderTable(records,target){
+    if(!records.length){target.textContent=target===ex?'لا توجد وثائق منتهية الصلاحية.':'لا توجد وثائق غير منتهية الصلاحية.';return;}
+    const wrap=document.createElement('div');wrap.className='verification-table-wrap';
+    const table=document.createElement('table');table.className='verification-table';
+    const head=document.createElement('thead'),hr=document.createElement('tr');
+    ['صاحب الوثيقة / الإقامة','حالة الطلب','تاريخ الانتهاء','التفاصيل'].forEach(x=>{const th=document.createElement('th');th.textContent=x;hr.appendChild(th);});
+    head.appendChild(hr);table.appendChild(head);
+    const body=document.createElement('tbody');
+    for(const rec of records){
+     let who='غير متوفر';
+     if(kind==='owner'){
+      const q=await db.from('profiles').select('full_name,phone').eq('id',rec.owner_id).maybeSingle();if(q.error)throw q.error;
+      who=(q.data?.full_name||'مالك بدون اسم')+(q.data?.phone?' — '+q.data.phone:'');
+     }else{
+      const q=await db.from('properties').select('title_ar,title_fr').eq('id',rec.property_id).maybeSingle();if(q.error)throw q.error;
+      who=(q.data?.title_ar||q.data?.title_fr||'إقامة غير معروفة');
+     }
+     const row=document.createElement('tr');
+     [who,rec.status||'غير محددة',rec.expires_at||'غير محدد'].forEach(v=>{const td=document.createElement('td');td.textContent=v;row.appendChild(td);});
+     const action=document.createElement('td'),toggle=document.createElement('button');
+     toggle.type='button';toggle.className='secondary';toggle.textContent='عرض التفاصيل';
+     const detailRow=document.createElement('tr');detailRow.className='verification-detail-row hidden';
+     const detailCell=document.createElement('td');detailCell.colSpan=4;
+     const detail=document.createElement('div');detail.className='verification-detail-panel';
+     const created=document.createElement('p');created.textContent='تاريخ الطلب: '+(rec.created_at?new Date(rec.created_at).toLocaleString('ar-DZ'):'غير متوفر');detail.appendChild(created);
+     const file=document.createElement('a');
+     const signed=await db.storage.from('owner-documents').createSignedUrl(rec.document_path,300);
+     if(!signed.error){file.href=signed.data.signedUrl;file.target='_blank';file.rel='noopener noreferrer';file.textContent='عرض الوثيقة';}
+     else file.textContent='تعذر فتح الوثيقة: '+signed.error.message;
+     detail.appendChild(file);
+     const label=document.createElement('label');label.textContent='تعديل تاريخ الانتهاء';label.style.display='block';label.style.marginTop='12px';detail.appendChild(label);
+     const input=document.createElement('input');input.type='date';input.value=rec.expires_at||'';detail.appendChild(input);
+     const save=document.createElement('button');save.type='button';save.textContent='حفظ تاريخ الانتهاء';
+     save.onclick=async()=>{save.disabled=true;try{
+      const tableName=kind==='owner'?'owner_verifications':'property_verifications';
+      const update=await db.from(tableName).update({expires_at:input.value||null}).eq('id',rec.id).select('id').maybeSingle();
+      if(update.error)throw update.error;if(!update.data)throw new Error('لم يتم التحديث؛ تحقق من صلاحيات المدير.');
+      msg('تم حفظ تاريخ انتهاء الوثيقة.');await loadVerificationCenter();
+     }catch(e){msg('تعذر الحفظ: '+e.message);save.disabled=false;}};
+     detail.appendChild(save);detailCell.appendChild(detail);detailRow.appendChild(detailCell);
+     toggle.onclick=()=>{const opening=detailRow.classList.contains('hidden');detailRow.classList.toggle('hidden',!opening);toggle.textContent=opening?'إخفاء التفاصيل':'عرض التفاصيل';};
+     action.appendChild(toggle);row.appendChild(action);body.appendChild(row);body.appendChild(detailRow);
+    }
+    table.appendChild(body);wrap.appendChild(table);target.appendChild(wrap);
    }
-   for(const r of expired)await cardFor(r,ex);for(const r of valid)await cardFor(r,va);
-   if(!ex.children.length)ex.textContent='لا توجد وثائق منتهية الصلاحية.';
-   if(!va.children.length)va.textContent='لا توجد وثائق غير منتهية الصلاحية.';
+   await renderTable(expired,ex);await renderTable(valid,va);
   }
-  await draw(o.data,'owner','ownerExpiredDocuments','ownerValidDocuments');await draw(p.data,'property','propertyExpiredDocuments','propertyValidDocuments');
+  await draw(o.data,'owner','ownerExpiredDocuments','ownerValidDocuments');
+  await draw(p.data,'property','propertyExpiredDocuments','propertyValidDocuments');
  }catch(e){ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='تعذر التحميل: '+e.message;});msg('تعذر تحميل التوثيقات: '+e.message);}
 }
 
 async function loadVerificationRequests(){
-
- const container = document.getElementById('verificationRequests');
- container.textContent = 'جارٍ تحميل الطلبات...';
-
+ const container=document.getElementById('verificationRequests');
+ container.textContent='جارٍ تحميل الطلبات...';
  try{
-
-  const {data:isAdmin,error:adminError} =
-   await db.rpc('is_main_admin');
-
-  if(adminError) throw adminError;
-
-  if(isAdmin !== true){
-   throw new Error('غير مسموح لك بالدخول.');
-  }
-
-  const {data:requests,error} = await db
-   .from('owner_verifications')
-   .select('*')
-   .order('created_at',{ascending:false});
-
-  if(error) throw error;
-
-
-  container.innerHTML = '';
-
-  if(!requests || requests.length === 0){
-   container.textContent = 'لا توجد طلبات توثيق حالياً.';
-   return;
-  }
-
+  const {data:isAdmin,error:adminError}=await db.rpc('is_main_admin');
+  if(adminError)throw adminError;if(isAdmin!==true)throw new Error('غير مسموح لك بالدخول.');
+  const {data:requests,error}=await db.from('owner_verifications').select('*').order('created_at',{ascending:false});
+  if(error)throw error;
+  container.innerHTML='';
+  if(!requests||!requests.length){container.textContent='لا توجد طلبات توثيق حالياً.';return;}
+  const wrap=document.createElement('div');wrap.className='verification-table-wrap';
+  const table=document.createElement('table');table.className='verification-table';
+  const thead=document.createElement('thead'),hr=document.createElement('tr');
+  ['الاسم','الهاتف','الحالة','تاريخ الطلب','التفاصيل والإجراءات'].forEach(x=>{const th=document.createElement('th');th.textContent=x;hr.appendChild(th);});
+  thead.appendChild(hr);table.appendChild(thead);
+  const tbody=document.createElement('tbody');
   for(const request of requests){
-
-   const card = document.createElement('div');
-   card.className = 'panel';
-
-   const title = document.createElement('h3');
-   title.textContent = 'طلب توثيق';
-   card.appendChild(title);
-
-   const status = document.createElement('p');
-   status.textContent = 'الحالة: '+request.status;
-   card.appendChild(status);
-
-   const date = document.createElement('p');
-   date.textContent = 'تاريخ الطلب: '+
-    new Date(request.created_at).toLocaleString('ar-DZ');
-   card.appendChild(date);
-
-   const profileResult = await db
-    .from('profiles')
-    .select('full_name,phone')
-    .eq('id',request.owner_id)
-    .maybeSingle();
-
-   if(profileResult.error) throw profileResult.error;
-
-   const profile = profileResult.data;
-
-   const name = document.createElement('p');
-   name.textContent = 'الاسم: '+(profile?.full_name || 'غير متوفر');
-   card.appendChild(name);
-
-   const phone = document.createElement('p');
-   phone.textContent = 'الهاتف: '+(profile?.phone || 'غير متوفر');
-   card.appendChild(phone);
-
-   const fileResult = await db.storage
-    .from('owner-documents')
-    .createSignedUrl(request.document_path,300);
-
-   if(fileResult.error) throw fileResult.error;
-
-   const link = document.createElement('a');
-   link.href = fileResult.data.signedUrl;
-   link.target = '_blank';
-   link.rel = 'noopener noreferrer';
-   link.textContent = 'عرض الوثيقة';
-   card.appendChild(link);
-
-   if(request.status === 'pending'){
-
-    const approveBtn = document.createElement('button');
-    approveBtn.textContent = 'قبول الطلب';
-    approveBtn.style.background = '#16803c';
-    approveBtn.style.color = 'white';
-    approveBtn.style.margin = '10px 5px';
-
-    
-approveBtn.onclick = async function(){
-
- if(!confirm('هل أنت متأكد من قبول طلب التوثيق؟')) return;
-
- approveBtn.disabled = true;
- rejectBtn.disabled = true;
-
- try{
-
-  const {error:approveError} = await db.rpc(
-   'approve_owner_verification',
-   {p_request_id:request.id}
-  );
-
-  if(approveError) throw approveError;
-
-  msg('تم قبول التوثيق وتحويل الحساب إلى مالك بنجاح.');
-  await loadVerificationRequests();
-
- }catch(e){
-
-  msg('تعذر قبول الطلب: '+e.message);
-  approveBtn.disabled = false;
-  rejectBtn.disabled = false;
-
- }
-
-};
-
-
-    const rejectBtn = document.createElement('button');
-    rejectBtn.textContent = 'رفض الطلب';
-    rejectBtn.style.background = '#b42318';
-    rejectBtn.style.color = 'white';
-    rejectBtn.style.margin = '10px 5px';
-
-    rejectBtn.onclick = async function(){
-
-     if(!confirm('هل أنت متأكد من رفض طلب التوثيق؟')) return;
-
-     approveBtn.disabled = true;
-     rejectBtn.disabled = true;
-
-     try{
-
-      const {data:userData,error:userError} =
-       await db.auth.getUser();
-
-      if(userError) throw userError;
-
-      const {data:updateData,error:updateError} = await db
-       .from('owner_verifications')
-       .update({
-        status:'rejected',
-        reviewed_by:userData.user.id,
-        reviewed_at:new Date().toISOString()
-       })
-       .eq('id',request.id)
-       .eq('status','pending')
-       .select('id')
-       .maybeSingle();
-
-      if(updateError) throw updateError;
-      if(!updateData) throw new Error('الطلب لم يعد قيد الانتظار.');
-
-      msg('تم رفض طلب التوثيق.');
-      await loadVerificationRequests();
-
-     }catch(e){
-
-      msg('تعذر رفض الطلب: '+e.message);
-      approveBtn.disabled = false;
-      rejectBtn.disabled = false;
-
-     }
-
-    };
-
-    card.appendChild(approveBtn);
-    card.appendChild(rejectBtn);
-
+   const profileResult=await db.from('profiles').select('full_name,phone').eq('id',request.owner_id).maybeSingle();
+   if(profileResult.error)throw profileResult.error;
+   const profile=profileResult.data;
+   const row=document.createElement('tr');
+   [profile?.full_name||'غير متوفر',profile?.phone||'غير متوفر',request.status||'غير محددة',request.created_at?new Date(request.created_at).toLocaleString('ar-DZ'):'غير متوفر'].forEach(v=>{const td=document.createElement('td');td.textContent=v;row.appendChild(td);});
+   const action=document.createElement('td'),toggle=document.createElement('button');
+   toggle.type='button';toggle.className='secondary';toggle.textContent='عرض التفاصيل';
+   const detailRow=document.createElement('tr');detailRow.className='verification-detail-row hidden';
+   const detailCell=document.createElement('td');detailCell.colSpan=5;
+   const detail=document.createElement('div');detail.className='verification-detail-panel';
+   const title=document.createElement('strong');title.textContent='طلب توثيق المالك';detail.appendChild(title);
+   const status=document.createElement('p');status.textContent='حالة الطلب: '+(request.status||'غير محددة');detail.appendChild(status);
+   const date=document.createElement('p');date.textContent='تاريخ الطلب: '+(request.created_at?new Date(request.created_at).toLocaleString('ar-DZ'):'غير متوفر');detail.appendChild(date);
+   const phone=document.createElement('p');phone.textContent='الهاتف: '+(profile?.phone||'غير متوفر');detail.appendChild(phone);
+   const fileResult=await db.storage.from('owner-documents').createSignedUrl(request.document_path,300);
+   const link=document.createElement('a');
+   if(!fileResult.error){link.href=fileResult.data.signedUrl;link.target='_blank';link.rel='noopener noreferrer';link.textContent='عرض الوثيقة';}
+   else link.textContent='تعذر فتح الوثيقة: '+fileResult.error.message;
+   detail.appendChild(link);
+   if(request.status==='pending'){
+    const approveBtn=document.createElement('button');approveBtn.type='button';approveBtn.textContent='قبول الطلب';approveBtn.style.background='#16803c';approveBtn.style.color='white';approveBtn.style.margin='10px 5px';
+    const rejectBtn=document.createElement('button');rejectBtn.type='button';rejectBtn.textContent='رفض الطلب';rejectBtn.style.background='#b42318';rejectBtn.style.color='white';rejectBtn.style.margin='10px 5px';
+    approveBtn.onclick=async()=>{if(!confirm('هل أنت متأكد من قبول طلب التوثيق؟'))return;approveBtn.disabled=true;rejectBtn.disabled=true;try{
+     const result=await db.rpc('approve_owner_verification',{p_request_id:request.id});if(result.error)throw result.error;
+     msg('تم قبول التوثيق وتحويل الحساب إلى مالك بنجاح.');await loadVerificationRequests();await loadVerificationCenter();
+    }catch(e){msg('تعذر قبول الطلب: '+e.message);approveBtn.disabled=false;rejectBtn.disabled=false;}};
+    rejectBtn.onclick=async()=>{if(!confirm('هل أنت متأكد من رفض طلب التوثيق؟'))return;approveBtn.disabled=true;rejectBtn.disabled=true;try{
+     const {data:userData,error:userError}=await db.auth.getUser();if(userError)throw userError;
+     const update=await db.from('owner_verifications').update({status:'rejected',reviewed_by:userData.user.id,reviewed_at:new Date().toISOString()}).eq('id',request.id).eq('status','pending').select('id').maybeSingle();
+     if(update.error)throw update.error;if(!update.data)throw new Error('الطلب لم يعد قيد الانتظار.');
+     msg('تم رفض طلب التوثيق.');await loadVerificationRequests();await loadVerificationCenter();
+    }catch(e){msg('تعذر رفض الطلب: '+e.message);approveBtn.disabled=false;rejectBtn.disabled=false;}};
+    detail.appendChild(approveBtn);detail.appendChild(rejectBtn);
    }
-
-   container.appendChild(card);
-
+   detailCell.appendChild(detail);detailRow.appendChild(detailCell);
+   toggle.onclick=()=>{const opening=detailRow.classList.contains('hidden');detailRow.classList.toggle('hidden',!opening);toggle.textContent=opening?'إخفاء التفاصيل':'عرض التفاصيل';};
+   action.appendChild(toggle);row.appendChild(action);tbody.appendChild(row);tbody.appendChild(detailRow);
   }
-
- }catch(e){
-
-  container.textContent = 'تعذر تحميل الطلبات: '+e.message;
-
- }
-
+  table.appendChild(tbody);wrap.appendChild(table);container.appendChild(wrap);
+ }catch(e){container.textContent='تعذر تحميل الطلبات: '+e.message;}
 }
 
 function updatePropertyFormFields(){
