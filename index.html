@@ -576,7 +576,7 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <div id="myLocalBusinessesPanel" class="panel"><h3>🏪 طلباتي في دليل الأنشطة</h3><div id="myLocalBusinesses" class="small">جارٍ تحميل طلباتك...</div></div>
 
 
-<button type="button" id="adminDashboardLink" class="hidden" onclick="showAppPage('adminDashboard')">لوحة تحكم المدير الرئيسي</button>
+<button type="button" id="adminDashboardLink" class="hidden" onclick="openAdminDashboard()">لوحة تحكم المدير الرئيسي</button>
 
 <hr>
 <h3>⚙️ تعديل بيانات حسابي</h3>
@@ -864,6 +864,31 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 <footer>© 2026 OBNAR VACANCES · <a href="#contact" onclick="showAppPage('contact');return false" style="color:#fff">اتصل بنا</a></footer>
 <script>
 
+
+async function openAdminDashboard(){
+ showAppPage('adminDashboard');
+ const area=document.getElementById('adminArea');
+ const link=document.getElementById('adminDashboardLink');
+ try{
+  const {data:isAdmin,error}=await db.rpc('is_main_admin');
+  if(error) throw error;
+  if(isAdmin!==true){
+   if(area) area.classList.add('hidden');
+   if(link) link.classList.add('hidden');
+   msg('غير مصرح لك بفتح لوحة المدير الرئيسي.');
+   showAppPage('account');
+   return;
+  }
+  if(area) area.classList.remove('hidden');
+  if(link) link.classList.remove('hidden');
+  msg('تم التحقق من صلاحيات المدير. جارٍ تحديث بيانات اللوحة...');
+  await Promise.all([loadVerificationRequests(),loadPropertyRequests(),loadAdminLocalBusinesses(),loadAdminBookings(),loadAdminCancellationRequests()]);
+  msg('تم تحديث أقسام لوحة المدير.');
+ }catch(error){
+  console.error('Admin dashboard load failed:',error);
+  msg('تعذر تحميل لوحة المدير: '+error.message);
+ }
+}
 
 function showAppPage(pageId){
  const pageIds=['home','search','propertyDetail','account','localBusinessAdvertising','adminDashboard','contact'];
@@ -1359,8 +1384,10 @@ document.getElementById('travelerBookingArea').classList.add('hidden');
 
    msg('تم التحقق: أنت المدير الرئيسي.');
 
+   await loadMyLocalBusinesses();
+   await loadVerificationRequests();
    await loadPropertyRequests();
-    await loadAdminLocalBusinesses();
+   await loadAdminLocalBusinesses();
    await loadAdminBookings();
 
   }else{
@@ -4317,7 +4344,8 @@ async function reviewLocalBusiness(businessId,action){
 
 async function loadMyLocalBusinesses(){
  const area=document.getElementById('myLocalBusinesses');
- if(!area || !currentUser) return;
+ if(!area) return;
+ if(!currentUser){area.textContent='سجّل الدخول لعرض أنشطتك.';return;}
  area.textContent='جارٍ تحميل طلباتك...';
  try{
   const {data,error}=await db.from('local_businesses').select('id,name,category,address,status,rejection_reason,created_at').eq('owner_id',currentUser.id).order('created_at',{ascending:false});
