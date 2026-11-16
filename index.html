@@ -1547,10 +1547,20 @@ function updateActivitySubmissionAccess(isAdmin=false){
  const form=document.getElementById('localBusinessSubmitArea');
  const tracker=document.getElementById('myLocalBusinessesPanel');
  const notice=document.getElementById('activityGuestNotice');
- const loggedIn=!!currentUser && !isAdmin;
- if(form) form.classList.toggle('hidden',!loggedIn);
- if(tracker) tracker.classList.toggle('hidden',!loggedIn);
- if(notice) notice.classList.toggle('hidden',loggedIn || isAdmin);
+ const canSubmit=!!currentUser && !isAdmin &&
+  currentProfile?.role==='traveler' &&
+  currentProfile?.requested_account_type==='activity_provider';
+ if(form) form.classList.toggle('hidden',!canSubmit);
+ if(tracker) tracker.classList.toggle('hidden',!canSubmit);
+ if(notice){
+  notice.classList.toggle('hidden',canSubmit || isAdmin);
+  const note=notice.querySelector('p');
+  const action=notice.querySelector('button');
+  if(note && currentUser && !canSubmit)
+   note.textContent='إرسال النشاطات متاح لحساب صاحب نشاط فقط. هذا الحساب ليس مسجلاً بهذا النوع.';
+  if(action && currentUser && !canSubmit)
+   action.textContent='العودة إلى الحساب';
+ }
 }
 async function signup(){
  try{
