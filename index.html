@@ -4,7 +4,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OBNAR VACANCES</title>
+<meta name="description" content="اكتشفوا إقامات العطلات في أولاد بونار وولاية جيجل، تصفحوا التفاصيل والأسعار والتواريخ المتاحة، وأرسلوا طلبات الحجز بسهولة.">
+<meta name="theme-color" content="#102d46">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ar_DZ">
+<meta property="og:site_name" content="OBNAR VACANCES">
+<meta property="og:title" content="OBNAR VACANCES | الإقامات والعطلات في أولاد بونار وجيجل">
+<meta property="og:description" content="ابحثوا عن إقامة مناسبة لعطلتكم في أولاد بونار وجيجل، وتابعوا تفاصيل الإقامة وطلبات الحجز من منصة واحدة.">
+<meta name="twitter:card" content="summary">
+<title>OBNAR VACANCES | حجز الإقامات في أولاد بونار وجيجل</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -2706,6 +2715,22 @@ async function loadAdminCancellationRequests(){
 
    if(request.request_status === 'admin_review'){
 
+    const mandatoryMismatchRefund = request.requester_role === 'traveler' && [
+     'water_unavailable',
+     'electricity_unavailable',
+     'gas_unavailable',
+     'missing_furniture',
+     'location_mismatch',
+     'property_mismatch',
+     'description_mismatch'
+    ].includes(request.reason_category);
+
+    if(mandatoryMismatchRefund){
+     const mandatoryNote = document.createElement('p');
+     mandatoryNote.textContent = 'عند ثبوت عدم تطابق جوهري عند الوصول واعتماد الإلغاء، يكون استرداد العربون كاملاً إلزامياً ولا يمكن رفضه.';
+     card.appendChild(mandatoryNote);
+    }
+
     const cancelLabel = document.createElement('label');
     cancelLabel.textContent = 'قرار الإلغاء';
     card.appendChild(cancelLabel);
@@ -2727,11 +2752,10 @@ async function loadAdminCancellationRequests(){
     card.appendChild(refundLabel);
 
     const refundSelect = document.createElement('select');
-    [
-     ['none','تأجيل قرار الاسترداد'],
-     ['approve','الموافقة على الاسترداد'],
-     ['reject','رفض الاسترداد']
-    ].forEach(([value,label])=>{
+    const refundOptions = mandatoryMismatchRefund
+     ? [['none','تأجيل قرار الاسترداد'],['approve','اعتماد الاسترداد الكامل']]
+     : [['none','تأجيل قرار الاسترداد'],['approve','الموافقة على الاسترداد'],['reject','رفض الاسترداد']];
+    refundOptions.forEach(([value,label])=>{
      const option = document.createElement('option');
      option.value = value;
      option.textContent = label;
@@ -2761,9 +2785,9 @@ async function loadAdminCancellationRequests(){
    ){
 
     if(request.requester_role === 'owner'){
-     const rerentNote = document.createElement('p');
-     rerentNote.textContent = 'لا يُعتمد استرداد المالك إلا بعد وجود حجز بديل مؤكد أو مكتمل ومدفوع للعقار نفسه ولتواريخ الإقامة نفسها تماماً.';
-     card.appendChild(rerentNote);
+     const ownerRefundRule = document.createElement('p');
+     ownerRefundRule.textContent = 'إلغاء المالك مع الدفع المؤكد والعربون الموجب يستوجب استرداد العربون كاملاً، ولا يشترط وجود حجز بديل.';
+     card.appendChild(ownerRefundRule);
     }
 
     const amount = document.createElement('p');
@@ -2775,10 +2799,10 @@ async function loadAdminCancellationRequests(){
     card.appendChild(refundLabel);
 
     const refundSelect = document.createElement('select');
-    [
-     ['approve','الموافقة على الاسترداد'],
-     ['reject','رفض الاسترداد']
-    ].forEach(([value,label])=>{
+    const refundOptions = request.requester_role === 'owner'
+     ? [['approve','اعتماد الاسترداد الكامل']]
+     : [['approve','الموافقة على الاسترداد'],['reject','رفض الاسترداد']];
+    refundOptions.forEach(([value,label])=>{
      const option = document.createElement('option');
      option.value = value;
      option.textContent = label;
@@ -3382,7 +3406,7 @@ const ownerCancellationStatus = cancellationRequests.find(c=>
 );
 if(ownerCancellationStatus && ownerCancellationStatus.refund_eligibility === 'admin_review'){
  const reviewStatus = document.createElement('p');
- reviewStatus.textContent = 'تم إلغاء الحجز. أهلية استرداد العربون قيد مراجعة الإدارة، ويشترط إعادة تأجير العقار نفسه للتواريخ نفسها بحجز مؤكد ومدفوع.';
+ reviewStatus.textContent = 'تم إلغاء الحجز من طرف المالك. يستحق المصطاف استرداد العربون كاملاً عند تأكد الدفع ووجود عربون موجب؛ لا يشترط إعادة كراء الفترة نفسها.';
  item.appendChild(reviewStatus);
 }else if(ownerCancellationStatus && ownerCancellationStatus.refund_eligibility === 'not_eligible'){
  const noRefundStatus = document.createElement('p');
