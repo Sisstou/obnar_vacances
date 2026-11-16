@@ -3435,9 +3435,7 @@ if(b.status === 'awaiting_payment' &&
 }
    if(
  b.status === 'awaiting_payment' &&
- ['unpaid','rejected'].includes(b.payment_status) &&
- b.payment_due_at &&
- new Date(b.payment_due_at) > new Date()
+ ['unpaid','rejected'].includes(b.payment_status)
 ){
 
  const fileInput = document.createElement('input');
