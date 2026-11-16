@@ -3545,13 +3545,13 @@ ownerBookingCards.set(b.id,item);
 
 }
 
-function exportOwnerBookings(format){
+async function exportOwnerBookings(format){
  if(!currentUser || currentProfile?.role!=='owner'){
   msg('تحميل الحجوزات متاح للمالك المسجل فقط.');
   return;
  }
- if(!ownerBookingExportProperties.length){
-  msg('لا توجد إقامات مرتبطة بحسابك. حدّث طلبات الحجوزات أولاً.');
+ if(format!=='xlsx' && format!=='pdf'){
+  msg('صيغة التصدير غير مدعومة.');
   return;
  }
  const year=Number(document.getElementById('ownerBookingExportYear')?.value);
@@ -3559,64 +3559,137 @@ function exportOwnerBookings(format){
   msg('أدخل سنة صحيحة بين 2020 و2100.');
   return;
  }
- const propertiesById=new Map(ownerBookingExportProperties.map(p=>[p.id,p]));
- const rows=ownerBookingExportCache
-  .filter(b=>String(b.check_in||'').slice(0,4)===String(year))
-  .map(b=>{
-   const property=propertiesById.get(b.property_id);
-   const statusNames={
-    pending:'بانتظار رد المالك',
-    awaiting_admin_approval:'بانتظار موافقة الإدارة',
-    awaiting_payment:'بانتظار التسبيق',
-    confirmed:'مؤكد',
-    completed:'مكتمل',
-    cancelled:'ملغى',
-    rejected:'مرفوض'
-   };
-   const paymentNames={
-    unpaid:'لم يتم الدفع',
-    receipt_submitted:'تم رفع وصل التحويل',
-    verified:'تم التحقق من الدفع',
-    rejected:'تم رفض الوصل'
-   };
-   return [
-    property?.title_ar||'إقامة',
-    b.check_in||'',
-    b.check_out||'',
-    Number(b.guests||0),
-    Number(b.total_price||0),
-    statusNames[b.status]||b.status||'',
-    paymentNames[b.payment_status]||b.payment_status||'',
-    Number(b.deposit_amount||0),
-    b.created_at?new Date(b.created_at).toLocaleDateString('ar-DZ'):''
-   ];
-  });
- if(!rows.length){
-  msg('لا توجد حجوزات بتاريخ وصول خلال سنة '+year+'.');
-  return;
- }
- const headers=['الإقامة','تاريخ الوصول','تاريخ المغادرة','عدد الأشخاص','السعر الإجمالي (دج)','حالة الحجز','حالة الدفع','التسبيق (دج)','تاريخ الطلب'];
- const filename='OBNAR-VACANCES-Bookings-'+year;
- if(format==='xlsx'){
-  if(!window.XLSX){msg('تعذر تحميل أداة Excel. أعد تحميل الصفحة وحاول مجدداً.');return;}
-  const ws=XLSX.utils.aoa_to_sheet([['حجوزات إقامات المالك'],['السنة',year],[],headers,...rows]);
-  ws['!cols']=[{wch:28},{wch:16},{wch:16},{wch:14},{wch:20},{wch:24},{wch:24},{wch:16},{wch:18}];
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'الحجوزات');
-  XLSX.writeFile(wb,filename+'.xlsx');
-  msg('تم تجهيز ملف Excel لحجوزات سنة '+year+'.');
-  return;
- }
+
+ // Open the print tab synchronously in the click handler, before any async request.
+ let printWindow=null;
  if(format==='pdf'){
+  printWindow=window.open('','_blank');
+  if(!printWindow){
+   msg('اسمح بفتح النوافذ المنبثقة لإعداد ملف PDF.');
+   return;
+  }
+  printWindow.document.write('<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><title>OBNAR VACANCES</title><body style="font-family:Arial;padding:24px">جارٍ تجهيز ملف الحجوزات...</body></html>');
+ }
+
+ setOwnerBookingExportStatus('جارٍ جلب حجوزات إقاماتك لسنة '+year+'...');
+ try{
+  // Always fetch fresh data scoped to the signed-in owner's own properties.
+  const {data:properties,error:propertyError}=await db
+   .from('properties')
+   .select('id,title_ar')
+   .eq('owner_id',currentUser.id);
+  if(propertyError) throw propertyError;
+
+  ownerBookingExportProperties=properties||[];
+  const propertyIds=ownerBookingExportProperties.map(p=>p.id).filter(Boolean);
+  if(!propertyIds.length){
+   ownerBookingExportCache=[];
+   setOwnerBookingExportStatus('لا توجد إقامات مرتبطة بحسابك.');
+   msg('لا توجد إقامات مرتبطة بحسابك.');
+   if(printWindow) printWindow.close();
+   return;
+  }
+
+  const {data:bookings,error:bookingError}=await db
+   .from('bookings')
+   .select('id,property_id,check_in,check_out,guests,total_price,status,created_at,payment_status,deposit_amount')
+   .in('property_id',propertyIds)
+   .order('created_at',{ascending:false});
+  if(bookingError) throw bookingError;
+  ownerBookingExportCache=bookings||[];
+
+  const propertiesById=new Map(ownerBookingExportProperties.map(p=>[p.id,p]));
+  const rows=ownerBookingExportCache
+   .filter(b=>String(b.check_in||'').slice(0,4)===String(year))
+   .map(b=>{
+    const property=propertiesById.get(b.property_id);
+    const statusNames={
+     pending:'بانتظار رد المالك',
+     awaiting_admin_approval:'بانتظار موافقة الإدارة',
+     awaiting_payment:'بانتظار التسبيق',
+     confirmed:'مؤكد',
+     completed:'مكتمل',
+     cancelled:'ملغى',
+     rejected:'مرفوض'
+    };
+    const paymentNames={
+     unpaid:'لم يتم الدفع',
+     receipt_submitted:'تم رفع وصل التحويل',
+     verified:'تم التحقق من الدفع',
+     rejected:'تم رفض الوصل'
+    };
+    return [
+     property?.title_ar||'إقامة',
+     b.check_in||'',
+     b.check_out||'',
+     Number(b.guests||0),
+     Number(b.total_price||0),
+     statusNames[b.status]||b.status||'',
+     paymentNames[b.payment_status]||b.payment_status||'',
+     Number(b.deposit_amount||0),
+     b.created_at?new Date(b.created_at).toLocaleDateString('ar-DZ'):''
+    ];
+   });
+
+  if(!rows.length){
+   const message='لا توجد حجوزات بتاريخ وصول خلال سنة '+year+'.';
+   setOwnerBookingExportStatus(message);
+   msg(message);
+   if(printWindow) printWindow.close();
+   return;
+  }
+
+  const headers=['الإقامة','تاريخ الوصول','تاريخ المغادرة','عدد الأشخاص','السعر الإجمالي (دج)','حالة الحجز','حالة الدفع','التسبيق (دج)','تاريخ الطلب'];
+  const filename='OBNAR-VACANCES-Bookings-'+year;
+  setOwnerBookingExportStatus('تم العثور على '+rows.length+' حجزاً. جارٍ إنشاء الملف...');
+
+  if(format==='xlsx' && window.XLSX){
+   const ws=XLSX.utils.aoa_to_sheet([['حجوزات إقامات المالك'],['السنة',year],['عدد الحجوزات',rows.length],[],headers,...rows]);
+   ws['!cols']=[{wch:28},{wch:16},{wch:16},{wch:14},{wch:20},{wch:24},{wch:24},{wch:16},{wch:18}];
+   const wb=XLSX.utils.book_new();
+   XLSX.utils.book_append_sheet(wb,ws,'الحجوزات');
+   XLSX.writeFile(wb,filename+'.xlsx');
+   const message='تم إنشاء ملف Excel بنجاح: '+rows.length+' حجزاً.';
+   setOwnerBookingExportStatus(message);
+   msg(message);
+   return;
+  }
+
+  if(format==='xlsx'){
+   // CSV is a reliable Excel-compatible fallback when the external XLSX CDN is unavailable.
+   const csvCell=value=>'"'+String(value??'').replace(/"/g,'""')+'"';
+   const csv=[['حجوزات إقامات المالك'],['السنة',year],['عدد الحجوزات',rows.length],[],headers,...rows]
+    .map(row=>row.map(csvCell).join(',')).join('\r\n');
+   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+   const url=URL.createObjectURL(blob);
+   const link=document.createElement('a');
+   link.href=url;
+   link.download=filename+'.csv';
+   document.body.appendChild(link);
+   link.click();
+   link.remove();
+   URL.revokeObjectURL(url);
+   const message='تم تنزيل ملف CSV المتوافق مع Excel: '+rows.length+' حجزاً.';
+   setOwnerBookingExportStatus(message);
+   msg(message);
+   return;
+  }
+
   const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const tableRows=rows.map(row=>'<tr>'+row.map(cell=>'<td>'+escapeHtml(cell)+'</td>').join('')+'</tr>').join('');
-  const win=window.open('','_blank');
-  if(!win){msg('اسمح بفتح النوافذ المنبثقة لإعداد ملف PDF.');return;}
-  win.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+filename+'</title><style>body{font-family:Arial,sans-serif;padding:20px;color:#222}h2,p{text-align:center}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #888;padding:7px;text-align:center}th{background:#eee} @page{size:landscape;margin:12mm}</style></head><body><h2>OBNAR VACANCES — حجوزات إقامات المالك</h2><p>السنة: '+year+' | عدد الحجوزات: '+rows.length+'</p><table><thead><tr>'+headers.map(h=>'<th>'+escapeHtml(h)+'</th>').join('')+'</tr></thead><tbody>'+tableRows+'</tbody></table><script>window.onload=()=>window.print();<\/script></body></html>');
-  win.document.close();
+  printWindow.document.open();
+  printWindow.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+filename+'</title><style>body{font-family:Arial,sans-serif;padding:20px;color:#222}h2,p{text-align:center}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #888;padding:7px;text-align:center}th{background:#eee}@page{size:landscape;margin:12mm}</style></head><body><h2>OBNAR VACANCES — حجوزات إقامات المالك</h2><p>السنة: '+year+' | عدد الحجوزات: '+rows.length+'</p><table><thead><tr>'+headers.map(h=>'<th>'+escapeHtml(h)+'</th>').join('')+'</tr></thead><tbody>'+tableRows+'</tbody></table><script>window.onload=()=>window.print();<\\/script></body></html>');
+  printWindow.document.close();
+  const message='تم تجهيز صفحة الطباعة: '+rows.length+' حجزاً. اختر حفظ بصيغة PDF من نافذة الطباعة.';
+  setOwnerBookingExportStatus(message);
+  msg(message);
+ }catch(e){
+  if(printWindow && !printWindow.closed) printWindow.close();
+  const message='تعذر تصدير الحجوزات: '+(e?.message||String(e));
+  setOwnerBookingExportStatus(message);
+  msg(message);
  }
 }
-
 window.exportOwnerBookings = exportOwnerBookings;
 
 async function respondToCancellation(cancellationId,action){

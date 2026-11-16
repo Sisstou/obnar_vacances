@@ -63,3 +63,22 @@ test('traveler cancellation and payment receipt use server-side RPCs', () => {
 test('public business directory only loads approved businesses', () => {
   assert.match(html, /from\('local_businesses'\)[\s\S]{0,250}eq\('status','approved'\)/);
 });
+
+test('owner booking exports fetch fresh data scoped to the signed-in owner', () => {
+  const start = html.indexOf('async function exportOwnerBookings(format){');
+  const end = html.indexOf('window.exportOwnerBookings = exportOwnerBookings;', start);
+  assert.ok(start >= 0 && end > start, 'Owner export handler must be globally available');
+  const source = html.slice(start, end);
+  assert.match(source, /\.eq\('owner_id',currentUser\.id\)/);
+  assert.match(source, /\.in\('property_id',propertyIds\)/);
+  assert.match(source, /check_in\|\|''\)\.slice\(0,4\)===String\(year\)/);
+  assert.match(source, /window\.open\('','_blank'\)/);
+  assert.match(source, /if\(format==='xlsx'\s*&&\s*window\.XLSX\)/);
+  assert.match(source, /text\/csv;charset=utf-8/);
+});
+
+test('owner booking export buttons invoke the public export handler', () => {
+  assert.match(html, /onclick="exportOwnerBookings\('xlsx'\)"/);
+  assert.match(html, /onclick="exportOwnerBookings\('pdf'\)"/);
+  assert.match(html, /window\.exportOwnerBookings\s*=\s*exportOwnerBookings/);
+});
