@@ -187,7 +187,11 @@ async function cleanup() {
     });
     await request('booking_cancellations?id=eq.' + id, { method: 'DELETE', service: true });
   }
+  // Booking creation emits separate notifications; remove those before deleting bookings.
   for (const id of created.bookings) {
+    await request('notifications?entity_type=eq.booking&entity_id=eq.' + id, {
+      method: 'DELETE', service: true,
+    });
     await request('bookings?id=eq.' + id, { method: 'DELETE', service: true });
   }
   for (const id of created.properties) {
