@@ -352,6 +352,7 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <a href="#home" onclick="showAppPage('home');return false" aria-current="page">🏠 الإقامات</a>
 <a href="#localBusinessAdvertising" id="localBusinessNavLink" onclick="showAppPage('localBusinessAdvertising');return false">🏪 نشاطات الحي</a>
 <a href="#account" onclick="showAppPage('account');return false">👤 التسجيل / الدخول</a>
+<a href="#verificationCenter" id="verificationCenterNavLink" class="hidden" onclick="showAppPage('verificationCenter');loadVerificationCenter()">📄 التوثيقات</a>
 <button type="button" class="notification-bell" id="notificationBell" onclick="openNotifications()" aria-label="الإشعارات" title="الإشعارات">🔔<span id="notificationBadge" class="notification-badge hidden">0</span></button>
 </nav>
 
@@ -602,6 +603,7 @@ placeholder="رقم الهاتف">
 
 <input id="ownerDocument" type="file"
 accept="image/jpeg,image/png,image/webp,application/pdf">
+<label class="field-label" for="ownerDocumentExpiry">تاريخ انتهاء الوثيقة (اختياري)</label><input id="ownerDocumentExpiry" type="date">
 
 <button onclick="submitVerification()">إرسال طلب التوثيق</button>
 </div>
@@ -767,6 +769,12 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 </section>
 </section>
 
+<section id="verificationCenter" class="app-page"><div class="panel">
+<h2>📄 مركز التوثيقات</h2><p class="small">وثائق المالكين ووثائق الإقامات، مفصولة حسب تاريخ انتهاء الصلاحية.</p>
+<button type="button" class="secondary" onclick="loadVerificationCenter()">تحديث التوثيقات</button>
+<h3>👤 وثائق المالكين</h3><h4>منتهية الصلاحية</h4><div id="ownerExpiredDocuments">جارٍ التحميل...</div><h4>غير منتهية الصلاحية</h4><div id="ownerValidDocuments">جارٍ التحميل...</div>
+<hr><h3>🏠 وثائق الإقامات</h3><h4>منتهية الصلاحية</h4><div id="propertyExpiredDocuments">جارٍ التحميل...</div><h4>غير منتهية الصلاحية</h4><div id="propertyValidDocuments">جارٍ التحميل...</div>
+</div></section>
 <section id="adminDashboard" class="app-page"><div class="panel"><div id="adminArea">
   <hr>
   <h2>لوحة تحكم المدير الرئيسي</h2>
@@ -883,7 +891,7 @@ async function openAdminDashboard(){
   if(area) area.classList.remove('hidden');
   if(link) link.classList.remove('hidden');
   msg('تم التحقق من صلاحيات المدير. جارٍ تحديث بيانات اللوحة...');
-  await Promise.all([loadVerificationRequests(),loadPropertyRequests(),loadAdminLocalBusinesses(),loadAdminBookings(),loadAdminCancellationRequests()]);
+  await Promise.all([loadVerificationCenter(),loadPropertyRequests(),loadAdminLocalBusinesses(),loadAdminBookings(),loadAdminCancellationRequests()]);
   msg('تم تحديث أقسام لوحة المدير.');
  }catch(error){
   console.error('Admin dashboard load failed:',error);
@@ -892,7 +900,7 @@ async function openAdminDashboard(){
 }
 
 function showAppPage(pageId){
- const pageIds=['home','search','propertyDetail','account','localBusinessAdvertising','adminDashboard','contact'];
+ const pageIds=['home','search','propertyDetail','account','localBusinessAdvertising','verificationCenter','adminDashboard','contact'];
  if(!pageIds.includes(pageId)) return;
  pageIds.forEach(id=>{
   const page=document.getElementById(id);
@@ -1251,6 +1259,7 @@ function showGuest(){
  document.getElementById('userArea').classList.add('hidden');
  document.getElementById('notificationBadge').classList.add('hidden');
  document.getElementById('adminDashboardLink').classList.add('hidden');
+ const verificationNav=document.getElementById('verificationCenterNavLink');if(verificationNav)verificationNav.classList.add('hidden');
  document.getElementById('adminArea').classList.add('hidden');
 
 }
@@ -1381,6 +1390,7 @@ document.getElementById('travelerBookingArea').classList.add('hidden');
    if(localBusinessNavLink) localBusinessNavLink.classList.add('hidden');
    adminArea.classList.remove('hidden');
    document.getElementById('adminDashboardLink').classList.remove('hidden');
+   document.getElementById('verificationCenterNavLink').classList.remove('hidden');
 
    document.getElementById('userInfo').textContent =
     'مرحباً '+currentProfile.full_name+' — نوع الحساب: مدير رئيسي';
@@ -1600,7 +1610,8 @@ async function submitVerification(){
   const {error:insertError} = await db.from('owner_verifications')
    .insert({
     owner_id:currentUser.id,
-    document_path:path
+    document_path:path,
+    expires_at:document.getElementById('ownerDocumentExpiry').value || null
    });
 
   if(insertError){
@@ -1613,12 +1624,46 @@ async function submitVerification(){
   msg('تم إرسال طلب التوثيق بنجاح. طلبك قيد المراجعة.');
 
   document.getElementById('ownerDocument').value = '';
+  document.getElementById('ownerDocumentExpiry').value = '';
 
  }catch(e){
 
   msg('تعذر إرسال الطلب: '+e.message);
 
  }
+}
+
+async function loadVerificationCenter(){
+ const ids=['ownerExpiredDocuments','ownerValidDocuments','propertyExpiredDocuments','propertyValidDocuments'];
+ ids.forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='جارٍ تحميل التوثيقات...';});
+ try{
+  const {data:admin,error:ae}=await db.rpc('is_main_admin');if(ae)throw ae;if(admin!==true)throw new Error('هذه الصفحة متاحة للمدير الرئيسي فقط.');
+  const [o,p]=await Promise.all([db.from('owner_verifications').select('*').order('created_at',{ascending:false}),db.from('property_verifications').select('*').order('created_at',{ascending:false})]);
+  if(o.error)throw o.error;if(p.error)throw p.error;
+  const today=new Date().toISOString().slice(0,10);
+  async function draw(rows,kind,expiredId,validId){
+   const ex=document.getElementById(expiredId),va=document.getElementById(validId);ex.innerHTML='';va.innerHTML='';
+   const expired=(rows||[]).filter(x=>x.expires_at&&x.expires_at<today),valid=(rows||[]).filter(x=>!x.expires_at||x.expires_at>=today);
+   async function cardFor(rec,target){
+    const c=document.createElement('div');c.className='panel';
+    let who='غير متوفر';
+    if(kind==='owner'){const q=await db.from('profiles').select('full_name,phone').eq('id',rec.owner_id).maybeSingle();if(q.error)throw q.error;who=(q.data?.full_name||'مالك بدون اسم')+(q.data?.phone?' — '+q.data.phone:'');}
+    else{const q=await db.from('properties').select('title_ar,title_fr').eq('id',rec.property_id).maybeSingle();if(q.error)throw q.error;who=(q.data?.title_ar||q.data?.title_fr||'إقامة غير معروفة')+' — '+rec.property_id;}
+    const h=document.createElement('h4');h.textContent=who;c.appendChild(h);
+    const st=document.createElement('p');st.textContent='حالة الطلب: '+(rec.status||'غير محددة');c.appendChild(st);
+    const dt=document.createElement('p');dt.textContent=rec.expires_at?'ينتهي في: '+rec.expires_at:'تاريخ الانتهاء غير محدد';c.appendChild(dt);
+    const a=document.createElement('a');const f=await db.storage.from('owner-documents').createSignedUrl(rec.document_path,300);
+    if(!f.error){a.href=f.data.signedUrl;a.target='_blank';a.rel='noopener noreferrer';a.textContent='عرض الوثيقة';}else a.textContent='تعذر فتح الوثيقة: '+f.error.message;c.appendChild(a);
+    const lab=document.createElement('label');lab.textContent='تعديل تاريخ الانتهاء';lab.style.display='block';c.appendChild(lab);
+    const input=document.createElement('input');input.type='date';input.value=rec.expires_at||'';c.appendChild(input);
+    const b=document.createElement('button');b.textContent='حفظ تاريخ الانتهاء';b.onclick=async()=>{b.disabled=true;try{const table=kind==='owner'?'owner_verifications':'property_verifications';const u=await db.from(table).update({expires_at:input.value||null}).eq('id',rec.id).select('id').maybeSingle();if(u.error)throw u.error;if(!u.data)throw new Error('لم يتم التحديث؛ تحقق من صلاحيات المدير.');msg('تم حفظ تاريخ انتهاء الوثيقة.');await loadVerificationCenter();}catch(e){msg('تعذر الحفظ: '+e.message);b.disabled=false;}};c.appendChild(b);target.appendChild(c);
+   }
+   for(const r of expired)await cardFor(r,ex);for(const r of valid)await cardFor(r,va);
+   if(!ex.children.length)ex.textContent='لا توجد وثائق منتهية الصلاحية.';
+   if(!va.children.length)va.textContent='لا توجد وثائق غير منتهية الصلاحية.';
+  }
+  await draw(o.data,'owner','ownerExpiredDocuments','ownerValidDocuments');await draw(p.data,'property','propertyExpiredDocuments','propertyValidDocuments');
+ }catch(e){ids.forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='تعذر التحميل: '+e.message;});msg('تعذر تحميل التوثيقات: '+e.message);}
 }
 
 async function loadVerificationRequests(){
