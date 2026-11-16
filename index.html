@@ -2715,6 +2715,22 @@ async function loadAdminCancellationRequests(){
 
    if(request.request_status === 'admin_review'){
 
+    const mandatoryMismatchRefund = request.requester_role === 'traveler' && [
+     'water_unavailable',
+     'electricity_unavailable',
+     'gas_unavailable',
+     'missing_furniture',
+     'location_mismatch',
+     'property_mismatch',
+     'description_mismatch'
+    ].includes(request.reason_category);
+
+    if(mandatoryMismatchRefund){
+     const mandatoryNote = document.createElement('p');
+     mandatoryNote.textContent = 'عند ثبوت عدم تطابق جوهري عند الوصول واعتماد الإلغاء، يكون استرداد العربون كاملاً إلزامياً ولا يمكن رفضه.';
+     card.appendChild(mandatoryNote);
+    }
+
     const cancelLabel = document.createElement('label');
     cancelLabel.textContent = 'قرار الإلغاء';
     card.appendChild(cancelLabel);
@@ -2736,11 +2752,10 @@ async function loadAdminCancellationRequests(){
     card.appendChild(refundLabel);
 
     const refundSelect = document.createElement('select');
-    [
-     ['none','تأجيل قرار الاسترداد'],
-     ['approve','الموافقة على الاسترداد'],
-     ['reject','رفض الاسترداد']
-    ].forEach(([value,label])=>{
+    const refundOptions = mandatoryMismatchRefund
+     ? [['none','تأجيل قرار الاسترداد'],['approve','اعتماد الاسترداد الكامل']]
+     : [['none','تأجيل قرار الاسترداد'],['approve','الموافقة على الاسترداد'],['reject','رفض الاسترداد']];
+    refundOptions.forEach(([value,label])=>{
      const option = document.createElement('option');
      option.value = value;
      option.textContent = label;
