@@ -844,6 +844,17 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
   <div class="stat-card"><span>تسبيقات تم التحقق منها</span><strong>—</strong></div>
 </div>
 
+<div class="panel" style="margin:14px 0;background:#f8fafc">
+ <h3>📥 تحميل جميع حجوزات المنصة</h3>
+ <p class="small">خاص بالمدير الرئيسي: تصدير حجوزات جميع الإقامات، بما فيها الحجوزات النشطة والملغاة والمكتملة.</p>
+ <label for="adminBookingExportYear">سنة الوصول</label>
+ <input id="adminBookingExportYear" type="number" min="2020" max="2100" style="max-width:150px">
+ <div class="owner-form-actions">
+  <button type="button" onclick="exportAdminBookings('xlsx')">تحميل جميع الحجوزات Excel</button>
+  <button type="button" class="secondary" onclick="exportAdminBookings('pdf')">طباعة / حفظ PDF</button>
+ </div>
+ <p id="adminBookingExportStatus" class="small" role="status" aria-live="polite">حدّث بيانات الحجوزات أولاً لتجهيز الملف.</p>
+</div>
 <h3>متابعة جميع الحجوزات</h3>
 <label for="adminBookingFilter">تصفية الحجوزات</label>
 <select id="adminBookingFilter" onchange="filterAdminBookings()">
@@ -2764,6 +2775,44 @@ async function submitAdminCancellationDecision(cancellationId,cancelAction,refun
 
 }
 
+
+function setAdminBookingExportStatus(message){
+ const el=document.getElementById('adminBookingExportStatus');
+ if(el) el.textContent=message;
+}
+function exportAdminBookings(format){
+ const adminArea=document.getElementById('adminArea');
+ if(!currentUser || !adminArea || adminArea.classList.contains('hidden')){
+  msg('هذه الخاصية متاحة للمدير الرئيسي فقط.'); return;
+ }
+ const year=Number(document.getElementById('adminBookingExportYear')?.value);
+ if(!Number.isInteger(year)||year<2020||year>2100){msg('أدخل سنة صحيحة بين 2020 و2100.');return;}
+ const bookings=adminBookingCache.filter(b=>String(b.check_in||'').slice(0,4)===String(year));
+ if(!bookings.length){msg('لا توجد حجوزات بتاريخ وصول خلال سنة '+year+'.');return;}
+ const properties=new Map((window.adminBookingProperties||[]).map(p=>[p.id,p]));
+ const profiles=new Map((window.adminBookingProfiles||[]).map(p=>[p.id,p]));
+ const statusNames={pending:'بانتظار رد المالك',awaiting_admin_approval:'بانتظار موافقة الإدارة',awaiting_payment:'بانتظار التسبيق',confirmed:'مؤكد',completed:'مكتمل',cancelled:'ملغى',rejected:'مرفوض'};
+ const paymentNames={unpaid:'لم يتم الدفع',receipt_submitted:'تم رفع وصل التحويل',verified:'تم التحقق من الدفع',rejected:'تم رفض الوصل'};
+ const headers=['الإقامة','اسم المصطاف','هاتف المصطاف','تاريخ الوصول','تاريخ المغادرة','عدد الأشخاص','السعر الإجمالي (دج)','حالة الحجز','حالة الدفع','التسبيق (دج)','تاريخ إنشاء الحجز'];
+ const rows=bookings.map(b=>{const p=properties.get(b.property_id),t=profiles.get(b.traveler_id);return [p?.title_ar||'إقامة',t?.full_name||'غير متوفر',t?.phone||'غير متوفر',b.check_in||'',b.check_out||'',Number(b.guests||0),Number(b.total_price||0),statusNames[b.status]||b.status||'',paymentNames[b.payment_status]||b.payment_status||'',Number(b.deposit_amount||0),b.created_at?new Date(b.created_at).toLocaleDateString('ar-DZ'):''];});
+ const filename='OBNAR-VACANCES-All-Bookings-'+year;
+ if(format==='xlsx'){
+  if(!window.XLSX){msg('تعذر تحميل أداة Excel. أعد تحميل الصفحة وحاول مجدداً.');return;}
+  const ws=XLSX.utils.aoa_to_sheet([['OBNAR VACANCES — جميع حجوزات المنصة'],['السنة',year],['عدد الحجوزات',rows.length],[],headers,...rows]);
+  ws['!cols']=[{wch:28},{wch:22},{wch:17},{wch:16},{wch:16},{wch:12},{wch:20},{wch:24},{wch:24},{wch:16},{wch:18}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'جميع الحجوزات');XLSX.writeFile(wb,filename+'.xlsx');
+  msg('تم تجهيز ملف Excel الذي يضم '+rows.length+' حجزاً.');setAdminBookingExportStatus('الملف جاهز: '+rows.length+' حجزاً لسنة '+year+'.');return;
+ }
+ if(format==='pdf'){
+  const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const trs=rows.map(row=>'<tr>'+row.map(cell=>'<td>'+esc(cell)+'</td>').join('')+'</tr>').join('');
+  const win=window.open('','_blank');if(!win){msg('اسمح بفتح النوافذ المنبثقة لإعداد ملف PDF.');return;}
+  win.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+filename+'</title><style>body{font-family:Arial,sans-serif;padding:18px;color:#222}h2,p{text-align:center}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #888;padding:6px;text-align:center}th{background:#eee}@page{size:landscape;margin:10mm}</style></head><body><h2>OBNAR VACANCES — جميع حجوزات المنصة</h2><p>السنة: '+year+' | عدد الحجوزات: '+rows.length+'</p><table><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+trs+'</tbody></table><script>window.onload=()=>window.print();<\/script></body></html>');
+  win.document.close();setAdminBookingExportStatus('تم فتح نافذة الطباعة لحفظ '+rows.length+' حجزاً بصيغة PDF.');
+ }
+}
+window.exportAdminBookings=exportAdminBookings;
+
 async function loadAdminBookings(){
  const container = document.getElementById('adminBookings');
  if(!container) return;
@@ -2795,6 +2844,9 @@ async function loadAdminBookings(){
   if(profileResult.error) throw profileResult.error;
 
   adminBookingCache = bookings || [];
+   const adminExportYear=document.getElementById('adminBookingExportYear');
+   if(adminExportYear && !adminExportYear.value) adminExportYear.value=String(new Date().getFullYear());
+   setAdminBookingExportStatus('تم تحميل '+adminBookingCache.length+' حجزاً من قاعدة البيانات. اختر السنة ثم صدّر الملف.');
   window.adminBookingProperties = propertyResult.data || [];
   window.adminBookingProfiles = profileResult.data || [];
   renderAdminBookingStats(adminBookingCache);
