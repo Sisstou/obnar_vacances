@@ -27,7 +27,7 @@ async function api(path,{method='GET',token,admin=false,body,prefer}={}) {
   return d;
 }
 async function state(id) {
-  const rows=await api('properties?select=id,status,title_ar,owner_id&id=eq.'+id,{admin:true});
+  const rows=await api('properties?select=id,status,title_ar,owner_id,price_per_night&id=eq.'+id,{admin:true});
   assert.equal(rows.length,1); return rows[0];
 }
 const fixture={id:null};
