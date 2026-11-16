@@ -618,6 +618,8 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
  <p id="profileDisplayName" class="small">Khebbache</p>
  <input id="editFullName" type="hidden">
  <input id="editPhone" type="tel" placeholder="رقم الهاتف">
+ <label class="field-label" for="editEmail">البريد الإلكتروني</label>
+ <input id="editEmail" type="email" autocomplete="email" placeholder="البريد الإلكتروني">
  <button type="button" onclick="saveMyProfile()">حفظ التعديلات</button>
  <p id="profileMessage"></p>
 </div>
@@ -1254,11 +1256,16 @@ async function saveMyProfile(){
 
   const full_name = document.getElementById('editFullName').value.trim();
   const phone = document.getElementById('editPhone').value.trim();
-
+  const email = document.getElementById('editEmail').value.trim().toLowerCase();
+  const currentEmail = (currentUser?.email || '').trim().toLowerCase();
   const message = document.getElementById('profileMessage');
 
   if(!full_name){
     message.textContent = 'يرجى إدخال الاسم الكامل';
+    return;
+  }
+  if(!email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){
+    message.textContent = 'يرجى إدخال بريد إلكتروني صحيح';
     return;
   }
 
@@ -1268,7 +1275,7 @@ async function saveMyProfile(){
   });
 
   if(!result.success){
-    message.textContent = 'فشل الحفظ: ' + result.message;
+    message.textContent = 'فشل حفظ بيانات الحساب: ' + result.message;
     return;
   }
 
@@ -1277,8 +1284,17 @@ async function saveMyProfile(){
     ' — نوع الحساب: ' +
     (result.profile.role === 'owner' ? 'مالك' : 'مصطاف');
 
-  message.textContent = 'تم حفظ بيانات الحساب بنجاح';
+  if(email !== currentEmail){
+    const {data:emailUpdate,error:emailError} = await db.auth.updateUser({email});
+    if(emailError){
+      message.textContent = 'تم حفظ الاسم ورقم الهاتف، لكن تعذر طلب تغيير البريد الإلكتروني: ' + emailError.message;
+      return;
+    }
+    message.textContent = 'تم حفظ الاسم ورقم الهاتف. أرسلنا رسالة تأكيد لتغيير البريد الإلكتروني إلى ' + email + '. لن يتغير البريد المعتمد حتى إتمام التأكيد.';
+    return;
+  }
 
+  message.textContent = 'تم حفظ بيانات الحساب بنجاح';
 }
 async function refreshUser(){
 
@@ -1430,6 +1446,8 @@ document.getElementById('toggleProfileEditButton').setAttribute('aria-expanded',
 
 document.getElementById('editPhone').value =
   currentProfile?.phone || '';
+document.getElementById('editEmail').value =
+  currentUser?.email || '';
 document.getElementById('ownerPropertyArea').classList.add('hidden');
 document.getElementById('ownerImagesArea').classList.add('hidden');
 document.getElementById('ownerBookingArea').classList.add('hidden');
