@@ -72,3 +72,19 @@ jobs:
           ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: node tests/property-management-jwt-e2e.test.cjs
+
+      - name: Validate storage access test script syntax
+        run: node --check tests/storage-access-jwt-e2e.test.cjs
+
+      - name: Run Staging-only storage access JWT end-to-end tests
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          OWNER_EMAIL: ${{ secrets.OWNER_EMAIL }}
+          OWNER_PASSWORD: ${{ secrets.OWNER_PASSWORD }}
+          TRAVELER_EMAIL: ${{ secrets.TRAVELER_EMAIL }}
+          TRAVELER_PASSWORD: ${{ secrets.TRAVELER_PASSWORD }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+        run: node tests/storage-access-jwt-e2e.test.cjs
