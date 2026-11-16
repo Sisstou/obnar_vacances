@@ -88,3 +88,17 @@ jobs:
           ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: node tests/storage-access-jwt-e2e.test.cjs
+
+      - name: Validate owner verification submission test script syntax
+        run: node --check tests/owner-verification-submission-jwt-e2e.test.cjs
+
+      - name: Run Staging-only owner verification submission JWT end-to-end tests
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TRAVELER_EMAIL: ${{ secrets.TRAVELER_EMAIL }}
+          TRAVELER_PASSWORD: ${{ secrets.TRAVELER_PASSWORD }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+        run: node tests/owner-verification-submission-jwt-e2e.test.cjs
