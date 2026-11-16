@@ -1423,7 +1423,7 @@ async function showUser(){
  showAppPage('account');
  const accountTitle=document.getElementById('accountPageTitle');
  if(accountTitle) accountTitle.textContent='👤 حسابي';
- updateActivitySubmissionAccess();
+ updateActivitySubmissionAccess(true);
  if(currentUser) startNotificationRealtime(currentUser.id);
  document.getElementById('authForms').classList.add('hidden');
  document.getElementById('userArea').classList.remove('hidden');
