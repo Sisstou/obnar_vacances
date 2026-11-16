@@ -25,13 +25,13 @@ jobs:
 
       - name: Run Staging-only JWT end-to-end tests
         env:
-          SUPABASE_URL: \${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: \${{ secrets.SUPABASE_ANON_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: \${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          TRAVELER_EMAIL: \${{ secrets.TRAVELER_EMAIL }}
-          TRAVELER_PASSWORD: \${{ secrets.TRAVELER_PASSWORD }}
-          OWNER_EMAIL: \${{ secrets.OWNER_EMAIL }}
-          OWNER_PASSWORD: \${{ secrets.OWNER_PASSWORD }}
-          ADMIN_EMAIL: \${{ secrets.ADMIN_EMAIL }}
-          ADMIN_PASSWORD: \${{ secrets.ADMIN_PASSWORD }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TRAVELER_EMAIL: ${{ secrets.TRAVELER_EMAIL }}
+          TRAVELER_PASSWORD: ${{ secrets.TRAVELER_PASSWORD }}
+          OWNER_EMAIL: ${{ secrets.OWNER_EMAIL }}
+          OWNER_PASSWORD: ${{ secrets.OWNER_PASSWORD }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: node tests/cancellation-refund-e2e.test.cjs
