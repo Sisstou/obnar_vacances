@@ -59,11 +59,9 @@ async function main(){
   row=await state(fixture.id); assert.equal(row.title_ar,'CI test fixture property owner edited');
   console.log('PASS: owner cannot edit property after submission while pending.');
 
-  let rejected=false;
-  try{await api('properties?id=eq.'+fixture.id,{method:'PATCH',token:owner,body:{status:'approved'}});}catch{rejected=true;}
-  assert.equal(rejected,true,'Owner self-approval should be rejected by protect_property_status trigger.');
+  await api('properties?id=eq.'+fixture.id,{method:'PATCH',token:owner,body:{status:'approved'}});
   row=await state(fixture.id); assert.equal(row.status,'pending');
-  console.log('PASS: owner self-approval is blocked by status-protection trigger.');
+  console.log('PASS: owner self-approval is blocked by RLS while pending.');
 
   await api('properties?id=eq.'+fixture.id,{method:'PATCH',token:owner,body:{title_ar:'CI test fixture unauthorized approved edit'}});
   row=await state(fixture.id); assert.equal(row.title_ar,'CI test fixture property owner edited');
