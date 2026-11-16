@@ -130,18 +130,23 @@ async function main() {
   console.log('PASS: duplicate pending verification is rejected.');
 
   // Only main admin can review; owner must not be able to alter the submitted status.
-  await denied(
-    () => rest('property_verifications?id=eq.' + first[0].id, {
-      method: 'PATCH', token: owner, body: { status: 'approved' },
-    }),
-    'Owner was able to approve their own verification',
-  );
-  await denied(
-    () => rest('property_verifications?id=eq.' + first[0].id, {
-      method: 'PATCH', token: traveler, body: { status: 'approved' },
-    }),
-    'Traveler was able to review a property verification',
-  );
+  // PostgREST may return HTTP 204 when RLS filters every row, so verify persisted state.
+  await rest('property_verifications?id=eq.' + first[0].id, {
+    method: 'PATCH', token: owner, body: { status: 'approved' },
+  });
+  let unchanged = await rest('property_verifications?id=eq.' + first[0].id, { service: true });
+  assert.equal(unchanged.length, 1);
+  assert.equal(unchanged[0].status, 'pending',
+    'Owner was able to approve their own verification');
+
+  await rest('property_verifications?id=eq.' + first[0].id, {
+    method: 'PATCH', token: traveler, body: { status: 'approved' },
+  });
+  unchanged = await rest('property_verifications?id=eq.' + first[0].id, { service: true });
+  assert.equal(unchanged.length, 1);
+  assert.equal(unchanged[0].status, 'pending',
+    'Traveler was able to review a property verification');
+  console.log('PASS: owner and non-owner updates are blocked by RLS.');
   await rest('property_verifications?id=eq.' + first[0].id, {
     method: 'PATCH', token: admin,
     body: { status: 'approved', reviewed_by: USERS.admin, reviewed_at: new Date().toISOString() },
