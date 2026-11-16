@@ -843,7 +843,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 
 <div class="panel" style="margin:14px 0;background:#f8fafc">
  <h3>📥 تحميل جميع حجوزات المنصة</h3>
- <p class="small">خاص بالمدير الرئيسي: تصدير حجوزات جميع الإقامات، بما فيها الحجوزات النشطة والملغاة والمكتملة.</p>
+ <p class="small">خاص بالمدير الرئيسي: تصدير حجوزات الإطلاق فقط. بيانات الاختبار معزولة ويمكن مراجعتها من تصنيف الاختبارات.</p>
  <label for="adminBookingExportYear">سنة الوصول</label>
  <input id="adminBookingExportYear" type="number" min="2020" max="2100" style="max-width:150px">
  <div class="owner-form-actions">
@@ -865,7 +865,8 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
   <option value="cancelled">الحجوزات الملغاة فقط</option>
   <option value="rejected">الحجوزات المرفوضة فقط</option>
   <option value="completed">الحجوزات المكتملة فقط</option>
-  <option value="all">كل الحجوزات (بما فيها السجل السابق)</option>
+  <option value="all">كل حجوزات الإطلاق (بما فيها السجل السابق)</option>
+  <option value="test">بيانات الاختبار المعزولة</option>
 </select>
 <button type="button" onclick="loadAdminBookings()">تحديث بيانات الحجوزات</button>
 <p id="adminBookingsRefreshStatus" role="status" aria-live="polite" style="margin:8px 0;color:#64748b"></p>
@@ -2324,18 +2325,21 @@ async function submitSavedProperty(){
 let adminBookingCache = [];
 
 function renderAdminBookingStats(bookings){
- const active = bookings.filter(b=>['pending','awaiting_admin_approval','awaiting_payment','confirmed'].includes(b.status));
- const cancelled = bookings.filter(b=>b.status === 'cancelled');
- const receipts = bookings.filter(b=>b.payment_status === 'receipt_submitted');
- const outstanding = bookings
+ const launchBookings = bookings.filter(b=>b.is_test !== true);
+ const testBookings = bookings.filter(b=>b.is_test === true);
+ const active = launchBookings.filter(b=>['pending','awaiting_admin_approval','awaiting_payment','confirmed'].includes(b.status));
+ const cancelled = launchBookings.filter(b=>b.status === 'cancelled');
+ const receipts = launchBookings.filter(b=>b.payment_status === 'receipt_submitted');
+ const outstanding = launchBookings
   .filter(b=>b.status === 'awaiting_payment' && b.payment_status !== 'verified')
   .reduce((sum,b)=>sum + Number(b.deposit_amount || 0),0);
- const verified = bookings
+ const verified = launchBookings
   .filter(b=>b.payment_status === 'verified')
   .reduce((sum,b)=>sum + Number(b.deposit_amount || 0),0);
 
  const stats = [
-  ['إجمالي الحجوزات',bookings.length],
+  ['حجوزات الإطلاق',launchBookings.length],
+  ['بيانات الاختبار المعزولة',testBookings.length],
   ['الحجوزات النشطة',active.length],
   ['الحجوزات الملغاة',cancelled.length],
   ['وصولات تنتظر التحقق',receipts.length],
@@ -2368,6 +2372,8 @@ function renderAdminBookingList(bookings,filter='all'){
  const activeStatuses = ['pending','awaiting_admin_approval','awaiting_payment','confirmed'];
  const archiveStatuses = ['cancelled','rejected','completed'];
  const filtered = bookings.filter(b=>{
+  if(filter === 'test') return b.is_test === true;
+  if(b.is_test === true) return false;
   if(filter === 'all') return true;
   if(filter === 'active') return activeStatuses.includes(b.status);
   if(filter === 'archive') return archiveStatuses.includes(b.status);
@@ -2407,6 +2413,7 @@ function renderAdminBookingList(bookings,filter='all'){
   const summary = document.createElement('summary');
   summary.className = 'admin-booking-summary';
   summary.textContent =
+   (b.is_test === true ? '🧪 [بيانات اختبار] ' : '')+
    (traveler?.full_name || 'مصطاف غير معروف')+' — '+
    (property?.title_ar || 'إقامة غير معروفة')+' | '+
    b.check_in+' إلى '+b.check_out+' | '+
@@ -2418,6 +2425,7 @@ function renderAdminBookingList(bookings,filter='all'){
   title.textContent = property?.title_ar || 'إقامة غير معروفة';
   details.appendChild(title);
   const lines = [
+   'تصنيف السجل: '+(b.is_test === true ? 'اختبار — معزول عن الإطلاق' : 'بيانات إطلاق'),
    'المصطاف: '+(traveler?.full_name || 'غير متوفر'),
    'الوصول: '+b.check_in,
    'المغادرة: '+b.check_out,
@@ -2877,7 +2885,7 @@ function exportAdminBookings(format){
  }
  const year=Number(document.getElementById('adminBookingExportYear')?.value);
  if(!Number.isInteger(year)||year<2020||year>2100){msg('أدخل سنة صحيحة بين 2020 و2100.');return;}
- const bookings=adminBookingCache.filter(b=>String(b.check_in||'').slice(0,4)===String(year));
+ const bookings=adminBookingCache.filter(b=>b.is_test!==true && String(b.check_in||'').slice(0,4)===String(year));
  if(!bookings.length){msg('لا توجد حجوزات بتاريخ وصول خلال سنة '+year+'.');return;}
  const properties=new Map((window.adminBookingProperties||[]).map(p=>[p.id,p]));
  const profiles=new Map((window.adminBookingProfiles||[]).map(p=>[p.id,p]));
@@ -2916,7 +2924,7 @@ async function loadAdminBookings(){
 
   const {data:bookings,error} = await db
    .from('bookings')
-   .select('id,property_id,traveler_id,check_in,check_out,guests,total_price,status,payment_status,deposit_amount,payment_due_at,owner_price_per_night,platform_commission_per_night,final_price_per_night,payment_receipt_path,receipt_uploaded_at,payment_rejection_reason,payment_reviewed_at,payment_reviewed_by,created_at')
+   .select('id,property_id,traveler_id,check_in,check_out,guests,total_price,status,payment_status,deposit_amount,payment_due_at,owner_price_per_night,platform_commission_per_night,final_price_per_night,payment_receipt_path,receipt_uploaded_at,payment_rejection_reason,payment_reviewed_at,payment_reviewed_by,created_at,is_test')
    .order('created_at',{ascending:false});
   if(error) throw error;
 
