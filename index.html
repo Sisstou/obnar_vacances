@@ -2122,9 +2122,10 @@ function renderAdminBookingList(bookings,filter='all'){
    'عدد الأشخاص: '+b.guests,
    'السعر الإجمالي: '+Number(b.total_price || 0).toLocaleString('fr-DZ')+' دج',
    'حالة الحجز: '+(statusNames[b.status] || b.status || 'غير محددة'),
-   'التسبيق المطلوب: '+Number(b.deposit_amount || 0).toLocaleString('fr-DZ')+' دج',
-   'حالة الدفع: '+(paymentNames[b.payment_status] || b.payment_status || 'غير محددة'),
-   'آخر أجل للدفع: '+(b.payment_due_at ? new Date(b.payment_due_at).toLocaleString('ar-DZ') : 'غير محدد')
+   (b.status === 'cancelled'
+    ? 'قيمة التسبيق المسجلة تاريخياً (ليست مبلغاً مطلوباً الآن): '
+    : 'التسبيق المطلوب: ')+Number(b.deposit_amount || 0).toLocaleString('fr-DZ')+' دج',
+   'حالة الدفع: '+(paymentNames[b.payment_status] || b.payment_status || 'غير محددة')
   ];
   if(b.owner_price_per_night !== null && b.owner_price_per_night !== undefined){
    lines.splice(5,0,
@@ -2132,6 +2133,11 @@ function renderAdminBookingList(bookings,filter='all'){
     'عمولة المنصة لليلة: '+Number(b.platform_commission_per_night || 0).toLocaleString('fr-DZ')+' دج',
     'السعر النهائي لليلة: '+Number(b.final_price_per_night || 0).toLocaleString('fr-DZ')+' دج'
    );
+  }
+  if(b.status === 'awaiting_payment' &&
+     ['unpaid','rejected'].includes(b.payment_status) &&
+     b.payment_due_at){
+   lines.push('آخر أجل للدفع: '+new Date(b.payment_due_at).toLocaleString('ar-DZ'));
   }
   lines.forEach(value=>{
    const p = document.createElement('p');
@@ -2858,8 +2864,9 @@ async function loadOwnerBookings(){
  '<p>الحالة: '+b.status+'</p>';
 
 const deposit = document.createElement('p');
-deposit.textContent =
- 'تسبيق الليلة الأولى: '+(b.deposit_amount || 0)+' دج';
+deposit.textContent = b.status === 'cancelled'
+ ? 'قيمة التسبيق المسجلة تاريخياً (ليست مبلغاً مطلوباً الآن): '+(b.deposit_amount || 0)+' دج'
+ : 'تسبيق الليلة الأولى: '+(b.deposit_amount || 0)+' دج';
 item.appendChild(deposit);
 
 const payment = document.createElement('p');
@@ -3287,7 +3294,9 @@ if(b.payment_status === 'rejected' && b.payment_rejection_reason){
  item.appendChild(rejectionReason);
 }
 
-if(b.payment_due_at){
+if(b.status === 'awaiting_payment' &&
+   ['unpaid','rejected'].includes(b.payment_status) &&
+   b.payment_due_at){
  const deadline = document.createElement('p');
  deadline.textContent =
   'آخر أجل للدفع: '+new Date(b.payment_due_at).toLocaleString('ar-DZ');
