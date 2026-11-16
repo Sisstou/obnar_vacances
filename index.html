@@ -613,19 +613,14 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <button type="button" id="adminDashboardLink" class="hidden" onclick="openAdminDashboard()">لوحة تحكم المدير الرئيسي</button>
 
 <hr>
-<h3>⚙️ تعديل بيانات حسابي</h3>
-
-<input id="editFullName" type="text"
-placeholder="الاسم الكامل">
-
-<input id="editPhone" type="tel"
-placeholder="رقم الهاتف">
-
-<button type="button" onclick="saveMyProfile()">
-حفظ التعديلات
-</button>
-
-<p id="profileMessage"></p>
+<button type="button" id="toggleProfileEditButton" class="secondary" aria-expanded="false" aria-controls="profileEditFields" onclick="toggleProfileEdit()">⚙️ تعديل بيانات حسابي</button>
+<div id="profileEditFields" class="hidden">
+ <p id="profileDisplayName" class="small">Khebbache</p>
+ <input id="editFullName" type="hidden">
+ <input id="editPhone" type="tel" placeholder="رقم الهاتف">
+ <button type="button" onclick="saveMyProfile()">حفظ التعديلات</button>
+ <p id="profileMessage"></p>
+</div>
 
 
 <div id="ownerArea">
@@ -1247,6 +1242,14 @@ async function updateMyProfile({
     };
   }
 }
+function toggleProfileEdit(){
+ const fields=document.getElementById('profileEditFields');
+ const button=document.getElementById('toggleProfileEditButton');
+ if(!fields||!button)return;
+ const opening=fields.classList.contains('hidden');
+ fields.classList.toggle('hidden',!opening);
+ button.setAttribute('aria-expanded',String(opening));
+}
 async function saveMyProfile(){
 
   const full_name = document.getElementById('editFullName').value.trim();
@@ -1420,6 +1423,10 @@ async function showUser(){
  document.getElementById('ownerVerificationArea').classList.add('hidden');
 document.getElementById('editFullName').value =
   currentProfile?.full_name || '';
+document.getElementById('profileDisplayName').textContent =
+  (currentProfile?.full_name || 'Khebbache').trim().split(/\s+/).filter(Boolean).slice(-1)[0] || 'Khebbache';
+document.getElementById('profileEditFields').classList.add('hidden');
+document.getElementById('toggleProfileEditButton').setAttribute('aria-expanded','false');
 
 document.getElementById('editPhone').value =
   currentProfile?.phone || '';
