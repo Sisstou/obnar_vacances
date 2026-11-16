@@ -2923,6 +2923,20 @@ if(cancellation){
  item.appendChild(rejectCancellation);
 }
 
+const ownerCancellationStatus = cancellationRequests.find(c=>
+ c.booking_id === b.id &&
+ c.requester_role === 'owner'
+);
+if(ownerCancellationStatus && ownerCancellationStatus.refund_eligibility === 'admin_review'){
+ const reviewStatus = document.createElement('p');
+ reviewStatus.textContent = 'تم إلغاء الحجز. أهلية استرداد العربون قيد مراجعة الإدارة، ويشترط إعادة تأجير العقار نفسه للتواريخ نفسها بحجز مؤكد ومدفوع.';
+ item.appendChild(reviewStatus);
+}else if(ownerCancellationStatus && ownerCancellationStatus.refund_eligibility === 'not_eligible'){
+ const noRefundStatus = document.createElement('p');
+ noRefundStatus.textContent = 'تم إلغاء الحجز، ولا يوجد استرداد مستحق لهذا الحجز.';
+ item.appendChild(noRefundStatus);
+}
+
 const ownerRefund = cancellationRequests.find(c=>
  c.booking_id === b.id &&
  c.requester_role === 'owner' &&
