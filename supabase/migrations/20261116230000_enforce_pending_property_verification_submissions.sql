@@ -17,3 +17,6 @@ WITH CHECK (
 CREATE UNIQUE INDEX IF NOT EXISTS property_verifications_one_pending_per_property
 ON public.property_verifications (property_id)
 WHERE status = 'pending';
+
+-- RLS policies remain the authorization boundary for authenticated users.
+GRANT SELECT, INSERT, UPDATE ON TABLE public.property_verifications TO authenticated;
