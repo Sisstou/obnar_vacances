@@ -4070,8 +4070,8 @@ function renderPropertyAvailabilityCalendar(){
  for(let day=1;day<=new Date(year,month,0).getDate();day++){
   const key=availabilityDateKey(new Date(year,month-1,day));
   const b=activeAvailabilityBookings.find(x=>key>=String(x.check_in).slice(0,10)&&key<String(x.check_out).slice(0,10)&&x.status!=='cancelled');
-  const cell=document.createElement('div');cell.className='availability-day'+(b?.status==='confirmed'?' booked':b?.status==='awaiting_payment'&&availabilityCanExport?' pending':'');
-  cell.textContent=String(day);cell.title=b?.status==='confirmed'?'محجوز':b?.status==='awaiting_payment'&&availabilityCanExport?'طلب قيد المعالجة':'متاح';grid.appendChild(cell);
+  const cell=document.createElement('div');cell.className='availability-day'+(['confirmed','completed'].includes(b?.status)?' booked':b&&availabilityCanExport?' pending':'');
+  cell.textContent=String(day);cell.title=['confirmed','completed'].includes(b?.status)?'محجوز':b&&availabilityCanExport?'طلب قيد المعالجة':'متاح';grid.appendChild(cell);
  }
  const hint=document.getElementById('availabilityHint');
  if(hint)hint.textContent=availabilityCanExport?'الأحمر: حجز مؤكد. الأصفر: طلب ينتظر المعالجة ولا يُعد حجزاً مؤكداً. يوم المغادرة متاح.':'الأيام الحمراء محجوزة بحجوزات مؤكدة ومدفوعة فقط. يوم المغادرة يبقى متاحاً.';
@@ -4086,7 +4086,7 @@ async function loadPropertyAvailability(property){
   let admin=false;if(currentUser){const {data,error}=await db.rpc('is_main_admin');if(error)throw error;admin=!!data;}
   availabilityCanExport=!!(admin||(currentUser&&currentProfile?.role==='owner'&&property.owner_id===currentUser.id));
   if(availabilityCanExport){
-   const {data,error}=await db.from('bookings').select('check_in,check_out,status,payment_status').eq('property_id',property.id).in('status',['confirmed','awaiting_payment']);
+   const {data,error}=await db.from('bookings').select('check_in,check_out,status,payment_status').eq('property_id',property.id).in('status',['pending','awaiting_admin_approval','awaiting_payment','confirmed','completed']);
    if(error)throw error;activeAvailabilityBookings=data||[];
   }else{
    const {data,error}=await db.from('property_public_booked_dates').select('check_in,check_out').eq('property_id',property.id);
@@ -4100,7 +4100,7 @@ function getAvailabilityYearRows(year){
  const rows=[['التاريخ','اليوم','الحالة']];
  for(let d=new Date(year,0,1),end=new Date(year+1,0,1);d<end;d.setDate(d.getDate()+1)){
   const key=availabilityDateKey(d),b=activeAvailabilityBookings.find(x=>key>=String(x.check_in).slice(0,10)&&key<String(x.check_out).slice(0,10)&&x.status!=='cancelled');
-  rows.push([key,d.toLocaleDateString('ar-DZ',{weekday:'long'}),b?.status==='confirmed'?'محجوز':b?.status==='awaiting_payment'?'طلب قيد المعالجة':'متاح']);
+  rows.push([key,d.toLocaleDateString('ar-DZ',{weekday:'long'}),['confirmed','completed'].includes(b?.status)?'محجوز':b?'طلب قيد المعالجة':'متاح']);
  }return rows;
 }
 function exportPropertyAvailability(format){
