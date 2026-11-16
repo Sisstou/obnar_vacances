@@ -623,6 +623,7 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 
 
 <div id="ownerArea">
+<div id="ownerVerificationStatusArea" class="panel hidden"><h3>حالة توثيق حساب المالك</h3><div id="ownerVerificationStatus">جارٍ تحميل حالة التوثيق...</div></div>
 <div id="ownerVerificationArea" class="hidden">
 <hr>
 <h3>طلب توثيق المالك</h3>
@@ -788,7 +789,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
  <input id="localBusinessName" maxlength="120" placeholder="مثال: مطعم ...">
  <label class="field-label" for="localBusinessCategory">نوع النشاط</label>
  <select id="localBusinessCategory">
-  <option value="">اختر نوع النشاط</option><option value="restaurant">مطعم</option><option value="fast_food">فاست فود / وجبات سريعة</option><option value="cafe">مقهى</option><option value="sweets">حلويات</option><option value="grocery">مواد غذائية</option><option value="shop">محل تجاري</option><option value="pharmacy">صيدلية</option><option value="services">خدمات</option><option value="other">نشاط آخر</option>
+  <option value="">اختر نوع النشاط</option><option value="restaurant">مطعم</option><option value="fast_food">فاست فود / وجبات سريعة</option><option value="cafe">مقهى</option><option value="sweets">حلويات</option><option value="grocery">مواد غذائية</option><option value="shop">محل تجاري</option><option value="pharmacy">صيدلية</option><option value="crafts">حرفي وصناعة تقليدية</option><option value="home_cleaning">تنظيف المنازل</option><option value="home_services">خدمات منزلية</option><option value="professional_services">مهن وخدمات مهنية</option><option value="maintenance">صيانة وإصلاح</option><option value="beauty">حلاقة وتجميل</option><option value="transport">نقل وخدمات توصيل</option><option value="services">خدمات عامة</option><option value="other">نشاط آخر</option>
  </select>
  <label class="field-label" for="localBusinessAddress">العنوان</label>
  <input id="localBusinessAddress" maxlength="250" placeholder="الحي، الشارع أو علامة قريبة">
@@ -803,6 +804,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
  <p id="localBusinessMessage" aria-live="polite"></p>
 </div>
 </section>
+<div class="panel hidden" id="myLocalBusinessesPanel"><h3>📋 متابعة طلبات نشاطاتي</h3><button type="button" class="secondary" onclick="loadMyLocalBusinesses()">تحديث طلباتي</button><div id="myLocalBusinesses">تظهر حالة طلباتك هنا بعد الإرسال.</div></div>
 </section>
 
 <section id="verificationCenter" class="app-page"><div class="panel">
@@ -1177,7 +1179,8 @@ async function ensureProfile(user){
   .insert({
    id:user.id,
    full_name:user.user_metadata?.full_name || 'مستخدم جديد',
-   phone:user.user_metadata?.phone || null
+   phone:user.user_metadata?.phone || null,
+   requested_account_type:user.user_metadata?.requested_account_type === 'owner' ? 'owner' : 'traveler'
 })
   .select()
   .single();
@@ -1465,6 +1468,7 @@ document.getElementById('travelerBookingArea').classList.add('hidden');
 
   if(data === true){
    if(localBusinessNavLink) localBusinessNavLink.classList.add('hidden');
+   updateActivitySubmissionAccess(true);
    adminArea.classList.remove('hidden');
    document.getElementById('adminDashboardLink').classList.remove('hidden');
    document.getElementById('verificationCenterNavLink').classList.remove('hidden');
@@ -1481,7 +1485,9 @@ document.getElementById('travelerBookingArea').classList.add('hidden');
 
   }else{
 
+   updateActivitySubmissionAccess(false);
    if(localBusinessNavLink) localBusinessNavLink.classList.remove('hidden');
+   await loadMyLocalBusinesses();
    document.getElementById('userInfo').textContent =
     'مرحباً '+currentProfile.full_name+' — نوع الحساب: '+
     (currentProfile.role === 'owner' ? 'مالك' : 'مصطاف');
@@ -1495,14 +1501,17 @@ if(currentProfile.role === 'owner'){
   .classList.remove('hidden');
  await loadOwnerProperties();
  await loadOwnerBookings();
+ await loadOwnerVerificationStatus();
 }
 if(currentProfile.role === 'traveler'){
  document.getElementById('travelerBookingArea')
   .classList.remove('hidden');
- const requestedOwner=currentUser?.user_metadata?.requested_account_type==='owner';
+ await loadTravelerBookings();
+ const requestedOwner=currentProfile?.requested_account_type==='owner';
  document.getElementById('ownerVerificationArea')
   .classList.toggle('hidden',!requestedOwner);
  if(requestedOwner){
+  await loadOwnerSignupVerificationStatus();
   const verificationHeading=document.querySelector('#ownerVerificationArea h3');
   if(verificationHeading) verificationHeading.textContent='طلب توثيق حساب المالك';
  }
@@ -1528,12 +1537,14 @@ function updateSignupRoleNote(){
   ? 'سيُنشأ حسابك كطلب تسجيل مالك. بعد تأكيد البريد، ارفع وثيقة المالك من حسابك؛ وتُفعّل صلاحيات المالك بعد مراجعة الإدارة والموافقة.'
   : 'يمكنك التسجيل كمصطاف والبدء في البحث عن إقامة وإرسال طلبات الحجز.';
 }
-function updateActivitySubmissionAccess(){
+function updateActivitySubmissionAccess(isAdmin=false){
  const form=document.getElementById('localBusinessSubmitArea');
+ const tracker=document.getElementById('myLocalBusinessesPanel');
  const notice=document.getElementById('activityGuestNotice');
- const loggedIn=!!currentUser;
+ const loggedIn=!!currentUser && !isAdmin;
  if(form) form.classList.toggle('hidden',!loggedIn);
- if(notice) notice.classList.toggle('hidden',loggedIn);
+ if(tracker) tracker.classList.toggle('hidden',!loggedIn);
+ if(notice) notice.classList.toggle('hidden',loggedIn || isAdmin);
 }
 async function signup(){
  try{
@@ -1704,6 +1715,7 @@ async function submitVerification(){
   }
 
   msg('تم إرسال طلب التوثيق بنجاح. طلبك قيد المراجعة.');
+  await loadOwnerSignupVerificationStatus();
 
   document.getElementById('ownerDocument').value = '';
   document.getElementById('ownerDocumentExpiry').value = '';
@@ -1712,6 +1724,50 @@ async function submitVerification(){
 
   msg('تعذر إرسال الطلب: '+e.message);
 
+ }
+}
+
+
+async function loadOwnerVerificationStatus(){
+ const area=document.getElementById('ownerVerificationStatusArea');
+ const content=document.getElementById('ownerVerificationStatus');
+ if(!area||!content||!currentUser)return;
+ area.classList.remove('hidden');content.textContent='جارٍ تحميل حالة التوثيق...';
+ try{
+  const {data,error}=await db.from('owner_verifications').select('status,created_at,expires_at').eq('owner_id',currentUser.id).order('created_at',{ascending:false});
+  if(error)throw error;
+  if(!data?.length){content.textContent='لا يوجد سجل توثيق مرتبط بهذا الحساب.';return;}
+  const names={pending:'قيد المراجعة',approved:'موثّق ومقبول',rejected:'مرفوض'};
+  const wrap=document.createElement('div');wrap.className='verification-table-wrap';
+  const table=document.createElement('table');table.className='verification-table';
+  const head=document.createElement('thead'),hr=document.createElement('tr');
+  ['حالة التوثيق','تاريخ الطلب','تاريخ انتهاء الوثيقة'].forEach(x=>{const th=document.createElement('th');th.textContent=x;hr.appendChild(th);});
+  head.appendChild(hr);table.appendChild(head);
+  const body=document.createElement('tbody');
+  data.forEach(row=>{const tr=document.createElement('tr');[names[row.status]||row.status,new Date(row.created_at).toLocaleDateString('ar-DZ'),row.expires_at||'غير محدد'].forEach(value=>{const td=document.createElement('td');td.textContent=value;tr.appendChild(td);});body.appendChild(tr);});
+  table.appendChild(body);wrap.appendChild(table);content.innerHTML='';content.appendChild(wrap);
+ }catch(error){content.textContent='تعذر تحميل حالة التوثيق: '+error.message;}
+}
+
+async function loadOwnerSignupVerificationStatus(){
+ const area=document.getElementById('ownerVerificationStatusArea');
+ const content=document.getElementById('ownerVerificationStatus');
+ const form=document.getElementById('ownerVerificationArea');
+ if(!area||!content||!form||!currentUser)return;
+ try{
+  const {data,error}=await db.from('owner_verifications').select('status,created_at,expires_at').eq('owner_id',currentUser.id).order('created_at',{ascending:false}).limit(1);
+  if(error)throw error;
+  const latest=data?.[0];
+  if(latest){
+   area.classList.remove('hidden');
+   const names={pending:'طلب توثيق المالك قيد مراجعة الإدارة.',approved:'تم قبول توثيق حسابك. إذا لم تتحول صلاحيات الحساب بعد، أعد تسجيل الدخول.',rejected:'تم رفض طلب التوثيق. يمكنك إرسال وثيقة جديدة.'};
+   content.textContent=(names[latest.status]||latest.status)+' تاريخ الطلب: '+new Date(latest.created_at).toLocaleDateString('ar-DZ')+' — انتهاء الوثيقة: '+(latest.expires_at||'غير محدد');
+  }else{
+   area.classList.add('hidden');
+  }
+  form.classList.toggle('hidden',latest?.status==='pending'||latest?.status==='approved');
+ }catch(error){
+  area.classList.remove('hidden');content.textContent='تعذر قراءة طلب التوثيق: '+error.message;form.classList.add('hidden');
  }
 }
 
@@ -4544,8 +4600,8 @@ async function loadPublicLocalBusinesses(){
   if(error) throw error;
   areas.forEach(area=>area.innerHTML='');
   if(!businesses || !businesses.length){areas.forEach(area=>area.textContent='سيتم عرض النشاطات هنا فور اعتماد أول نشاط تجاري.');return;}
-  const labels={restaurant:'مطعم',fast_food:'فاست فود ووجبات سريعة',cafe:'مقهى',sweets:'حلويات',grocery:'مواد غذائية',shop:'محل تجاري',pharmacy:'صيدلية',services:'خدمات',other:'نشاط محلي'};
-  const icons={restaurant:'🍽️',fast_food:'🍔',cafe:'☕',sweets:'🍰',grocery:'🛒',shop:'🏪',pharmacy:'💊',services:'🧰',other:'📍'};
+  const labels={restaurant:'مطعم',fast_food:'فاست فود ووجبات سريعة',cafe:'مقهى',sweets:'حلويات',grocery:'مواد غذائية',shop:'محل تجاري',pharmacy:'صيدلية',crafts:'حرفي وصناعة تقليدية',home_cleaning:'تنظيف المنازل',home_services:'خدمات منزلية',professional_services:'مهن وخدمات مهنية',maintenance:'صيانة وإصلاح',beauty:'حلاقة وتجميل',transport:'نقل وخدمات توصيل',services:'خدمات عامة',other:'نشاط محلي'};
+  const icons={restaurant:'🍽️',fast_food:'🍔',cafe:'☕',sweets:'🍰',grocery:'🛒',shop:'🏪',pharmacy:'💊',crafts:'🧵',home_cleaning:'🧹',home_services:'🏠',professional_services:'🧑‍💼',maintenance:'🛠️',beauty:'💇',transport:'🚗',services:'🧰',other:'📍'};
   const ids=businesses.map(item=>item.id);let images=[];
   if(ids.length){const {data,error:imageError}=await db.from('local_business_images').select('business_id,image_url,created_at').in('business_id',ids).order('created_at',{ascending:true});if(imageError)throw imageError;images=data||[];}
   const imagesByBusiness={};images.forEach(row=>{if(!imagesByBusiness[row.business_id])imagesByBusiness[row.business_id]=[];imagesByBusiness[row.business_id].push(row.image_url);});
@@ -4581,7 +4637,7 @@ async function loadAdminLocalBusinesses(){
   if(error) throw error;
   area.innerHTML='';
   if(!businesses || !businesses.length){area.textContent='لا توجد طلبات أنشطة تجارية حالياً.';return;}
-  const labels={restaurant:'مطعم',fast_food:'فاست فود',cafe:'مقهى',sweets:'حلويات',grocery:'مواد غذائية',shop:'محل تجاري',pharmacy:'صيدلية',services:'خدمات',other:'نشاط آخر'};
+  const labels={restaurant:'مطعم',fast_food:'فاست فود',cafe:'مقهى',sweets:'حلويات',grocery:'مواد غذائية',shop:'محل تجاري',pharmacy:'صيدلية',crafts:'حرفي وصناعة تقليدية',home_cleaning:'تنظيف المنازل',home_services:'خدمات منزلية',professional_services:'مهن وخدمات مهنية',maintenance:'صيانة وإصلاح',beauty:'حلاقة وتجميل',transport:'نقل وخدمات توصيل',services:'خدمات عامة',other:'نشاط آخر'};
   const statuses={pending:'قيد المراجعة',approved:'تمت الموافقة',rejected:'مرفوض'};
   for(const item of businesses){
    const card=document.createElement('article');
@@ -4666,7 +4722,7 @@ async function loadMyLocalBusinesses(){
   if(error) throw error;
   area.innerHTML='';
   if(!data || !data.length){area.textContent='لم ترسل أي نشاط تجاري بعد.';return;}
-  const labels={restaurant:'مطعم',fast_food:'فاست فود',cafe:'مقهى',sweets:'حلويات',grocery:'مواد غذائية',shop:'محل تجاري',pharmacy:'صيدلية',services:'خدمات',other:'نشاط آخر'};
+  const labels={restaurant:'مطعم',fast_food:'فاست فود',cafe:'مقهى',sweets:'حلويات',grocery:'مواد غذائية',shop:'محل تجاري',pharmacy:'صيدلية',crafts:'حرفي وصناعة تقليدية',home_cleaning:'تنظيف المنازل',home_services:'خدمات منزلية',professional_services:'مهن وخدمات مهنية',maintenance:'صيانة وإصلاح',beauty:'حلاقة وتجميل',transport:'نقل وخدمات توصيل',services:'خدمات عامة',other:'نشاط آخر'};
   const statuses={pending:'قيد المراجعة',approved:'تمت الموافقة والنشر',rejected:'مرفوض'};
   data.forEach(item=>{
    const card=document.createElement('div');card.className='notification-item';
