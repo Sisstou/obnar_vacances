@@ -2093,6 +2093,19 @@ async function createProperty(){
 
 let ownerPropertiesLoading = false;
 
+async function signPropertyImageRows(rows,expiresIn=3600){
+ return Promise.all((rows||[]).map(async row=>{
+  try{
+   const {data,error}=await db.storage.from('property-images').createSignedUrl(row.storage_path,expiresIn);
+   if(error) throw error;
+   return {...row,signed_url:data.signedUrl};
+  }catch(error){
+   console.warn('Property image signing failed:',row.storage_path,error);
+   return {...row,signed_url:''};
+  }
+ }));
+}
+
 async function loadOwnerProperties(){
  if(ownerPropertiesLoading) return;
  ownerPropertiesLoading = true;
@@ -2128,7 +2141,7 @@ async function loadOwnerProperties(){
     .eq('property_id',property.id)
     .order('display_order',{ascending:true});
    if(imageError) throw imageError;
-   const list = images || [];
+   const list = await signPropertyImageRows(images || [],3600);
    const count = document.createElement('p');
    count.textContent = 'عدد الصور: '+list.length+' / 10';
    card.appendChild(count);
@@ -2138,7 +2151,7 @@ async function loadOwnerProperties(){
     const item = document.createElement('div');
     item.style.cssText = 'border:1px solid #dce5eb;border-radius:8px;padding:8px;min-width:0';
     const image = document.createElement('img');
-    image.src = db.storage.from('property-images').getPublicUrl(photo.storage_path).data.publicUrl;
+    image.src = photo.signed_url || '';
     image.alt = 'صورة '+(index+1)+' للإقامة';
     image.style.cssText = 'width:100%;height:110px;object-fit:cover;border-radius:6px';
     item.appendChild(image);
@@ -3061,9 +3074,9 @@ async function loadPropertyRequests(){
 
    for(const img of (images || [])){
 
-    const url = db.storage
-     .from('property-images')
-     .getPublicUrl(img.storage_path).data.publicUrl;
+    const {data:signedImage,error:signedImageError}=await db.storage.from('property-images').createSignedUrl(img.storage_path,3600);
+    if(signedImageError){console.warn('Admin property image signing failed:',signedImageError);continue;}
+    const url = signedImage.signedUrl;
 
     const photo = document.createElement('img');
     photo.src = url;
@@ -4131,7 +4144,7 @@ async function loadProperties(){
 
    if(result.error) throw result.error;
 
-   images=result.data||[];
+   images=await signPropertyImageRows(result.data||[],3600);
    const {data:rows,error:amenityError}=await db.from('property_amenities').select('property_id,amenity_id').in('property_id',ids);
    if(amenityError)throw amenityError;
    propertyAmenitiesById={};(rows||[]).forEach(row=>{const a=allAmenities.find(item=>item.id===row.amenity_id);if(a){if(!propertyAmenitiesById[row.property_id])propertyAmenitiesById[row.property_id]=[];propertyAmenitiesById[row.property_id].push(a);}});
@@ -4217,7 +4230,7 @@ function renderPublicPropertyStrip(){
   const location=allLocations.find(item=>item.id===property.location_id);
   const card=document.createElement('article');card.className='property';card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label','عرض تفاصيل '+(property.title_ar||'الإقامة'));
   card.addEventListener('click',()=>openPropertyDetails(property));card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openPropertyDetails(property);}});
-  const image=document.createElement('img');image.loading='lazy';image.alt='صورة '+(property.title_ar||'الإقامة');image.src=property.cover?db.storage.from('property-images').getPublicUrl(property.cover.storage_path).data.publicUrl:'';card.appendChild(image);
+  const image=document.createElement('img');image.loading='lazy';image.alt='صورة '+(property.title_ar||'الإقامة');image.src=property.cover?.signed_url||'';card.appendChild(image);
   const info=document.createElement('div');info.className='info';const title=document.createElement('h3');title.textContent=property.title_ar||'إقامة معروضة';info.appendChild(title);
   const place=document.createElement('p');place.textContent=location?.name_ar||property.address||'جيجل';info.appendChild(place);
   const pricing=getPropertyPricing(property);const price=document.createElement('p');price.className='price';price.textContent=pricing.finalPrice.toLocaleString('fr-DZ')+' '+(property.currency||'DZD')+' / الليلة شامل العمولة';info.appendChild(price);
@@ -4296,8 +4309,7 @@ function renderProperties(){
   image.alt = 'صورة الإقامة';
 
   image.src = p.cover
-   ? db.storage.from('property-images')
-      .getPublicUrl(p.cover.storage_path).data.publicUrl
+   ? (p.cover.signed_url||'')
    : '';
 
   card.appendChild(image);
@@ -4429,7 +4441,7 @@ async function confirmBooking(){
 let detailGalleryImages=[];
 let detailGalleryIndex=0;
 function renderPropertyGallery(images){
- detailGalleryImages=images.map(photo=>db.storage.from('property-images').getPublicUrl(photo.storage_path).data.publicUrl);
+ detailGalleryImages=images.map(photo=>photo.signed_url||'').filter(Boolean);
  detailGalleryIndex=0;
  const main=document.getElementById('galleryMain');
  const thumbs=document.getElementById('galleryThumbs');
