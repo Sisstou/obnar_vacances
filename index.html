@@ -280,6 +280,16 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
  #home .destination-card small{font-size:8px}
 }
 
+
+.public-rentals-section{max-width:1160px;margin:0 auto;padding:22px 16px 8px}
+.public-rentals-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.public-rentals-heading h2{margin:0;color:#102d46;font-size:22px}
+.property-strip{display:flex;gap:13px;overflow-x:auto;padding:12px 2px 18px;scroll-snap-type:x mandatory}
+.property-strip .property{flex:0 0 min(290px,82vw);scroll-snap-align:start;cursor:pointer}
+.property-strip .property img{height:165px}
+.activity-public-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:14px;max-width:1160px;margin:16px auto}
+.signup-role-note{font-size:13px;color:#526777;background:#f5f8fa;border:1px solid #e1e8ed;border-radius:9px;padding:10px;margin:8px 0}
+@media(max-width:600px){.public-rentals-section{padding:18px 12px 4px}.public-rentals-heading h2{font-size:19px}.property-strip .property{flex-basis:84vw}.property-strip .property img{height:150px}}
 </style>
 </head>
 
@@ -291,19 +301,21 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 </header>
 
 <nav aria-label="التنقل الرئيسي">
-<a href="#home" onclick="showAppPage('home');return false" aria-current="page">الرئيسية</a>
-<a href="#search" onclick="showAppPage('search');return false">البحث عن سكن</a>
-<a href="#account" onclick="showAppPage('account');return false">حسابي</a>
-<a href="#localBusinessAdvertising" id="localBusinessNavLink" onclick="showAppPage('localBusinessAdvertising');return false">إشهار المحلات</a>
-<a href="#contact" onclick="showAppPage('contact');return false">اتصل بنا</a>
+<a href="#home" onclick="showAppPage('home');return false" aria-current="page">🏠 الإقامات</a>
+<a href="#localBusinessAdvertising" id="localBusinessNavLink" onclick="showAppPage('localBusinessAdvertising');return false">🏪 نشاطات الحي</a>
+<a href="#account" onclick="showAppPage('account');return false">👤 التسجيل / الدخول</a>
 <button type="button" class="notification-bell" id="notificationBell" onclick="openNotifications()" aria-label="الإشعارات" title="الإشعارات">🔔<span id="notificationBadge" class="notification-badge hidden">0</span></button>
 </nav>
 
 <section id="home" class="app-page active">
 <div class="hero">
-<h2>مرحباً بكم في أولاد بونار 🌊</h2>
-<p>اكتشفوا جمال الساحل الجيجلي، تعرّفوا على الشواطئ والوجهات القريبة، واختاروا إقامتكم لقضاء عطلة ممتعة.</p>
-<button onclick="showAppPage('search')">اكتشف الإقامات واحجز عطلتك</button>
+<h2>اعثر على إقامتك في أولاد بونار وجيجل 🌊</h2>
+<p>تصفح الإقامات المعروضة للكراء، اكتشف التفاصيل، واختر المكان المناسب لعطلتك. التصفح متاح للجميع دون تسجيل.</p>
+<button onclick="showAppPage('search')">عرض جميع الإقامات والبحث</button>
+</div>
+<div class="public-rentals-section">
+ <div class="public-rentals-heading"><h2>🏡 إقامات معروضة للكراء</h2><button type="button" class="secondary" onclick="showAppPage('search')">عرض الكل</button></div>
+ <div id="publicPropertyStrip" class="property-strip" aria-label="الإقامات المعروضة"><p>جارٍ تحميل الإقامات...</p></div>
 </div>
 <div class="home-intro">
 <h2>أولاد بونار وما حولها</h2>
@@ -352,11 +364,7 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 </div>
 <div class="home-note">🏊‍♂️ <strong>السلامة أولاً:</strong> السباحة تكون في الشواطئ المسموح بها وتحت إشراف الحراسة والإنقاذ، مع احترام الرايات وتعليمات أعوان الشاطئ والمحافظة على نظافة المكان.</div>
 </div>
-<section class="home-intro" id="neighborhoodBusinesses">
-<h2>🏘️ ماذا ستجد في أولاد بونار؟</h2>
-<p>تعرّفوا على المطاعم والمقاهي والمحلات والخدمات الموجودة في الحي. لا تظهر هنا إلا الأنشطة التي وافقت الإدارة على نشرها.</p>
-<div id="publicLocalBusinesses" class="destination-grid"><p>جارٍ تحميل دليل الأنشطة...</p></div>
-</section>
+
 <div class="home-cta">
 <h3>خططوا لعطلتكم في جيجل</h3>
 <p>تصفحوا الإقامات المتاحة في أولاد بونار وجيجل واختاروا ما يناسبكم.</p>
@@ -406,10 +414,16 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 
 <section id="account" class="app-page">
 <div class="panel">
-<h2>👤 حساب المستخدم</h2>
+<h2 id="accountPageTitle">👤 التسجيل في OBNAR VACANCES</h2>
 
 <div id="authForms">
 <h3>إنشاء حساب جديد</h3>
+<label class="field-label" for="signupRole">نوع الحساب</label>
+<select id="signupRole" onchange="updateSignupRoleNote()">
+ <option value="traveler">مصطاف — أبحث عن إقامة وأحجز</option>
+ <option value="owner">مالك — أريد عرض إقامتي للكراء</option>
+</select>
+<p id="signupRoleNote" class="signup-role-note" aria-live="polite">يمكنك التسجيل كمصطاف والبدء في البحث عن إقامة.</p>
 
 <input id="fullName" placeholder="الاسم الكامل">
 <input id="phone" placeholder="رقم الهاتف">
@@ -613,9 +627,17 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 
 <section id="localBusinessAdvertising" class="app-page">
 <section class="home-intro">
-<div class="panel" id="localBusinessSubmitArea">
-<h2>📢 إشهار المحلات والأنشطة التجارية</h2>
- <p class="small">أضف نشاطك التجاري إلى دليل أولاد بونار وجيجل. يُنشر النشاط بعد مراجعة الإدارة والموافقة عليه. <strong>إرسال الطلب يتطلب تسجيل الدخول إلى حسابك.</strong></p>
+<h2>🏪 دليل نشاطات الحي</h2>
+<p>اكتشف المحلات والخدمات والمطاعم في أولاد بونار. تظهر هنا النشاطات التي راجعتها الإدارة ووافقت على نشرها.</p>
+<div id="publicActivitiesList" class="activity-public-list"><p>جارٍ تحميل النشاطات...</p></div>
+<div id="activityGuestNotice" class="panel hidden">
+ <h3>هل تملك نشاطاً في الحي؟</h3>
+ <p>سجّل الدخول أو أنشئ حساباً لإرسال نشاطك إلى الإدارة. لن يظهر النشاط للزوار إلا بعد الموافقة عليه.</p>
+ <button type="button" onclick="showAppPage('account')">التسجيل أو الدخول لإضافة نشاط</button>
+</div>
+<div class="panel hidden" id="localBusinessSubmitArea">
+<h2>📢 سجّل نشاطك في دليل الحي</h2>
+ <p class="small">أدخل بيانات نشاطك. يُنشر بعد مراجعة الإدارة والموافقة عليه.</p>
  <label class="field-label" for="localBusinessName">اسم النشاط التجاري</label>
  <input id="localBusinessName" maxlength="120" placeholder="مثال: مطعم ...">
  <label class="field-label" for="localBusinessCategory">نوع النشاط</label>
@@ -731,7 +753,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 </div>
 </section>
 
-<footer>© 2026 OBNAR VACANCES</footer>
+<footer>© 2026 OBNAR VACANCES · <a href="#contact" onclick="showAppPage('contact');return false" style="color:#fff">اتصل بنا</a></footer>
 <script>
 
 
@@ -1086,7 +1108,9 @@ function showGuest(){
  if(localBusinessNavLink) localBusinessNavLink.classList.remove('hidden');
 
  stopNotificationRealtime();
- showAppPage('account');
+ updateActivitySubmissionAccess();
+ const accountTitle=document.getElementById('accountPageTitle');
+ if(accountTitle) accountTitle.textContent='👤 التسجيل في OBNAR VACANCES';
  document.getElementById('authForms').classList.remove('hidden');
  document.getElementById('userArea').classList.add('hidden');
  document.getElementById('notificationBadge').classList.add('hidden');
@@ -1177,6 +1201,9 @@ async function updateRecoveredPassword(){
 async function showUser(){
 
  showAppPage('account');
+ const accountTitle=document.getElementById('accountPageTitle');
+ if(accountTitle) accountTitle.textContent='👤 حسابي';
+ updateActivitySubmissionAccess();
  if(currentUser) startNotificationRealtime(currentUser.id);
  document.getElementById('authForms').classList.add('hidden');
  document.getElementById('userArea').classList.remove('hidden');
@@ -1264,10 +1291,24 @@ if(currentProfile.role === 'traveler'){
 }
 
 
+function updateSignupRoleNote(){
+ const role=document.getElementById('signupRole')?.value||'traveler';
+ const note=document.getElementById('signupRoleNote');
+ if(!note) return;
+ note.textContent=role==='owner'
+  ? 'سيبدأ الحساب دون صلاحيات نشر كمالك. بعد التسجيل، أرسل طلب توثيق المالك من حسابك؛ وتُفعّل صلاحيات المالك بعد مراجعة الإدارة والموافقة.'
+  : 'يمكنك التسجيل كمصطاف والبدء في البحث عن إقامة وإرسال طلبات الحجز.';
+}
+function updateActivitySubmissionAccess(){
+ const form=document.getElementById('localBusinessSubmitArea');
+ const notice=document.getElementById('activityGuestNotice');
+ const loggedIn=!!currentUser;
+ if(form) form.classList.toggle('hidden',!loggedIn);
+ if(notice) notice.classList.toggle('hidden',loggedIn);
+}
 async function signup(){
-
  try{
-
+  const requestedRole=document.getElementById('signupRole')?.value||'traveler';
   const name = document.getElementById('fullName').value.trim();
   const phone = document.getElementById('phone').value.trim();
   const email = document.getElementById('email').value.trim();
@@ -1300,11 +1341,15 @@ async function signup(){
    currentProfile = await ensureProfile(data.user);
 
    showUser();
-   msg('تم إنشاء الحساب بنجاح.');
+   msg(requestedRole==='owner'
+    ? 'تم إنشاء الحساب. أرسل الآن طلب توثيق المالك من حسابك؛ وتُفعّل صلاحيات المالك بعد موافقة الإدارة.'
+    : 'تم إنشاء الحساب بنجاح.');
 
   }else{
 
-   msg('تم التسجيل. تحقق من بريدك الإلكتروني ثم سجّل الدخول.');
+   msg(requestedRole==='owner'
+    ? 'تم التسجيل. تحقق من بريدك الإلكتروني ثم ادخل إلى حسابك لإرسال طلب توثيق المالك. لا تُفعّل صلاحيات المالك إلا بعد موافقة الإدارة.'
+    : 'تم التسجيل. تحقق من بريدك الإلكتروني ثم سجّل الدخول.');
 
   }
 
@@ -3577,6 +3622,7 @@ async function loadProperties(){
   });
 
   renderProperties();
+  renderPublicPropertyStrip();
 
  }catch(e){
 
@@ -3591,7 +3637,8 @@ let selectedPropertyCategory = 'all';
 function openBookingForm(property){
 
  if(!currentUser){
-  msg('يجب تسجيل الدخول أولاً لإجراء الحجز.');
+  showAppPage('account');
+  msg('سجّل الدخول أو أنشئ حساباً كمصطاف أولاً لإجراء الحجز.');
   return;
  }
 
@@ -3633,6 +3680,20 @@ function setPropertyCategory(category){
 }
 window.setPropertyCategory=setPropertyCategory;
 
+function renderPublicPropertyStrip(){
+ const container=document.getElementById('publicPropertyStrip');if(!container)return;container.innerHTML='';
+ if(!allProperties.length){container.textContent='لا توجد إقامات معروضة للكراء حالياً. ستظهر هنا الإقامات التي توافق عليها الإدارة.';return;}
+ allProperties.slice(0,12).forEach(property=>{
+  const location=allLocations.find(item=>item.id===property.location_id);
+  const card=document.createElement('article');card.className='property';card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label','عرض تفاصيل '+(property.title_ar||'الإقامة'));
+  card.addEventListener('click',()=>openPropertyDetails(property));card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openPropertyDetails(property);}});
+  const image=document.createElement('img');image.loading='lazy';image.alt='صورة '+(property.title_ar||'الإقامة');image.src=property.cover?db.storage.from('property-images').getPublicUrl(property.cover.storage_path).data.publicUrl:'';card.appendChild(image);
+  const info=document.createElement('div');info.className='info';const title=document.createElement('h3');title.textContent=property.title_ar||'إقامة معروضة';info.appendChild(title);
+  const place=document.createElement('p');place.textContent=location?.name_ar||property.address||'جيجل';info.appendChild(place);
+  const price=document.createElement('p');price.className='price';price.textContent=Number(property.price_per_night||0).toLocaleString('fr-DZ')+' '+(property.currency||'DZD')+' / الليلة';info.appendChild(price);
+  card.appendChild(info);container.appendChild(card);
+ });
+}
 function renderProperties(){
 
  const container = document.getElementById('properties');
@@ -3965,71 +4026,35 @@ document.getElementById('bookingCheckOut')
 document.getElementById('bookingGuests')
  .addEventListener('input', calculateBookingPrice);
 async function loadPublicLocalBusinesses(){
- const area=document.getElementById('publicLocalBusinesses');
- if(!area) return;
- area.textContent='جارٍ تحميل دليل الأنشطة...';
+ const areas=['publicLocalBusinesses','publicActivitiesList'].map(id=>document.getElementById(id)).filter(Boolean);
+ if(!areas.length) return;
+ areas.forEach(area=>area.textContent='جارٍ تحميل دليل الأنشطة...');
  try{
-  const {data:businesses,error}=await db.from('local_businesses')
-   .select('id,name,category,description,phone,address')
-   .eq('status','approved')
-   .order('name',{ascending:true});
+  const {data:businesses,error}=await db.from('local_businesses').select('id,name,category,description,phone,address').eq('status','approved').order('name',{ascending:true});
   if(error) throw error;
-  area.innerHTML='';
-  if(!businesses || !businesses.length){
-   area.textContent='سيتم عرض الأنشطة المحلية هنا فور اعتماد أول نشاط تجاري.';
-   return;
-  }
+  areas.forEach(area=>area.innerHTML='');
+  if(!businesses || !businesses.length){areas.forEach(area=>area.textContent='سيتم عرض النشاطات هنا فور اعتماد أول نشاط تجاري.');return;}
   const labels={restaurant:'مطعم',fast_food:'فاست فود ووجبات سريعة',cafe:'مقهى',sweets:'حلويات',grocery:'مواد غذائية',shop:'محل تجاري',pharmacy:'صيدلية',services:'خدمات',other:'نشاط محلي'};
   const icons={restaurant:'🍽️',fast_food:'🍔',cafe:'☕',sweets:'🍰',grocery:'🛒',shop:'🏪',pharmacy:'💊',services:'🧰',other:'📍'};
-  const ids=businesses.map(item=>item.id);
-  let images=[];
-  if(ids.length){
-   const {data,error:imageError}=await db.from('local_business_images')
-    .select('business_id,image_url,created_at')
-    .in('business_id',ids)
-    .order('created_at',{ascending:true});
-   if(imageError) throw imageError;
-   images=data||[];
-  }
-  const imagesByBusiness={};
-  images.forEach(row=>{
-   if(!imagesByBusiness[row.business_id]) imagesByBusiness[row.business_id]=[];
-   imagesByBusiness[row.business_id].push(row.image_url);
-  });
+  const ids=businesses.map(item=>item.id);let images=[];
+  if(ids.length){const {data,error:imageError}=await db.from('local_business_images').select('business_id,image_url,created_at').in('business_id',ids).order('created_at',{ascending:true});if(imageError)throw imageError;images=data||[];}
+  const imagesByBusiness={};images.forEach(row=>{if(!imagesByBusiness[row.business_id])imagesByBusiness[row.business_id]=[];imagesByBusiness[row.business_id].push(row.image_url);});
   businesses.forEach(item=>{
-   const card=document.createElement('article');
-   card.className='destination-card';
    const photoList=imagesByBusiness[item.id]||[];
-   if(photoList.length){
-    const img=document.createElement('img');
-    img.src=photoList[0];img.alt='صورة '+item.name;img.loading='lazy';
-    card.appendChild(img);
-   }else{
-    const placeholder=document.createElement('div');
-    placeholder.className='destination-placeholder';
-    placeholder.setAttribute('role','img');
-    placeholder.setAttribute('aria-label','لا توجد صورة للنشاط');
-    placeholder.textContent=icons[item.category]||'📍';
-    card.appendChild(placeholder);
-   }
-   const info=document.createElement('div');info.className='destination-info';
-   const title=document.createElement('h3');title.textContent=item.name;info.appendChild(title);
-   const category=document.createElement('p');
-   category.textContent=(icons[item.category]||'📍')+' '+(labels[item.category]||'نشاط محلي');info.appendChild(category);
-   const address=document.createElement('p');address.textContent='📍 '+item.address;info.appendChild(address);
-   if(item.description){
-    const description=document.createElement('p');description.textContent=item.description;info.appendChild(description);
-   }
-   if(item.phone){
-    const phone=document.createElement('a');phone.href='tel:'+item.phone.replace(/[^+0-9]/g,'');
-    phone.textContent='اتصل بالنشاط: '+item.phone;info.appendChild(phone);
-   }
-   card.appendChild(info);area.appendChild(card);
+   areas.forEach(area=>{
+    const card=document.createElement('article');card.className='destination-card';
+    if(photoList.length){const img=document.createElement('img');img.src=photoList[0];img.alt='صورة '+item.name;img.loading='lazy';card.appendChild(img);}
+    else{const placeholder=document.createElement('div');placeholder.className='destination-placeholder';placeholder.setAttribute('role','img');placeholder.setAttribute('aria-label','لا توجد صورة للنشاط');placeholder.textContent=icons[item.category]||'📍';card.appendChild(placeholder);}
+    const info=document.createElement('div');info.className='destination-info';
+    const title=document.createElement('h3');title.textContent=item.name;info.appendChild(title);
+    const category=document.createElement('p');category.textContent=(icons[item.category]||'📍')+' '+(labels[item.category]||'نشاط محلي');info.appendChild(category);
+    const address=document.createElement('p');address.textContent='📍 '+item.address;info.appendChild(address);
+    if(item.description){const description=document.createElement('p');description.textContent=item.description;info.appendChild(description);}
+    if(item.phone){const phone=document.createElement('a');phone.href='tel:'+item.phone.replace(/[^+0-9]/g,'');phone.textContent='اتصل بالنشاط: '+item.phone;info.appendChild(phone);}
+    card.appendChild(info);area.appendChild(card);
+   });
   });
- }catch(error){
-  console.error('Public local businesses load failed:',error);
-  area.textContent='تعذر تحميل دليل الأنشطة حالياً. يرجى المحاولة لاحقاً.';
- }
+ }catch(error){console.error('Public local businesses load failed:',error);areas.forEach(area=>area.textContent='تعذر تحميل دليل الأنشطة حالياً. يرجى المحاولة لاحقاً.');}
 }
 
 async function loadAdminLocalBusinesses(){
