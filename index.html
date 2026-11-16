@@ -573,7 +573,7 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 </div>
 
 <p id="userInfo"></p>
-<div id="myLocalBusinessesPanel" class="panel"><h3>🏪 طلباتي في دليل الأنشطة</h3><div id="myLocalBusinesses" class="small">جارٍ تحميل طلباتك...</div></div>
+<div id="myLocalBusinessesPanel" class="panel"><h3>🏪 طلباتي في دليل الأنشطة</h3><button type="button" class="secondary" onclick="loadMyLocalBusinesses()">تحديث نشاطاتي</button><div id="myLocalBusinesses" class="small">جارٍ تحميل طلباتك...</div></div>
 
 
 <button type="button" id="adminDashboardLink" class="hidden" onclick="openAdminDashboard()">لوحة تحكم المدير الرئيسي</button>
@@ -904,6 +904,7 @@ function showAppPage(pageId){
   else link.removeAttribute('aria-current');
  });
  window.scrollTo({top:0,behavior:'smooth'});
+ if(pageId==='account' && currentUser) loadMyLocalBusinesses();
 }
 
 const SUPABASE_URL = 'https://iuxrtgyufocblnvpaeaq.supabase.co';
@@ -916,6 +917,7 @@ const db = window.supabase.createClient(
 
 let currentUser = null;
 let currentProfile = null;
+let myLocalBusinessesLoading = false;
 let allProperties = [];
 let allLocations = [];
 let allAmenities = [];
@@ -4347,9 +4349,15 @@ async function loadMyLocalBusinesses(){
  const area=document.getElementById('myLocalBusinesses');
  if(!area) return;
  if(!currentUser){area.textContent='سجّل الدخول لعرض أنشطتك.';return;}
+ if(myLocalBusinessesLoading) return;
+ myLocalBusinessesLoading=true;
  area.textContent='جارٍ تحميل طلباتك...';
  try{
-  const {data,error}=await db.from('local_businesses').select('id,name,category,address,status,rejection_reason,created_at').eq('owner_id',currentUser.id).order('created_at',{ascending:false});
+  let query=db.from('local_businesses').select('id,name,category,address,status,rejection_reason,created_at').eq('owner_id',currentUser.id).order('created_at',{ascending:false});
+  if(typeof AbortSignal!=='undefined' && typeof AbortSignal.timeout==='function' && typeof query.abortSignal==='function'){
+   query=query.abortSignal(AbortSignal.timeout(15000));
+  }
+  const {data,error}=await query;
   if(error) throw error;
   area.innerHTML='';
   if(!data || !data.length){area.textContent='لم ترسل أي نشاط تجاري بعد.';return;}
@@ -4363,7 +4371,11 @@ async function loadMyLocalBusinesses(){
    if(item.status==='rejected' && item.rejection_reason){const reason=document.createElement('p');reason.textContent='سبب الرفض: '+item.rejection_reason;card.appendChild(reason);}
    area.appendChild(card);
   });
- }catch(error){area.textContent='تعذر تحميل طلباتك: '+error.message;}
+ }catch(error){
+  area.textContent='تعذر تحميل طلباتك: '+(error.name==='TimeoutError'?'انتهت مهلة الاتصال. اضغط «تحديث نشاطاتي» للمحاولة مجدداً.':error.message);
+ }finally{
+  myLocalBusinessesLoading=false;
+ }
 }
 async function submitLocalBusiness(){
  const button=document.getElementById('submitLocalBusinessButton');
