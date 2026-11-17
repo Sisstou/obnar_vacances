@@ -966,6 +966,9 @@ async function openAdminDashboard(){
 function showAppPage(pageId){
  const pageIds=['home','search','propertyDetail','account','localBusinessAdvertising','verificationCenter','adminDashboard','contact'];
  if(!pageIds.includes(pageId)) return;
+ if(pageId==='localBusinessAdvertising'){
+  updateActivitySubmissionAccess(false);
+ }
  pageIds.forEach(id=>{
   const page=document.getElementById(id);
   if(page) page.classList.toggle('active',id===pageId);
@@ -1560,10 +1563,17 @@ function updateActivitySubmissionAccess(isAdmin=false){
  const canSubmit=!!currentUser && !isAdmin &&
   currentProfile?.role==='traveler' &&
   currentProfile?.requested_account_type==='activity_provider';
- if(form) form.classList.toggle('hidden',!canSubmit);
- if(tracker) tracker.classList.toggle('hidden',!canSubmit);
+ if(form){
+  form.classList.toggle('hidden',!canSubmit);
+  form.setAttribute('aria-hidden',String(!canSubmit));
+ }
+ if(tracker){
+  tracker.classList.toggle('hidden',!canSubmit);
+  tracker.setAttribute('aria-hidden',String(!canSubmit));
+ }
  if(notice){
   notice.classList.toggle('hidden',canSubmit || isAdmin);
+  notice.setAttribute('aria-hidden',String(canSubmit || isAdmin));
   const note=notice.querySelector('p');
   const action=notice.querySelector('button');
   if(note && currentUser && !canSubmit)
