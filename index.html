@@ -580,7 +580,7 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <input id="fullName" placeholder="الاسم الكامل">
 <input id="phone" placeholder="رقم الهاتف">
 <input id="email" type="email" placeholder="البريد الإلكتروني">
-<input id="password" type="password" placeholder="كلمة المرور (6 أحرف على الأقل)">
+<input id="password" type="password" placeholder="كلمة المرور (8 أحرف على الأقل)" minlength="8" autocomplete="new-password">
 
 <button onclick="signup()">إنشاء حساب</button>
 
@@ -598,8 +598,8 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <div id="passwordRecoveryArea" class="panel hidden">
 <h3>🔐 تعيين كلمة مرور جديدة</h3>
 <p>أدخل كلمة مرور جديدة لحسابك.</p>
-<input id="newPassword" type="password" placeholder="كلمة المرور الجديدة (6 أحرف على الأقل)" autocomplete="new-password">
-<input id="confirmNewPassword" type="password" placeholder="تأكيد كلمة المرور الجديدة" autocomplete="new-password">
+<input id="newPassword" type="password" placeholder="كلمة المرور الجديدة (8 أحرف على الأقل)" minlength="8" autocomplete="new-password">
+<input id="confirmNewPassword" type="password" placeholder="تأكيد كلمة المرور الجديدة" minlength="8" autocomplete="new-password">
 <button type="button" onclick="updateRecoveredPassword()">حفظ كلمة المرور الجديدة</button>
 </div>
 
@@ -1396,8 +1396,8 @@ async function updateRecoveredPassword(){
  const password = document.getElementById('newPassword').value;
  const confirmation = document.getElementById('confirmNewPassword').value;
 
- if(password.length < 6){
-  msg('كلمة المرور يجب أن تتكون من 6 أحرف على الأقل.');
+ if(password.length < 8){
+  msg('كلمة المرور يجب أن تتكون من 8 أحرف على الأقل.');
   return;
  }
 
@@ -1579,8 +1579,8 @@ async function signup(){
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
 
-  if(!name || !email || password.length < 6){
-   msg('أدخل الاسم والبريد وكلمة مرور من 6 أحرف على الأقل.');
+  if(!name || !email || password.length < 8){
+   msg('أدخل الاسم والبريد وكلمة مرور من 8 أحرف على الأقل.');
    return;
   }
 
