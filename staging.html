@@ -1520,7 +1520,7 @@ if(currentProfile.role === 'owner'){
  await loadOwnerBookings();
  await loadOwnerVerificationStatus();
 }
-if(currentProfile.role === 'traveler'){
+if(currentProfile.role === 'traveler' && currentProfile.requested_account_type !== 'activity_provider'){
  document.getElementById('travelerBookingArea')
   .classList.remove('hidden');
  await loadTravelerBookings();
