@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#073b5b"/>
+  <circle cx="392" cy="120" r="48" fill="#f4c66a"/>
+  <path d="M0 300 120 190l92 92 88-112 212 190v152H0Z" fill="#d7edf0"/>
+  <path d="m0 354 132-88 104 76 96-66 180 112v124H0Z" fill="#3d9caa"/>
+  <path d="M0 390c70-30 125-30 195 0s125 30 195 0 85-26 122-12v134H0Z" fill="#0e6684"/>
+  <path d="M0 438c75-25 133-25 205 0s131 25 202 0 77-19 105-10v84H0Z" fill="#06425f"/>
+  <text x="256" y="180" text-anchor="middle" font-family="Arial,sans-serif" font-size="76" font-weight="700" fill="#fff">OV</text>
+</svg>
