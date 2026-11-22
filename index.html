@@ -3183,6 +3183,70 @@ function exportAdminBookings(format){
 })();
 </script>
 
+
+<script>
+/* Search, property details and booking form translations. Property data and booking logic remain untouched. */
+(function(){
+ const words={
+  ar:{
+   searchTitle:'🔎 البحث عن إقامة',searchPlaceholder:'المدينة أو المنطقة أو اسم الإقامة',allAreas:'كل المناطق',
+   guests:['شخص واحد على الأقل','شخصان','3 أشخاص','4 أشخاص','5 أشخاص','6 أشخاص','7 أشخاص','أكثر من 7 أشخاص'],
+   search:'بحث',reset:'إلغاء البحث',categories:['كل الإقامات','الشقق','الاستوديوهات','المنازل'],
+   back:'← العودة إلى الإقامات',availability:'📅 رزنامة توفر الإقامة',month:'الشهر',
+   hint:'الأيام المحجوزة تظهر باللون الأحمر، ويوم المغادرة يبقى متاحاً.',
+   available:'متاح',booked:'محجوز',pending:'طلب قيد المعالجة',year:'السنة',
+   excel:'تحميل Excel',pdf:'طباعة / حفظ PDF',
+   bookingTitle:'احجز إقامتك',checkin:'تاريخ الوصول',checkout:'تاريخ المغادرة',guestsLabel:'عدد الأشخاص',
+   total:'السعر الإجمالي: 0 دج',confirm:'تأكيد الحجز',cancel:'إلغاء'
+  },
+  fr:{
+   searchTitle:'🔎 Rechercher un hébergement',searchPlaceholder:'Ville, quartier ou nom du logement',allAreas:'Toutes les zones',
+   guests:['Au moins 1 personne','2 personnes','3 personnes','4 personnes','5 personnes','6 personnes','7 personnes','Plus de 7 personnes'],
+   search:'Rechercher',reset:'Effacer les filtres',categories:['Tous les logements','Appartements','Studios','Maisons'],
+   back:'← Retour aux hébergements',availability:'📅 Calendrier des disponibilités',month:'Mois',
+   hint:'Les jours réservés apparaissent en rouge. Le jour du départ reste disponible.',
+   available:'Disponible',booked:'Réservé',pending:'Demande en cours',year:'Année',
+   excel:'Télécharger Excel',pdf:'Imprimer / Enregistrer en PDF',
+   bookingTitle:'Réserver votre hébergement',checkin:'Date d’arrivée',checkout:'Date de départ',guestsLabel:'Nombre de personnes',
+   total:'Prix total : 0 DZD',confirm:'Confirmer la réservation',cancel:'Annuler'
+  }
+ };
+ const $=s=>document.querySelector(s), $=s=>document.querySelectorAll(s);
+ function apply(){
+  let lang='ar';try{lang=localStorage.getItem('obnar-language')==='fr'?'fr':'ar';}catch(e){}
+  const t=words[lang];
+  const put=(sel,val)=>{const el=$(sel);if(el)el.textContent=val;};
+  put('#search .panel h2',t.searchTitle);
+  const search=$('#searchText');if(search)search.placeholder=t.searchPlaceholder;
+  const loc=$('#locationFilter');if(loc&&loc.options.length)loc.options[0].textContent=t.allAreas;
+  const guest=$('#guestFilter');if(guest)Array.from(guest.options).forEach((o,i)=>{if(t.guests[i])o.textContent=t.guests[i];});
+  const searchButtons=$('#search .panel button');if(searchButtons[0])searchButtons[0].textContent=t.search;if(searchButtons[1])searchButtons[1].textContent=t.reset;
+  $('#search .property-category span').forEach((el,i)=>{if(t.categories[i])el.textContent=t.categories[i];});
+  put('#propertyDetail .detail-content > button:first-child',t.back);
+  put('#propertyAvailability .availability-head h3',t.availability);
+  const monthLabel=$('#availabilityMonth')?.parentElement;if(monthLabel&&monthLabel.tagName==='LABEL'){monthLabel.childNodes[0].textContent=t.month+' ';}
+  put('#availabilityHint',t.hint);
+  const legend=$('#propertyAvailability .availability-legend > span');
+  if(legend[0])legend[0].lastChild.textContent=' '+t.available;
+  if(legend[1])legend[1].lastChild.textContent=' '+t.booked;
+  put('#availabilityPendingLegend',t.pending);
+  const yearLabel=$('#availabilityExportYear')?.parentElement;if(yearLabel&&yearLabel.tagName==='LABEL')yearLabel.childNodes[0].textContent=t.year+' ';
+  const exportButtons=$('#availabilityExportControls button');if(exportButtons[0])exportButtons[0].textContent=t.excel;if(exportButtons[1])exportButtons[1].textContent=t.pdf;
+  put('#bookingModal h2',t.bookingTitle);
+  const bookingLabels=$('#bookingModal > label');
+  [t.checkin,t.checkout,t.guestsLabel].forEach((v,i)=>{if(bookingLabels[i])bookingLabels[i].textContent=v;});
+  put('#bookingPrice',t.total);
+  const bookingButtons=$('#bookingModal > button');
+  if(bookingButtons[0])bookingButtons[0].textContent=t.confirm;if(bookingButtons[1])bookingButtons[1].textContent=t.cancel;
+ }
+ apply();
+ document.addEventListener('click',e=>{if(e.target.closest('#ovLangAr,#ovLangFr'))setTimeout(apply,0);});
+ const observer=new MutationObserver(()=>apply());
+ const searchPage=$('#search'),detail=$('#propertyDetail'),booking=$('#bookingModal');
+ [searchPage,detail,booking].filter(Boolean).forEach(el=>observer.observe(el,{childList:true,subtree:true}));
+})();
+</script>
+
 </body></html>');
   win.document.close();setAdminBookingExportStatus('تم فتح نافذة الطباعة لحفظ '+rows.length+' حجزاً بصيغة PDF.');
  }
