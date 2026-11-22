@@ -249,3 +249,41 @@ The audit is not yet sufficient to generate a safe migration. Still required:
 
 No schema, RLS, Storage, function, trigger, or data changes were made during this audit.
 
+
+
+### 11.7 Function-body and effective-grant review — read-only staging audit
+
+The following function behavior was confirmed from `pg_get_functiondef` and effective EXECUTE ACL inspection:
+
+- `create_booking(uuid,date,date,integer)` is SECURITY DEFINER with a fixed search path. It explicitly rejects a NULL `auth.uid()`, writes that UID into `traveler_id`, and is executable by `authenticated` and `service_role` (not anon/PUBLIC). Keep it as the registered-user route; do not weaken its authentication guard.
+- `request_booking_cancellation(uuid,text,text)` is SECURITY DEFINER and requires `auth.uid()`. It authorizes traveler/owner by booking/property ownership, inserts `requester_id = auth.uid()`, and applies the current cancellation state machine. It is executable by `authenticated` (and owner/postgres context), not anon. Guest cancellation must be a separate server-authorized route and must preserve this routine unchanged.
+- `submit_payment_receipt(uuid,text)` is SECURITY DEFINER and requires `auth.uid()`; it updates only a booking owned by that UID and requires the Storage path's first segment to equal that UID and second segment to equal the booking ID. It is executable by `authenticated` and `service_role`, not anon/PUBLIC. Do not reuse it for guest receipts or relax its path checks.
+- `notify_new_booking()` is a trigger function (not directly executable by anon/authenticated) that currently inserts a traveler notification unconditionally using `NEW.traveler_id`. A NULL traveler would violate `notifications.user_id NOT NULL`. Its guest-safe revision must skip only the traveler notification while retaining owner notification.
+- `notify_booking_cancellation()` is a trigger function (not directly executable by anon/authenticated). Its current recipient selection handles traveler requester, owner requester, and main admin; it does not include a guest requester branch. A guest request would not notify the owner under the current CASE/UNION logic. Add a deliberate guest branch for owner/admin recipients and never attempt a guest notification.
+- `respond_to_booking(uuid,text)` is SECURITY DEFINER, requires authentication, and checks property ownership before changing a pending booking. On rejection it inserts a notification addressed to `v_traveler_id` without a NULL guard. This is another registered-only path that needs a safe guest-aware notification branch if owners can reject guest bookings.
+- `admin_review_booking_cancellation(uuid,text,text,text)` verifies the main admin and sends notifications only to non-NULL booking traveler/owner IDs. This recipient filter is NULL-safe for a guest booking, but guest-facing status communication must remain via the secure guest-status endpoint, not notifications.
+- `sync_property_public_booking_dates()` is SECURITY DEFINER with a fixed search path and maintains only `property_public_booking_dates` rows for approved properties and qualifying paid/verified bookings. It does not depend on `traveler_id`; preserve its current eligibility criteria and test both insert/update/delete behavior.
+- The payment-confirmation guard and the remaining admin/expiration/refund functions still require complete semantic review before migration; do not infer their safety from the dependency list alone.
+
+Effective EXECUTE ACLs inspected for the key RPCs do not show anon or PUBLIC grants. Trigger functions are postgres-only. This supports retaining registered RPC boundaries rather than granting anonymous execution.
+
+### 11.8 Public availability-date projection
+
+The indirect relation is now characterized:
+
+- `property_public_booking_dates` is a table with RLS enabled and a SELECT policy for `anon` and `authenticated` using `true`; its exposed fields are the safe availability tuple `property_id, check_in, check_out`.
+- `property_public_booked_dates` is a public view owned by postgres that selects only those same three fields from the table. The view has an anon SELECT grant. It does not expose traveler identity, guest contact details, payment receipt paths, or booking IDs.
+- This is an intentional public availability projection, not permission to expose `bookings` or cancellation tables. Keep the projection limited to property/date fields; do not add guest fields or broaden it to full booking rows.
+- `sync_property_public_booking_dates()` deletes obsolete date tuples only when no other qualifying booking remains, and inserts qualifying tuples with conflict avoidance. Its current predicate requires approved property, non-test booking, confirmed/completed status, verified payment, positive deposit, non-empty receipt path, and payment verification timestamp.
+- Schema USAGE privileges exist for anon and authenticated on `public` and `graphql_public`. A direct read of the PostgREST schema setting through the database session returned NULL, so the actual Data API exposed-schema configuration remains unconfirmed and must be checked in project settings before choosing the private guest-routine schema.
+
+### 11.9 Newly confirmed guest compatibility blockers
+
+1. Guest booking insert cannot call the current `create_booking()`; its auth requirement and non-null traveler assignment are deliberate.
+2. Guest cancellation cannot call `request_booking_cancellation()`; requester identity is bound to `auth.uid()` and `requester_id` is populated from it.
+3. Guest payment cannot call `submit_payment_receipt()`; it requires a registered traveler UID and UID-prefixed object path.
+4. Owner rejection of a guest booking can currently fail at the notification insert because `respond_to_booking()` assumes `traveler_id` is non-NULL.
+5. Guest cancellation notifications need an explicit owner/admin recipient branch in `notify_booking_cancellation()`.
+6. The public availability projection is the only confirmed anon-readable booking-related surface in this inspection; core booking/cancellation tables remain protected by authenticated participant policies.
+
+These are design findings only. No SQL, policy, trigger, function, Storage, or data changes were applied.
