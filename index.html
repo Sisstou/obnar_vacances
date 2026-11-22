@@ -380,6 +380,122 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 .verification-detail-panel input[type=date]{max-width:190px}
 .verification-detail-panel button{margin:4px}
 @media(max-width:600px){.verification-table{font-size:12px}.verification-table th,.verification-table td{padding:9px 8px}}
+
+/* OBNAR VACANCES — coastal tourism visual refresh */
+#home .hero{
+  position:relative;
+  isolation:isolate;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  min-height:clamp(300px,42vw,470px);
+  padding:clamp(42px,7vw,82px) max(22px,calc((100% - 1120px)/2));
+  text-align:right;
+  background:
+    linear-gradient(90deg,rgba(5,35,53,.12) 0%,rgba(5,35,53,.68) 100%),
+    linear-gradient(0deg,rgba(5,35,53,.38),rgba(5,35,53,.12)),
+    url("https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=2000&q=85") center 52%/cover no-repeat;
+  border-radius:0 0 28px 28px;
+}
+#home .hero:after{
+  width:clamp(180px,28vw,340px);
+  height:clamp(180px,28vw,340px);
+  left:-95px;
+  bottom:-220px;
+  border-color:#ffffff35;
+  background:linear-gradient(145deg,#ffffff18,#69b9c222);
+}
+#home .hero h2{
+  color:#fff;
+  max-width:690px;
+  font-size:clamp(29px,4.3vw,48px);
+  line-height:1.28;
+  text-shadow:0 2px 18px #001b2c66;
+}
+#home .hero p{
+  color:#f0f7fa;
+  max-width:620px;
+  font-size:clamp(14px,1.5vw,17px);
+  line-height:1.9;
+  text-shadow:0 1px 10px #001b2c66;
+}
+#home .hero button{
+  background:linear-gradient(120deg,#e5c27d,#c49a50);
+  color:#102d46;
+  border:1px solid #fff5;
+  box-shadow:0 9px 24px #001b2c44;
+  min-height:48px;
+  padding:12px 23px;
+}
+#home .public-rentals-section{
+  max-width:1160px;
+  margin:24px auto 8px;
+  padding:0 16px;
+}
+#home .public-rentals-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
+#home .public-rentals-heading h2{
+  color:#102d46;
+  font-size:clamp(19px,2.4vw,24px);
+  margin:0;
+}
+#home .public-rentals-heading .secondary{
+  min-height:38px;
+  padding:8px 14px;
+}
+#home .destination-card{
+  overflow:hidden;
+  border:1px solid #e5e9e8;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(16,45,70,.09);
+}
+#home .destination-card img{
+  display:block;
+  width:100%;
+  aspect-ratio:16/10;
+  object-fit:cover;
+}
+#home .destination-info{padding:13px 15px 16px}
+#home .destination-info h3{color:#102d46;margin:0 0 5px;font-size:16px}
+#home .destination-info p{color:#657783;margin:0;font-size:13px;line-height:1.7}
+#home .home-cta{
+  margin:24px auto 8px;
+  max-width:1128px;
+  border-radius:22px;
+  background:linear-gradient(125deg,#0c3a55,#176b7b);
+  color:#fff;
+  padding:28px 18px;
+}
+#home .home-cta h3,#home .home-cta p{color:#fff}
+#home .home-cta p{opacity:.88}
+#home .home-cta button{
+  background:#e5c27d;
+  color:#102d46;
+}
+@media(max-width:600px){
+  #home .hero{
+    min-height:310px;
+    padding:38px 20px 32px;
+    border-radius:0 0 20px 20px;
+    background-position:center;
+  }
+  #home .hero h2{font-size:29px}
+  #home .hero p{font-size:14px;line-height:1.8}
+  #home .public-rentals-section{padding:0 12px;margin-top:19px}
+  #home .destination-info{padding:11px 12px 13px}
+  #home .home-cta{margin:18px 12px 8px}
+}
+@media(prefers-reduced-motion:reduce){
+  #home .destination-marquee-track{animation:none!important}
+}
+
 </style>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
