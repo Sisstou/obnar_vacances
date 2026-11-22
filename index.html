@@ -3280,6 +3280,89 @@ function exportAdminBookings(format){
 })();
 </script>
 
+
+<script>
+/* Owner, traveler follow-up, activity and admin dashboard translations. Static labels only. */
+(function(){
+ const entries = [
+  ['#ownerVerificationStatusArea h3','حالة توثيق حساب المالك','Statut de vérification du compte propriétaire'],
+  ['#ownerVerificationArea h3','طلب توثيق المالك','Demande de vérification du propriétaire'],
+  ['#ownerVerificationArea .small','ارفع وثيقة تثبت صفتك كمالك. لا يمكن نشر إقامة قبل موافقة الإدارة.','Téléversez un document prouvant votre qualité de propriétaire. Aucun logement ne peut être publié avant validation par l’administration.'],
+  ['#ownerVerificationArea button','إرسال طلب التوثيق','Envoyer la demande de vérification'],
+  ['#ownerPropertyArea > h3','🏠 إضافة إقامة جديدة','🏠 Ajouter un nouveau logement'],
+  ['#ownerPropertyArea > p.small','أدخل المعلومات الأساسية أولاً، ثم حدد السعة والمزايا وأضف الصور.','Saisissez d’abord les informations essentielles, puis la capacité, les équipements et les photos.'],
+  ['#ownerImagesArea h3','🖼️ إدارة صور إقاماتي','🖼️ Gérer les photos de mes logements'],
+  ['#ownerImagesArea button','تحديث الإقامات والصور','Actualiser les logements et les photos'],
+  ['#ownerBookingArea > h3','📅 طلبات الحجوزات','📅 Demandes de réservation'],
+  ['#ownerBookingArea > button','عرض طلبات الحجوزات','Afficher les demandes de réservation'],
+  ['#ownerBookingExport h4','📥 تحميل ملف حجوزات إقاماتي','📥 Télécharger le fichier des réservations de mes logements'],
+  ['#ownerBookingExport p.small','يشمل حجوزات جميع إقاماتك فقط، ويمكن اختيار سنة الوصول.','Ce fichier comprend uniquement les réservations de vos logements. Vous pouvez choisir l’année d’arrivée.'],
+  ['#ownerBookingExport label','السنة','Année'],
+  ['#ownerBookingExport button[onclick*="xlsx"]','تحميل Excel','Télécharger Excel'],
+  ['#ownerBookingExport button[onclick*="pdf"]','طباعة / حفظ PDF','Imprimer / Enregistrer en PDF'],
+  ['#travelerBookingArea > h3','📋 حجوزاتي','📋 Mes réservations'],
+  ['#travelerBookingArea button','عرض حجوزاتي','Afficher mes réservations'],
+  ['#verificationCenter h2','📄 مركز التوثيقات','📄 Centre des vérifications'],
+  ['#verificationCenter > .panel > p.small','وثائق المالكين ووثائق الإقامات، مفصولة حسب تاريخ انتهاء الصلاحية.','Documents des propriétaires et des logements, classés selon leur date d’expiration.'],
+  ['#verificationCenter button','تحديث التوثيقات','Actualiser les vérifications'],
+  ['#verificationCenter h3:nth-of-type(1)','👤 وثائق المالكين','👤 Documents des propriétaires'],
+  ['#verificationCenter h3:nth-of-type(2)','🏠 وثائق الإقامات','🏠 Documents des logements'],
+  ['#verificationCenter h4:nth-of-type(1)','منتهية الصلاحية','Expirés'],
+  ['#verificationCenter h4:nth-of-type(2)','غير منتهية الصلاحية','Non expirés'],
+  ['#verificationCenter h4:nth-of-type(3)','منتهية الصلاحية','Expirés'],
+  ['#verificationCenter h4:nth-of-type(4)','غير منتهية الصلاحية','Non expirés'],
+  ['#adminDashboard h2','لوحة تحكم المدير الرئيسي','Tableau de bord de l’administrateur principal'],
+  ['#adminDashboard details:nth-of-type(1) summary','👤 طلبات توثيق المالكين','👤 Demandes de vérification des propriétaires'],
+  ['#adminDashboard details:nth-of-type(1) button','عرض طلبات التوثيق','Afficher les demandes de vérification'],
+  ['#adminDashboard details:nth-of-type(2) summary','📋 الحجوزات ومؤشرات الدفع','📋 Réservations et indicateurs de paiement'],
+  ['#adminDashboard details:nth-of-type(2) h3','📊 مؤشرات الحجوزات والدفع','📊 Indicateurs des réservations et des paiements'],
+  ['#adminDashboard details:nth-of-type(2) h3:nth-of-type(2)','متابعة جميع الحجوزات','Suivi de toutes les réservations'],
+  ['#adminDashboard details:nth-of-type(2) label','تصفية الحجوزات','Filtrer les réservations'],
+  ['#adminDashboard details:nth-of-type(2) button[onclick="loadAdminBookings()"]','تحديث بيانات الحجوزات','Actualiser les données des réservations'],
+  ['#adminDashboard details:nth-of-type(3) summary','↩️ طلبات إلغاء الحجوزات والاسترداد','↩️ Demandes d’annulation et de remboursement'],
+  ['#adminDashboard details:nth-of-type(3) button','عرض طلبات الإلغاء','Afficher les demandes d’annulation'],
+  ['#adminDashboard details:nth-of-type(4) summary','🏪 طلبات الأنشطة التجارية','🏪 Demandes des activités commerciales'],
+  ['#adminDashboard details:nth-of-type(4) p.small','راجع بيانات النشاط وصوره، ثم وافق على نشره أو ارفضه مع توضيح السبب.','Vérifiez les informations et les photos de l’activité, puis approuvez ou refusez sa publication en indiquant le motif.'],
+  ['#adminDashboard details:nth-of-type(4) button','عرض طلبات الأنشطة التجارية','Afficher les demandes des activités commerciales'],
+  ['#adminDashboard details:nth-of-type(5) summary','🏘️ طلبات الإقامات الجديدة','🏘️ Demandes de nouveaux logements'],
+  ['#adminDashboard details:nth-of-type(5) button','عرض الإقامات المنتظرة للمراجعة','Afficher les logements en attente de vérification']
+ ];
+ const options = [
+  ['#adminBookingFilter','active','الحجوزات النشطة والإجراءات المطلوبة','Réservations actives et actions requises'],
+  ['#adminBookingFilter','awaiting_admin_approval','بانتظار موافقة الإدارة','En attente de validation par l’administration'],
+  ['#adminBookingFilter','awaiting_payment','بانتظار التسبيق','En attente de l’acompte'],
+  ['#adminBookingFilter','receipt_submitted','وصولات تنتظر التحقق','Justificatifs en attente de vérification'],
+  ['#adminBookingFilter','pending','بانتظار رد المالك','En attente de la réponse du propriétaire'],
+  ['#adminBookingFilter','verified','حجوزات تم التحقق من دفعها','Réservations dont le paiement est vérifié'],
+  ['#adminBookingFilter','archive','السجل السابق: ملغاة ومرفوضة ومكتملة','Archives : annulées, refusées et terminées'],
+  ['#adminBookingFilter','cancelled','الحجوزات الملغاة فقط','Réservations annulées uniquement'],
+  ['#adminBookingFilter','rejected','الحجوزات المرفوضة فقط','Réservations refusées uniquement'],
+  ['#adminBookingFilter','completed','الحجوزات المكتملة فقط','Réservations terminées uniquement'],
+  ['#adminBookingFilter','all','كل حجوزات الإطلاق (بما فيها السجل السابق)','Toutes les réservations de production (archives incluses)'],
+  ['#adminBookingFilter','test','بيانات الاختبار المعزولة','Données de test isolées']
+ ];
+ function lang(){try{return localStorage.getItem('obnar-language')==='fr'?'fr':'ar';}catch(e){return 'ar';}}
+ function apply(){
+  const fr=lang()==='fr';
+  entries.forEach(([sel,ar,french])=>{
+   document.querySelectorAll(sel).forEach(el=>{
+    const wanted=fr?french:ar;
+    if(el.textContent.trim()!==wanted && (el.textContent.trim()===ar || el.textContent.trim()===french)) el.textContent=wanted;
+   });
+  });
+  options.forEach(([sel,value,ar,french])=>{
+   const el=document.querySelector(sel+' option[value="'+value+'"]');
+   if(el){const wanted=fr?french:ar;if(el.textContent!==wanted && (el.textContent===ar||el.textContent===french))el.textContent=wanted;}
+  });
+ }
+ apply();
+ document.addEventListener('click',e=>{if(e.target.closest('#ovLangAr,#ovLangFr'))setTimeout(apply,0);});
+ const roots=['#account','#verificationCenter','#adminDashboard'];
+ const observer=new MutationObserver(()=>apply());
+ roots.forEach(sel=>{const el=document.querySelector(sel);if(el)observer.observe(el,{childList:true,subtree:true});});
+})();
+</script>
+
 </body></html>');
   win.document.close();setAdminBookingExportStatus('تم فتح نافذة الطباعة لحفظ '+rows.length+' حجزاً بصيغة PDF.');
  }
