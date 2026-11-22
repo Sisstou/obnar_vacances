@@ -148,3 +148,58 @@ The current `index.html` has traveler-dependent code in the admin booking card/e
 7. Only after the above passes, request explicit approval to apply to staging. Production requires separate explicit approval.
 
 No migration, Edge Function, database write, deployment, or guest-facing UI change has been performed as part of this audit.
+
+
+## Payment, storage, cancellation-history and authorization audit — 22 November 2026
+
+### Payment receipt storage
+
+- The `payment-receipts` bucket is private, with a 5 MiB limit and MIME allowlist for JPEG, PNG, WebP and PDF.
+- Current upload object names are `<traveler_auth_uid>/<booking_id>/<timestamp>-<filename>`.
+- The `traveler_upload_payment_receipt` INSERT policy requires a non-null `bookings.traveler_id` equal to `auth.uid()`, a matching first path segment, `awaiting_payment` status, and unpaid/rejected payment status.
+- The read policy also assumes the first path segment equals `bookings.traveler_id`, then permits the traveler, property owner or main admin.
+- `submit_payment_receipt(uuid,text)` requires an authenticated user and matches both booking.traveler_id and the storage path prefix to `auth.uid()`. It updates payment status and sends notifications to owner/admin.
+- Owner and admin browser screens generate signed URLs directly through Storage. Guest receipt objects therefore need a distinct server-generated path and narrowly scoped owner/admin read authorization. The guest secret must never be used as a storage path or placed in the object name.
+- The preferred guest upload design is a server-authorized Edge Function that validates reference + secret + booking payment state and uploads to the existing private bucket using a server-only secret key. The guest should not receive direct bucket table permissions. Owner/admin access should be constrained to the matching booking and property owner/main-admin identity. Do not loosen the existing authenticated traveler policy globally.
+
+### Cancellation records and history
+
+- `booking_cancellations.requester_id` is NOT NULL and references `auth.users(id)`.
+- `requester_role` currently permits only `traveler` and `owner`.
+- `booking_cancellation_history.actor_id` is nullable and references `auth.users(id)`; however, `actor_role` currently permits only `traveler`, `owner`, `admin`, and `system`. A guest actor role requires a deliberate constraint and history-policy update.
+- The cancellation-history participant read policy currently recognizes the booking traveler, property owner and main admin. It has no guest-secret authorization path; public table reads must remain disabled.
+- The cancellation notification trigger routes traveler/owner/admin notifications and relies on booking/requester user IDs. Guest requests must notify the property owner and main admin as appropriate without attempting a notification to a null traveler/requester user ID.
+- The current cancellation request routine is authenticated-only. It calculates the five-day rule, urgent mismatch escalation and 48-hour owner review. The guest cancellation endpoint must preserve those branches exactly and must not directly mutate cancellation status from the browser.
+- The current admin review workflow contains a distinct branch for an owner-approved exceptional cancellation where refund eligibility remains for main-admin decision. Guest handling must preserve this separation.
+- The old `cancel_booking_by_traveler(uuid)` routine is not granted to `authenticated` in the inspected staging ACL and must not be revived as a guest cancellation path.
+
+### Frontend dependency map
+
+- Admin booking list loads `traveler_id`, then fetches profiles by traveler IDs; rendering and CSV/XLSX export currently derive traveler name/phone from profiles. For guest bookings, admin query/render/export must read guest contact fields only through the existing admin RLS-authorized booking query.
+- Owner booking list currently does not select traveler_id, guest name or guest phone. It needs an authorized guest display branch and secure receipt link generation for guest receipt paths.
+- Traveler dashboard filters by `traveler_id = currentUser.id`. Keep this filter unchanged; guest follow-up is a separate reference + secret server request.
+- Traveler payment upload and cancellation currently call authenticated RPCs. Do not reuse those calls for guests.
+- Guest booking UI must remain hidden until server creation, follow-up, cancellation and receipt paths are complete and tested.
+
+### Edge Functions and grants
+
+- Staging currently has no deployed Edge Functions.
+- The twelve inspected booking-related functions are SECURITY DEFINER with a fixed search_path. Most application RPCs grant EXECUTE to `authenticated`; trigger functions are postgres-only. The old traveler cancellation and unpaid-expiry routines are not directly executable by authenticated users.
+- The staging security advisor reports 12 SECURITY DEFINER functions executable by authenticated users, including admin review RPCs. This is a warning, not by itself proof of privilege escalation: each callable routine must retain explicit internal authorization checks. Keep admin-only routines guarded by the main-admin check and owner routines guarded by property ownership. The guest implementation must not add anonymous EXECUTE on these existing public RPCs.
+- The security advisor also reports leaked-password protection disabled. This is an existing Auth configuration warning, separate from the guest booking feature.
+- The current private Storage bucket design supports server-side uploads from Edge Functions using a server-only secret key. No key may be included in `index.html`, public repository files, responses, analytics or logs.
+
+### Required coordinated changes before implementation is approved
+
+1. Add guest identity columns and a strict identity-mode constraint to bookings, preserving all existing registered rows.
+2. Add guest access records with high-entropy random secret, hash-at-rest, expiry, revocation and database-backed throttling. No plaintext secret persistence.
+3. Add an explicit guest linkage to cancellation requests while keeping authenticated requester attribution intact; update requester-role and history-role constraints and participant policies.
+4. Update all booking/cancellation/payment/expiry/notification routines and triggers that assume traveler_id is present. Keep one cancellation ledger and one bookings ledger.
+5. Add a server-only guest booking Edge Function and guest access/follow-up/cancellation/payment endpoints. Do not deploy until source review and tests pass.
+6. Add secure guest receipt upload and owner/admin receipt retrieval without granting guests direct Storage read or table access.
+7. Update owner/admin rendering, export, notification display and payment receipt access. Keep the traveler dashboard's authenticated query unchanged.
+8. Review all function EXECUTE grants and internal authorization checks. Do not treat SECURITY DEFINER warnings as harmless without inspecting each routine.
+9. Test SQL on a disposable local database or isolated test project, including registered-user regression, guest booking concurrency, no-overlap constraint, secret expiry/revocation, request throttling, payment receipt access, owner 48-hour response and main-admin refund review.
+10. Only after those checks pass, prepare a CLI-generated migration and request explicit approval before applying it to staging. Production requires separate approval.
+
+No database DDL, migration application, Edge Function deployment, Storage policy change, production change or guest-facing UI change has been made.
