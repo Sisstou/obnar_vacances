@@ -106,3 +106,45 @@ The Edge Function must use server-only credentials. Never ship the service-role 
 - The bookings table has notification, payment-confirmation, test-booking-guard and public-date-sync triggers.
 - Multiple lifecycle routines reference `traveler_id`; these must be adapted before allowing null traveler ids.
 - No database changes or deployment were performed as part of this design.
+
+
+## Staging implementation audit — 22 November 2026
+
+This section records verified staging findings. It does not authorize or apply schema changes.
+
+### Confirmed schema blockers
+
+- `public.bookings.traveler_id` is currently `NOT NULL`; the guest path cannot be inserted until this is changed with a strict identity-mode constraint.
+- `public.booking_cancellations.requester_id` is also `NOT NULL`. Guest cancellation requests therefore need an explicit guest identity linkage (for example, a nullable requester_id plus a guest-access reference), while preserving authenticated requester attribution.
+- `public.booking_cancellation_history.actor_id` is nullable already, so a guest-originated event can be represented without inventing a user account; the actor role/action still need explicit guest values and policy review.
+- `public.notifications.user_id` is `NOT NULL`. Guest notifications cannot be represented as user notifications. Guest creation must skip traveler notification and still notify the property owner and main admin where applicable.
+- Existing `booking_cancellations` workflow stores requester role, owner-response deadline, refund eligibility and execution state. The guest path must enter this same workflow; it must not create a parallel cancellation ledger.
+- The existing booking exclusion constraint and property-level advisory lock in `create_booking` must be retained. Both remain necessary: the exclusion constraint is the final database-level overlap guard.
+
+### Confirmed routine behavior requiring coordinated changes
+
+- `create_booking(uuid,date,date,integer)` currently requires `auth.uid()`, verifies approved property, owner exclusion, capacity and server-side price/commission, obtains a per-property advisory transaction lock, checks active overlaps, and inserts one booking. A separate guest-only server entry point should reuse the same transactional invariants rather than accepting client-supplied totals.
+- `notify_new_booking()` unconditionally inserts a notification for `NEW.traveler_id`; this will violate the notifications NOT NULL constraint for guest rows unless the traveler insert is conditional. Owner and main-admin notification behavior must remain.
+- `notify_booking_cancellation()` routes notifications using the authenticated requester and traveler IDs. Guest requests need to notify the owner/admin without assuming a traveler user ID.
+- `request_booking_cancellation(uuid,text,text)` currently authenticates with `auth.uid()`, determines traveler/owner role, locks the booking and property, and implements the existing immediate-cancel / owner-review / admin-review paths. A guest endpoint must validate the guest secret before invoking an equivalent tightly scoped transition.
+- `respond_to_booking(uuid,text)` notifies the traveler directly after owner rejection. It must skip that user notification for guests while preserving owner decision rules.
+- Admin cancellation/refund routines notify traveler and owner using booking.traveler_id. Guest bookings must not break those operations; the owner and main-admin controls and refund decision rules remain unchanged.
+- The current `cancel_booking_by_traveler(uuid)` routine contains a separate older cancellation path with a seven-day threshold. It must not be used for guest bookings or silently override the current cancellation-request workflow. Its use by the UI and grants must be checked before any change.
+- Admin/owner screens in `index.html` resolve traveler profile data through `traveler_id`; guest bookings need a safe guest display branch. The admin export currently derives name/phone from profiles only. Owner booking retrieval does not select guest contact fields yet.
+- The traveler dashboard filters bookings by `traveler_id = currentUser.id`, which should remain unchanged; guest follow-up must use the server-side reference+secret endpoint, not broaden public table reads.
+
+### Frontend locations identified
+
+The current `index.html` has traveler-dependent code in the admin booking card/export and profile lookup, owner booking retrieval, traveler dashboard query, payment receipt RPC, cancellation RPC, and `create_booking` call. In particular, the booking submit path currently invokes the authenticated `create_booking` RPC, so the guest form must not be exposed until the guest Edge Function and database transaction are ready.
+
+### Work still required before a migration can be called complete
+
+1. Finish extracting and reviewing all twelve routine definitions, trigger definitions, RLS policies, table constraints, cancellation history, storage policies for payment receipts, and any views/reports referencing `traveler_id`.
+2. Inspect the complete owner/admin JavaScript query and rendering paths, including export and payment/refund proof upload.
+3. Design the exact guest linkage for cancellation rows and history, including storage object ownership for guest payment receipts.
+4. Write a single coherent migration that updates every dependent function/trigger/policy and preserves the existing registered-user behavior. Do not ship a partial migration.
+5. Add Edge Function source with server-only credentials, cryptographic secret generation/hash verification, atomic database-backed rate limiting, generic lookup failures, and no sensitive values in logs.
+6. Validate SQL against a disposable local database or equivalent migration test environment, run regression tests for registered bookings, and test guest concurrency, access-secret expiry/revocation, cancellation timing, 48-hour owner response, and admin refund review.
+7. Only after the above passes, request explicit approval to apply to staging. Production requires separate explicit approval.
+
+No migration, Edge Function, database write, deployment, or guest-facing UI change has been performed as part of this audit.
