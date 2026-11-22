@@ -218,3 +218,40 @@ A targeted scan of the complete staging definitions found several direct notific
 - `expire_unpaid_bookings()` already builds a recipient set and filters null user IDs, but the guest booking still needs an appropriate guest status lookup mechanism outside notifications.
 
 The main-admin checks were confirmed inside the four admin review functions inspected. The owner response routine checks property ownership. The ordinary booking/cancellation/payment RPCs require an authenticated user and must remain distinct from the guest secret-authorized endpoints.
+
+## Frontend and relational-integrity audit — 22 November 2026
+
+### Current frontend dependencies in `index.html`
+
+- The existing booking submission still calls authenticated `create_booking` with `p_property_id`, dates and guest count. This must remain the registered-user path; do not route guest submissions through this RPC.
+- The traveler dashboard selects bookings using `traveler_id = currentUser.id`, then calls authenticated cancellation and payment-receipt RPCs. Keep this path unchanged for registered travelers.
+- The traveler receipt upload writes to `payment-receipts` under `<auth.uid>/<booking_id>/<timestamp>-<filename>` and then calls `submit_payment_receipt`. This must not be generalized to guest users.
+- Admin booking retrieval selects `traveler_id`, resolves traveler names/phones from `profiles`, and uses those profile records in the booking cards and XLSX/PDF export. A guest branch must instead use the guest contact columns already returned by the admin-authorized bookings query; it must not attempt a profile lookup for a null traveler.
+- Owner booking retrieval currently selects neither `traveler_id` nor guest contact fields. Its booking cards and receipt display rely on the booking row and a signed URL from the private bucket. The owner query will need the guest display fields, and must still be constrained by property ownership through existing RLS.
+- Owner export currently includes booking/property/financial/date fields, but no traveler name or phone. Decide explicitly whether guest contact details belong in owner exports; do not silently expand personal-data export scope.
+- Admin and owner receipt buttons create short-lived signed URLs directly from the private `payment-receipts` bucket. Guest receipt upload must use a server endpoint; the existing owner/admin signed-URL path can remain only if the Storage read policy authorizes the new guest object path to the booking's owner/admin.
+- Cancellation request UI currently calls `request_booking_cancellation` through authenticated RPC. Guest cancellation must use the secret-authorized server endpoint and must not expose a public RPC or broaden the existing authenticated function.
+
+### Relational constraints and policy findings
+
+- `bookings.traveler_id` is currently NOT NULL and references `profiles(id)`. A guest-capable schema needs a deliberate identity-mode constraint that prevents rows with neither a registered traveler nor valid guest identity.
+- The two exclusion constraints, including `no_overlapping_bookings`, must be preserved. `create_booking` also serializes same-property attempts with `pg_advisory_xact_lock`; the guest creation transaction must preserve that lock and rely on the exclusion constraint as the final concurrency guard.
+- `booking_cancellations.requester_id` is NOT NULL and references `auth.users(id)`; its role check allows only `traveler` and `owner`. Guest cancellation needs a separate nullable guest attribution/linkage without inventing an auth user or weakening registered-user attribution.
+- `booking_cancellations_booking_id_key` is UNIQUE. This currently allows at most one cancellation row per booking, including after a request has been rejected. The guest design must preserve the one-ledger approach but explicitly decide whether the existing one-request lifecycle is intentional; do not drop the uniqueness constraint without a reviewed repeat-request policy.
+- `booking_cancellation_history.actor_id` is nullable, but `actor_role_check` currently allows only `traveler`, `owner`, `admin`, and `system`. Guest actions need an explicit role value and carefully constrained history creation; history remains inaccessible to anonymous direct reads.
+- Existing RLS policies expose bookings, cancellation requests and cancellation history only to authenticated participants and the main admin. Storage policies for payment receipts assume the first object-path segment is the authenticated traveler UUID and the second is the booking UUID. These policies must not be loosened for anonymous access.
+- The current cancellation notification trigger routes to the owner, main admin and traveler/requester recipients. Guest lifecycle transitions must skip null user recipients while preserving owner/admin notification delivery.
+- No public views referencing bookings were found in the inspected `public.pg_views` set. The current participant policies do not authorize a guest by possession of a booking reference; the guest secret must be checked server-side.
+
+### Routine behavior confirmed in this pass
+
+- `create_booking` validates authentication, property approval, capacity, dates, owner self-booking, pricing and overlapping active bookings; it uses a property advisory transaction lock before inserting.
+- `request_booking_cancellation` currently requires an authenticated requester and preserves the five-day full-refund rule, urgent material-mismatch admin escalation, and 48-hour owner review for late exceptional requests. Guest cancellation must reproduce this policy without bypassing the owner/admin decision states.
+- `respond_to_booking` checks property ownership, but its rejection path inserts a notification addressed to the traveler without a null-recipient guard. This is a transaction-failure risk for guest bookings unless updated.
+- The admin cancellation-review routine verifies the main-admin identity internally and filters null notification recipients. The other admin review routines must retain their own main-admin checks and be revalidated after any coordinated changes.
+- `submit_payment_receipt` requires authentication, a booking owned by `auth.uid()`, and an object path prefixed with that UUID. It remains a registered-traveler-only RPC.
+- Security Advisor currently reports 12 SECURITY DEFINER routines executable by authenticated users, plus leaked-password protection disabled. These are existing warnings; do not grant anonymous execution to any existing booking, cancellation, payment or admin RPC.
+
+### Implementation boundary
+
+This remains a read-only audit. No schema, policy, function, trigger, Storage object, Edge Function, deployment, production configuration or guest-facing UI was changed. The next implementation artifact must be a coordinated design/source change, followed by a CLI-generated migration and isolated regression testing. Staging application still requires explicit approval; production requires separate approval.
