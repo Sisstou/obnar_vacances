@@ -174,3 +174,78 @@ The guest routine must reuse the same state machine semantics, not create a para
 This is a design document only. No SQL has been executed for DDL, no migration file has been created, no staging data has been changed, no Edge Function has been deployed, no secrets or Storage policies have been changed, and production has not been touched.
 
 A separate explicit confirmation is required before applying any migration to staging. A separate approval is required before production.
+
+## 11. Dependency inventory — read-only staging audit (22 November 2026)
+
+### 11.1 Direct function references to `bookings.traveler_id`
+
+The catalog scan found these public functions with direct textual references to `traveler_id` (function bodies were inspected by catalog search; this list is a dependency inventory, not a complete semantic review):
+
+- `admin_review_booking_cancellation(uuid,text,text,text)`
+- `admin_review_owner_booking(uuid,text,text)`
+- `admin_review_payment_receipt(uuid,text,text)`
+- `admin_review_refund_execution(uuid,text,text)`
+- `cancel_booking_by_traveler(uuid)`
+- `create_booking(uuid,date,date,integer)`
+- `expire_unpaid_bookings()`
+- `notify_booking_cancellation()`
+- `notify_new_booking()`
+- `request_booking_cancellation(uuid,text,text)`
+- `respond_to_booking(uuid,text)`
+- `submit_payment_receipt(uuid,text)`
+
+**Migration consequence:** each function must be checked for assumptions that a booking always has a traveler. In particular, admin payment review, expiration, owner response, cancellation history/notification, and receipt processing must retain their current registered-user behavior while taking the guest branch only where explicitly intended. Do not broadly rewrite these routines as a batch.
+
+### 11.2 Views
+
+The direct catalog scan did not find a public view definition containing a direct reference to `bookings` or `traveler_id`. The public view `property_public_booked_dates` selects from `property_public_booking_dates`; the latter relation and its synchronization trigger/function must be reviewed as an indirect dependency. No view change is authorized by this audit.
+
+### 11.3 RLS on booking-related tables
+
+Read-only policy inspection found:
+
+- `bookings`: participant SELECT policy for authenticated users (main admin, traveler, or property owner) and main-admin UPDATE policy. No direct anon policy was observed.
+- `booking_cancellations`: authenticated SELECT policy for main admin, requester, traveler, or property owner. No direct anon policy was observed.
+- `booking_cancellation_history`: authenticated SELECT policy for main admin, traveler, or property owner. No direct anon policy was observed.
+- `notifications`: authenticated users can read/update their own notifications.
+
+RLS is enabled on these tables in the inspected project. Guest access must not be implemented by adding an anon SELECT/INSERT/UPDATE/DELETE policy. Guest operations remain server-mediated and use narrowly scoped routines.
+
+**Important follow-up:** participant policies currently depend on `traveler_id = auth.uid()`; when traveler_id becomes nullable, guest identity must not accidentally match registered-user predicates. Owner/admin visibility of guest contact fields requires a separate authorized projection and must not expose guest columns through broad participant reads.
+
+### 11.4 Triggers
+
+The following triggers were confirmed:
+
+- `bookings.trg_notify_new_booking` — AFTER INSERT, calls `notify_new_booking()`.
+- `bookings.sync_property_public_booking_dates` — AFTER INSERT/UPDATE/DELETE, calls `sync_property_public_booking_dates()`.
+- `bookings.bookings_require_verified_payment` — BEFORE INSERT/UPDATE, calls `enforce_booking_confirmation_payment()`.
+- `bookings.guard_test_booking_mutation` — BEFORE UPDATE/DELETE.
+- `booking_cancellations.trg_notify_booking_cancellation` — AFTER INSERT, calls `notify_booking_cancellation()`.
+- `booking_cancellations.guard_test_booking_cancellation_mutation` — BEFORE INSERT/UPDATE/DELETE.
+- `booking_cancellation_history.protect_cancellation_history` — BEFORE UPDATE/DELETE.
+
+All trigger functions must be regression-tested. In particular, the booking date synchronization and payment enforcement triggers must continue to behave identically for registered bookings. Test-data guards and append-only cancellation history must remain intact.
+
+### 11.5 Storage
+
+The `payment-receipts` bucket is confirmed private, with a 5 MiB file-size limit and allowlist of JPEG, PNG, WebP, and PDF.
+
+The existing Storage policies are:
+- `traveler_upload_payment_receipt`: authenticated insert only, requires the object path to start with the authenticated traveler UID and match an eligible booking owned by that traveler.
+- `payment_receipt_participants_read`: authenticated read for the matching traveler, property owner, or main admin, with path and booking linkage checks.
+
+These policies are registered-user specific and must remain unchanged for the guest feature. Guest receipt upload must use a server-only controlled upload/attachment route; do not add anon Storage policies or relax the current path ownership rule.
+
+### 11.6 Remaining dependency work
+
+The audit is not yet sufficient to generate a safe migration. Still required:
+- inspect complete bodies and EXECUTE grants for all 12 functions above, plus called helper functions;
+- inspect the full `property_public_booking_dates` relation definition and `sync_property_public_booking_dates()` body;
+- inspect every view/query used by the actual owner/admin/traveler frontend, including any client-side joins not represented as database views;
+- inspect all booking-related RLS policies beyond the four core tables (properties, profiles, payment/refund tables);
+- confirm actual Data API exposed schemas and privileges before selecting the private guest-routine schema;
+- test current rows and existing test fixtures against the proposed identity CHECK.
+
+No schema, RLS, Storage, function, trigger, or data changes were made during this audit.
+
