@@ -76,6 +76,31 @@ All endpoints accept HTTPS POST with JSON except receipt upload, which accepts m
 - Preserve owner/admin-only receipt access and current payment review logic.
 - Never provide guest direct Storage read access or a permanent public URL.
 
+## Staging schema audit — findings and required design
+
+Read-only inspection of staging project `rhxeclddohpwtpzkruzm` confirmed the following current-state constraints. These are findings, not changes.
+
+- `bookings.traveler_id` is NOT NULL and references `profiles(id)`; guest rows cannot be inserted as-is.
+- `booking_cancellations.requester_id` is NOT NULL and references `auth.users(id)`; `requester_role` currently permits only `traveler` and `owner`.
+- `booking_cancellation_history.actor_id` is nullable, but `actor_role` currently permits only `traveler`, `owner`, `admin`, and `system`.
+- `notifications.user_id` is NOT NULL. The existing `notify_new_booking()` trigger inserts a traveler notification unconditionally using `NEW.traveler_id`; a guest booking with a null traveler would fail unless this trigger is changed to skip the traveler notification while preserving owner/admin notifications.
+- The existing `booking_cancellations_booking_id_key` enforces one cancellation row per booking. Preserve this single-request lifecycle in the first guest release; a rejected request does not create a second cancellation row.
+- Existing active-booking exclusion constraints and `create_booking()` property advisory locking must remain in force.
+- Existing `submit_payment_receipt()` requires an authenticated traveler and a Storage path beginning with that traveler's auth UID. It must not be loosened for guests. Guest receipt uploads need a separate server-only path and narrowly scoped attachment routine.
+- Existing SECURITY DEFINER routines have explicit role grants in several cases. New guest database routines must not be placed in the exposed `public` schema as broadly executable SECURITY DEFINER functions.
+
+### Required schema shape (design only; not applied)
+
+1. Permit `bookings.traveler_id` to be NULL while retaining its FK. Add nullable guest identity fields (`guest_name`, `guest_phone`), a unique opaque `booking_reference`, `guest_access_secret_hash`, `guest_access_expires_at`, and `guest_access_revoked_at`.
+2. Add a check constraint enforcing exactly one booking identity mode: either a registered traveler (`traveler_id` set and guest identity absent) or a guest (traveler ID absent and required guest name/phone/reference/hash present). Test bookings and existing rows must remain valid.
+3. Make `booking_cancellations.requester_id` nullable and add `guest` to its requester-role check. A guest cancellation must be created only through the authorized server routine; no guest table policy is added.
+4. Add `guest` to the cancellation-history actor-role check. Guest history rows use a NULL `actor_id` and a safe guest actor role; never put the guest's phone or secret in history.
+5. Update `notify_new_booking()` so the traveler notification is inserted only when `NEW.traveler_id` is not NULL. Owner and main-admin notifications continue for guest bookings.
+6. Keep guest contact fields out of public views and traveler-facing registered-user queries. Only the assigned owner and main admin may see guest contact data in their authorized interfaces. Do not add guest contact data to exports in this phase.
+7. Do not add guest access to `storage.objects` policies. A server-only Edge Function uploads to the existing private bucket and calls a private attachment routine after authorization and validation.
+
+The booking identity check, reference uniqueness, cancellation FK/role changes, notification trigger behavior, and all relevant views/RPC grants must be reviewed together in one migration. Do not relax RLS or expose raw guest columns through the Data API.
+
 ## Database RPC contract required before handlers are completed
 
 The Edge Functions must call purpose-built, tightly scoped database routines (names are placeholders, not existing functions):
