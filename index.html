@@ -496,6 +496,13 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
   #home .destination-marquee-track{animation:none!important}
 }
 
+
+/* Accessible Arabic/French language selector */
+.ov-language-switch{position:absolute;top:14px;left:max(16px,calc((100% - 1160px)/2));z-index:3;display:flex;gap:5px;padding:4px;border:1px solid #ffffff40;border-radius:999px;background:#062c45a8;backdrop-filter:blur(8px)}
+.ov-language-switch button{min-height:34px;margin:0;padding:6px 12px;border:1px solid transparent;border-radius:999px;background:transparent;color:#fff;font-size:12px;box-shadow:none}
+.ov-language-switch button.active{background:#e5c27d;color:#102d46}
+@media(max-width:600px){.ov-language-switch{top:10px;left:12px}.ov-language-switch button{min-height:30px;padding:5px 9px;font-size:11px}}
+
 </style>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
@@ -509,6 +516,10 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <header>
 <h1>OBNAR VACANCES</h1>
 <p>منصتك لحجز العطلات والإقامات في أولاد بونار وجيجل</p>
+<div class="ov-language-switch" role="group" aria-label="Language">
+<button type="button" id="ovLangAr" class="active" aria-pressed="true">العربية</button>
+<button type="button" id="ovLangFr" aria-pressed="false">Français</button>
+</div>
 </header>
 
 <nav aria-label="التنقل الرئيسي">
@@ -3078,6 +3089,100 @@ function exportAdminBookings(format){
       window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch((error) => console.warn("PWA registration:", error)));
     }
   </script>
+
+<script>
+/* OBNAR bilingual public homepage: does not alter booking/account workflows. */
+(function(){
+ const translations={
+  ar:{
+   tagline:'منصتك لحجز العطلات والإقامات في أولاد بونار وجيجل',
+   nav:['🏠 الإقامات','🏪 نشاطات الحي','👤 التسجيل / الدخول'],
+   heroTitle:'اعثر على إقامتك في أولاد بونار وجيجل 🌊',
+   heroText:'تصفح الإقامات المعروضة للكراء، اكتشف التفاصيل، واختر المكان المناسب لعطلتك. التصفح متاح للجميع دون تسجيل.',
+   heroButton:'عرض جميع الإقامات والبحث',
+   rentals:'🏡 إقامات معروضة للكراء',all:'عرض الكل',loading:'جارٍ تحميل الإقامات...',
+   introTitle:'أولاد بونار وما حولها',
+   introText:'منطقة ساحلية غرب مدينة جيجل، تجمع بين البحر والطبيعة وقربها من مرافق ووجهات ترفيهية متنوعة.',
+   nearbyTitle:'وجهات طبيعية وسياحية قريبة من جيجل',
+   nearbyText:'لمن يرغب في توسيع جولته خارج أولاد بونار، توجد وجهات أخرى في ولاية جيجل تستحق التعرف عليها.',
+   safety:'🏊‍♂️ السلامة أولاً: السباحة تكون في الشواطئ المسموح بها وتحت إشراف الحراسة والإنقاذ، مع احترام الرايات وتعليمات أعوان الشاطئ والمحافظة على نظافة المكان.',
+   ctaTitle:'خططوا لعطلتكم في جيجل',ctaText:'تصفحوا الإقامات المتاحة في أولاد بونار وجيجل واختاروا ما يناسبكم.',ctaButton:'البحث عن سكن',
+   destinations:[
+    ['شاطئ أولاد بونار','وجهة للاستجمام والاستمتاع بأجواء البحر خلال موسم الاصطياف.'],
+    ['الخليج الصغير – لا كريك','خليج ساحلي بطابع طبيعي وإطلالة بحرية جميلة.'],
+    ['شاطئ المنار الكبير','من الوجهات الساحلية المعروفة في محيط جيجل.'],
+    ['شاطئ كتامة','شاطئ قريب من وسط مدينة جيجل، مناسب للتنزه والاستمتاع بالواجهة البحرية.'],
+    ['وسط مدينة جيجل','للتجول والتسوق والتعرف على أجواء المدينة ومرافقها.'],
+    ['حديقة الحيوانات','وجهة ترفيهية عائلية في منطقة كسير العوانة؛ يُنصح بالتحقق من أوقات الزيارة قبل التوجه.'],
+    ['الواد الكبير – جهة الميلية','وجهة طبيعية للنزهة والاستمتاع بمشهد الوادي والمناظر المحيطة به. يُرجى اختيار مكان آمن ومسموح للتوقف والتنزه.'],
+    ['الكهوف العجيبة – زيامة منصورية','مغارة طبيعية معروفة بتشكيلاتها الكلسية، تقع بزيامة منصورية غرب ولاية جيجل، وليست داخل أولاد بونار.'],
+    ['غار الباز – زيامة منصورية','موقع ذو طابع تاريخي وتراثي في منطقة زيامة منصورية. أدرجناه كوجهة قريبة، على أن نضيف صورة موثقة خاصة به لاحقاً.']
+   ]
+  },
+  fr:{
+   tagline:'Votre plateforme de réservation de séjours à Ouled Bounar et Jijel',
+   nav:['🏠 Hébergements','🏪 Commerces locaux','👤 Inscription / Connexion'],
+   heroTitle:'Trouvez votre séjour à Ouled Bounar et Jijel 🌊',
+   heroText:'Découvrez les hébergements proposés, consultez leurs détails et choisissez le lieu idéal pour vos vacances. La navigation est libre, sans inscription.',
+   heroButton:'Voir les hébergements et rechercher',
+   rentals:'🏡 Hébergements à louer',all:'Voir tout',loading:'Chargement des hébergements...',
+   introTitle:'Ouled Bounar et ses environs',
+   introText:'Une zone côtière à l’ouest de Jijel, entre mer et nature, proche de plusieurs équipements et sites de loisirs.',
+   nearbyTitle:'Sites naturels et touristiques près de Jijel',
+   nearbyText:'Pour prolonger votre découverte au-delà d’Ouled Bounar, la wilaya de Jijel offre d’autres lieux à explorer.',
+   safety:'🏊‍♂️ Sécurité avant tout : baignez-vous uniquement sur les plages autorisées et surveillées. Respectez les drapeaux, les consignes des agents et la propreté des lieux.',
+   ctaTitle:'Préparez vos vacances à Jijel',ctaText:'Découvrez les hébergements disponibles à Ouled Bounar et Jijel et choisissez celui qui vous convient.',ctaButton:'Rechercher un hébergement',
+   destinations:[
+    ['Plage d’Ouled Bounar','Un lieu idéal pour se détendre et profiter de la mer pendant la saison estivale.'],
+    ['La petite crique – La Creque','Une petite baie côtière au cadre naturel et aux belles vues sur la mer.'],
+    ['Plage du Grand Phare','L’une des plages connues des environs de Jijel.'],
+    ['Plage de Kotama','Une plage proche du centre de Jijel, agréable pour se promener au bord de mer.'],
+    ['Centre-ville de Jijel','Pour se promener, faire du shopping et découvrir l’ambiance et les services de la ville.'],
+    ['Parc zoologique','Une sortie familiale dans la région de Kissir, à El Aouana. Vérifiez les horaires avant votre visite.'],
+    ['Oued El Kebir – région d’El Milia','Un site naturel pour découvrir la rivière et ses paysages. Choisissez un endroit sûr et autorisé pour vous arrêter.'],
+    ['Grottes merveilleuses – Ziama Mansouriah','Une grotte naturelle connue pour ses formations calcaires, située à Ziama Mansouriah, à l’ouest de Jijel.'],
+    ['Ghar El Baz – Ziama Mansouriah','Un site à caractère historique et patrimonial dans la région de Ziama Mansouriah.']
+   ]
+  }
+ };
+ const $=id=>document.getElementById(id);
+ function setLanguage(lang){
+  const t=translations[lang]||translations.ar;
+  document.documentElement.lang=lang;
+  document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+  const header=document.querySelector('header p'); if(header)header.textContent=t.tagline;
+  const navLinks=document.querySelectorAll('nav a');
+  t.nav.forEach((value,i)=>{if(navLinks[i])navLinks[i].textContent=value;});
+  const hero=document.querySelector('#home .hero');
+  if(hero){const h=hero.querySelector('h2'),p=hero.querySelector('p'),b=hero.querySelector('button');if(h)h.textContent=t.heroTitle;if(p)p.textContent=t.heroText;if(b)b.textContent=t.heroButton;}
+  const rentalHeading=document.querySelector('#home .public-rentals-heading h2');if(rentalHeading)rentalHeading.textContent=t.rentals;
+  const allButton=document.querySelector('#home .public-rentals-heading button');if(allButton)allButton.textContent=t.all;
+  const strip=$('publicPropertyStrip');if(strip&&strip.querySelector('p')&&/جارٍ تحميل الإقامات|Chargement des hébergements/.test(strip.querySelector('p').textContent))strip.querySelector('p').textContent=t.loading;
+  const intro=document.querySelector('#home .home-intro');
+  if(intro){
+   const headings=intro.querySelectorAll(':scope > h2');
+   const paragraphs=intro.querySelectorAll(':scope > p');
+   if(headings[0])headings[0].textContent=t.introTitle;
+   if(paragraphs[0])paragraphs[0].textContent=t.introText;
+   if(headings[1])headings[1].textContent=t.nearbyTitle;
+   if(paragraphs[1])paragraphs[1].textContent=t.nearbyText;
+   const cards=intro.querySelectorAll('.destination-marquee-group:not([aria-hidden="true"]) .destination-card');
+   cards.forEach((card,i)=>{const h=card.querySelector('h3'),p=card.querySelector('p');if(t.destinations[i]){if(h)h.textContent=t.destinations[i][0];if(p)p.textContent=t.destinations[i][1];}});
+   const note=intro.querySelector('.home-note');if(note)note.textContent=t.safety;
+  }
+  const cta=document.querySelector('#home .home-cta');if(cta){const h=cta.querySelector('h3'),p=cta.querySelector('p'),b=cta.querySelector('button');if(h)h.textContent=t.ctaTitle;if(p)p.textContent=t.ctaText;if(b)b.textContent=t.ctaButton;}
+  const ar=$('ovLangAr'),fr=$('ovLangFr');
+  if(ar){ar.classList.toggle('active',lang==='ar');ar.setAttribute('aria-pressed',String(lang==='ar'));}
+  if(fr){fr.classList.toggle('active',lang==='fr');fr.setAttribute('aria-pressed',String(lang==='fr'));}
+  try{localStorage.setItem('obnar-language',lang);}catch(e){}
+ }
+ $('ovLangAr')?.addEventListener('click',()=>setLanguage('ar'));
+ $('ovLangFr')?.addEventListener('click',()=>setLanguage('fr'));
+ let initial='ar';try{initial=localStorage.getItem('obnar-language')==='fr'?'fr':'ar';}catch(e){}
+ setLanguage(initial);
+})();
+</script>
+
 </body></html>');
   win.document.close();setAdminBookingExportStatus('تم فتح نافذة الطباعة لحفظ '+rows.length+' حجزاً بصيغة PDF.');
  }
