@@ -3247,6 +3247,39 @@ function exportAdminBookings(format){
 })();
 </script>
 
+
+<script>
+/* Account entry and profile basics: UI labels only; authentication calls are unchanged. */
+(function(){
+ const tr={
+ ar:{title:'👤 التسجيل في OBNAR VACANCES',signup:'إنشاء حساب جديد',role:'نوع الحساب',roles:['مصطاف — أبحث عن إقامة وأحجز','مالك — أريد عرض إقامتي للكراء','صاحب نشاط — أريد تسجيل نشاط تجاري أو خدمة'],roleNote:'يمكنك التسجيل كمصطاف والبدء في البحث عن إقامة.',name:'الاسم الكامل',phone:'رقم الهاتف',email:'البريد الإلكتروني',password:'كلمة المرور (6 أحرف على الأقل)',create:'إنشاء حساب',login:'تسجيل الدخول',enter:'دخول',forgot:'نسيت كلمة المرور؟',newPass:'🔐 تعيين كلمة مرور جديدة',newPassNote:'أدخل كلمة مرور جديدة لحسابك.',newPassPlaceholder:'كلمة المرور الجديدة (6 أحرف على الأقل)',confirmPass:'تأكيد كلمة المرور الجديدة',savePass:'حفظ كلمة المرور الجديدة',notifications:'🔔 إشعاراتي',refresh:'تحديث',close:'إغلاق ✕',edit:'⚙️ تعديل بيانات حسابي',save:'حفظ التعديلات',logout:'تسجيل الخروج'},
+ fr:{title:'👤 Inscription sur OBNAR VACANCES',signup:'Créer un compte',role:'Type de compte',roles:['Vacancier — Je cherche et réserve un hébergement','Propriétaire — Je souhaite proposer mon logement','Professionnel — Je souhaite inscrire mon commerce ou service'],roleNote:'Inscrivez-vous comme vacancier pour commencer à rechercher un hébergement.',name:'Nom complet',phone:'Numéro de téléphone',email:'Adresse e-mail',password:'Mot de passe (6 caractères minimum)',create:'Créer mon compte',login:'Connexion',enter:'Se connecter',forgot:'Mot de passe oublié ?',newPass:'🔐 Définir un nouveau mot de passe',newPassNote:'Saisissez un nouveau mot de passe pour votre compte.',newPassPlaceholder:'Nouveau mot de passe (6 caractères minimum)',confirmPass:'Confirmer le nouveau mot de passe',savePass:'Enregistrer le nouveau mot de passe',notifications:'🔔 Mes notifications',refresh:'Actualiser',close:'Fermer ✕',edit:'⚙️ Modifier mon profil',save:'Enregistrer les modifications',logout:'Déconnexion'}
+ };
+ const $=s=>document.querySelector(s),$=s=>document.querySelectorAll(s);
+ function applyAccountLanguage(){
+  let lang='ar';try{lang=localStorage.getItem('obnar-language')==='fr'?'fr':'ar';}catch(e){}
+  const t=tr[lang],put=(sel,val)=>{const el=$(sel);if(el&&el.textContent!==val)el.textContent=val;};
+  put('#accountPageTitle',t.title);
+  const h3=$('#authForms > h3');if(h3[0]&&h3[0].textContent!==t.signup)h3[0].textContent=t.signup;if(h3[1]&&h3[1].textContent!==t.login)h3[1].textContent=t.login;
+  const roleLabel=$('label[for="signupRole"]');if(roleLabel&&roleLabel.textContent!==t.role)roleLabel.textContent=t.role;
+  const roles=$('#signupRole option');roles.forEach((o,i)=>{if(t.roles[i]&&o.textContent!==t.roles[i])o.textContent=t.roles[i];});
+  put('#signupRoleNote',t.roleNote);
+  const fields=[['#fullName',t.name],['#phone',t.phone],['#email',t.email],['#password',t.password],['#loginEmail',t.email],['#loginPassword',t.password],['#newPassword',t.newPassPlaceholder],['#confirmNewPassword',t.confirmPass],['#editPhone',t.phone],['#editEmail',t.email]];
+  fields.forEach(([sel,val])=>{const el=$(sel);if(el&&el.placeholder!==undefined)el.placeholder=val;});
+  const buttons=[['#authForms button:nth-of-type(1)',t.create],['#authForms button:nth-of-type(2)',t.enter],['#authForms button:nth-of-type(3)',t.forgot],['#passwordRecoveryArea button',t.savePass],['#toggleProfileEditButton',t.edit]];
+  buttons.forEach(([sel,val])=>{const el=$(sel);if(el&&el.textContent!==val)el.textContent=val;});
+  put('#passwordRecoveryArea h3',t.newPass);put('#passwordRecoveryArea p',t.newPassNote);
+  put('#notificationsTitle',t.notifications);
+  const notifyButtons=$('#notificationsPanel button');if(notifyButtons[0]&&notifyButtons[0].textContent!==t.refresh)notifyButtons[0].textContent=t.refresh;if(notifyButtons[1]&&notifyButtons[1].textContent!==t.close)notifyButtons[1].textContent=t.close;
+  const saveProfile=$('#profileEditFields button');if(saveProfile&&saveProfile.textContent!==t.save)saveProfile.textContent=t.save;
+  const logout=$('button[onclick="logout()"]');if(logout&&logout.textContent.trim()!==t.logout)logout.textContent=t.logout;
+ }
+ applyAccountLanguage();
+ document.addEventListener('click',e=>{if(e.target.closest('#ovLangAr,#ovLangFr'))applyAccountLanguage();});
+ const account=$('#account');if(account)new MutationObserver(applyAccountLanguage).observe(account,{childList:true,subtree:true});
+})();
+</script>
+
 </body></html>');
   win.document.close();setAdminBookingExportStatus('تم فتح نافذة الطباعة لحفظ '+rows.length+' حجزاً بصيغة PDF.');
  }
