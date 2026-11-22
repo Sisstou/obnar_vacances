@@ -203,3 +203,18 @@ No migration, Edge Function, database write, deployment, or guest-facing UI chan
 10. Only after those checks pass, prepare a CLI-generated migration and request explicit approval before applying it to staging. Production requires separate approval.
 
 No database DDL, migration application, Edge Function deployment, Storage policy change, production change or guest-facing UI change has been made.
+
+
+### Additional routine-level null-traveler findings
+
+A targeted scan of the complete staging definitions found several direct notification inserts that would fail or roll back a guest lifecycle transition when the traveler ID is null:
+
+- `notify_new_booking()` inserts the traveler notification unconditionally.
+- `respond_to_booking(uuid,text)` inserts a rejection notification directly to the returned traveler ID. The owner response update and notification are in one transaction, so a null recipient can roll back the owner decision.
+- `admin_review_owner_booking(uuid,text,text)` inserts traveler notifications directly in its accept/reject branches. It must skip that insert for guest bookings while retaining owner/admin notifications.
+- `admin_review_payment_receipt(uuid,text,text)` inserts a traveler notification after payment review. It must conditionally notify registered travelers and still notify the owner.
+- `submit_payment_receipt(uuid,text)` is currently tied to authenticated traveler ownership and a path prefixed by the authenticated user ID; it requires a separate guest-authorized server path rather than accepting a null traveler through the current RPC.
+- `notify_booking_cancellation()` and the admin cancellation/refund review functions build recipient sets from booking/requester IDs; each insert must explicitly exclude null recipients.
+- `expire_unpaid_bookings()` already builds a recipient set and filters null user IDs, but the guest booking still needs an appropriate guest status lookup mechanism outside notifications.
+
+The main-admin checks were confirmed inside the four admin review functions inspected. The owner response routine checks property ownership. The ordinary booking/cancellation/payment RPCs require an authenticated user and must remain distinct from the guest secret-authorized endpoints.
