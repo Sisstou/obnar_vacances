@@ -1,0 +1,23 @@
+{
+  "id": "./",
+  "name": "OBNAR VACANCES",
+  "short_name": "OBNAR",
+  "description": "منصة اكتشاف وحجز الإقامات في أولاد بونار وجيجل",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f4f8fa",
+  "theme_color": "#073b5b",
+  "categories": ["travel", "lifestyle"],
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
