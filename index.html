@@ -3323,6 +3323,47 @@ function exportAdminBookings(format){
   ['#adminDashboard details:nth-of-type(5) summary','🏘️ طلبات الإقامات الجديدة','🏘️ Demandes de nouveaux logements'],
   ['#adminDashboard details:nth-of-type(5) button','عرض الإقامات المنتظرة للمراجعة','Afficher les logements en attente de vérification']
  ];
+ entries.push(
+  ['#ownerPropertyArea .owner-form-section:nth-of-type(1) h4','1. معلومات الإقامة','1. Informations sur le logement'],
+  ['#ownerPropertyArea .owner-form-section:nth-of-type(2) h4','2. الغرف والسعة والسعر','2. Chambres, capacité et prix'],
+  ['#ownerPropertyArea .owner-form-section:nth-of-type(3) h4','3. الموقع والمزايا','3. Emplacement et équipements'],
+  ['#ownerPropertyArea .owner-form-section:nth-of-type(4) h4','4. وصف الإقامة','4. Description du logement'],
+  ['#ownerPropertyArea .owner-form-section:nth-of-type(5) h4','5. صور الإقامة','5. Photos du logement'],
+  ['label[for="propertyTitleAr"]','اسم الإقامة بالعربية','Nom du logement en arabe'],
+  ['label[for="propertyTitleFr"]','اسم الإقامة بالفرنسية','Nom du logement en français'],
+  ['label[for="propertyType"]','نوع الإقامة','Type de logement'],
+  ['label[for="propertyLocation"]','المنطقة','Zone'],
+  ['label[for="propertyAddress"]','العنوان بالتفصيل','Adresse détaillée'],
+  ['label[for="propertyBedroomsSelect"]','عدد غرف الشقة','Nombre de chambres'],
+  ['label[for="propertyBathrooms"]','عدد الحمامات','Nombre de salles de bain'],
+  ['label[for="propertyCapacitySelect"]','السعة القصوى','Capacité maximale'],
+  ['label[for="propertyPrice"]','السعر لليلة بالدينار','Prix par nuit en dinars'],
+  ['label[for="propertyGoogleMaps"]','رابط الموقع على Google Maps','Lien de localisation Google Maps'],
+  ['#ownerPropertyArea .owner-form-section:nth-of-type(3) label:not([for])','مزايا الإقامة','Équipements du logement'],
+  ['#ownerPropertyArea .owner-form-section:nth-of-type(3) p.small','اختر المزايا المتوفرة فعلياً فقط، حتى يعرف الزائر ما يبرر السعر.','Sélectionnez uniquement les équipements réellement disponibles afin que le visiteur comprenne le prix.'],
+  ['label[for="propertyDescriptionAr"]','الوصف بالعربية','Description en arabe'],
+  ['label[for="propertyDescriptionFr"]','Description en français','Description en français'],
+  ['label[for="propertyPhotos"]','صور الإقامة','Photos du logement'],
+  ['#ownerPropertyArea .owner-form-section:nth-of-type(5) p.small','أضف صوراً واضحة. الحد الأقصى 10 صور، و5 ميغابايت لكل صورة.','Ajoutez des photos nettes. Maximum 10 photos, 5 Mo par photo.'],
+  ['#ownerPropertyArea .owner-form-actions button','إرسال الإقامة للمراجعة','Soumettre le logement pour vérification'],
+  ['#propertyStudioNote','الاستوديو: فضاء إقامة واحد، ولا يلزم تحديد عدد الغرف.','Studio : un seul espace de vie, le nombre de chambres n’est pas requis.']
+ );
+ const placeholders = [
+  ['#propertyTitleAr','مثال: منزل مطل على البحر','Ex. : maison avec vue sur mer'],
+  ['#propertyTitleFr','Nom du logement','Nom du logement'],
+  ['#propertyAddress','العنوان أو وصف الوصول','Adresse ou indications d’accès'],
+  ['#propertyCapacityMore','أدخل العدد الفعلي (8 أو أكثر)','Saisissez le nombre exact (8 ou plus)'],
+  ['#propertyPrice','مثال: 5000','Ex. : 5000'],
+  ['#propertyGoogleMaps','https://maps.google.com/...','https://maps.google.com/...'],
+  ['#propertyDescriptionAr','صف الإقامة وما يميزها، مثل الإطلالة والمسافة إلى الشاطئ والتجهيزات...','Décrivez le logement : vue, distance à la plage, équipements…'],
+  ['#propertyDescriptionFr','Décrivez le logement et ses principaux atouts...','Décrivez le logement et ses principaux atouts…']
+ ];
+ const propertyOptions = [
+  ['#propertyType','apartment','شقة','Appartement'],['#propertyType','studio','استوديو','Studio'],['#propertyType','house','منزل مستقل','Maison indépendante'],
+  ['#propertyBedroomsSelect','2','غرفتان','2 chambres'],['#propertyBedroomsSelect','3','3 غرف','3 chambres'],['#propertyBedroomsSelect','4','4 غرف','4 chambres'],
+  ['#propertyCapacitySelect','1','شخص واحد','1 personne'],['#propertyCapacitySelect','2','شخصان','2 personnes'],['#propertyCapacitySelect','3','3 أشخاص','3 personnes'],['#propertyCapacitySelect','4','4 أشخاص','4 personnes'],['#propertyCapacitySelect','5','5 أشخاص','5 personnes'],['#propertyCapacitySelect','6','6 أشخاص','6 personnes'],['#propertyCapacitySelect','7','7 أشخاص','7 personnes'],['#propertyCapacitySelect','more','أكثر من 7 أشخاص','Plus de 7 personnes'],
+  ['#propertyLocation','', 'اختر المنطقة','Choisir une zone']
+ ];
  const options = [
   ['#adminBookingFilter','active','الحجوزات النشطة والإجراءات المطلوبة','Réservations actives et actions requises'],
   ['#adminBookingFilter','awaiting_admin_approval','بانتظار موافقة الإدارة','En attente de validation par l’administration'],
@@ -3345,6 +3386,13 @@ function exportAdminBookings(format){
     const wanted=fr?french:ar;
     if(el.textContent.trim()!==wanted && (el.textContent.trim()===ar || el.textContent.trim()===french)) el.textContent=wanted;
    });
+  });
+  placeholders.forEach(([sel,ar,french])=>{
+   const el=document.querySelector(sel);if(el){const wanted=fr?french:ar;if(el.placeholder!==wanted && (el.placeholder===ar||el.placeholder===french))el.placeholder=wanted;}
+  });
+  propertyOptions.forEach(([sel,value,ar,french])=>{
+   const el=document.querySelector(sel+' option[value="'+value+'"]');
+   if(el){const wanted=fr?french:ar;if(el.textContent!==wanted && (el.textContent===ar||el.textContent===french))el.textContent=wanted;}
   });
   options.forEach(([sel,value,ar,french])=>{
    const el=document.querySelector(sel+' option[value="'+value+'"]');
