@@ -287,3 +287,17 @@ The indirect relation is now characterized:
 6. The public availability projection is the only confirmed anon-readable booking-related surface in this inspection; core booking/cancellation tables remain protected by authenticated participant policies.
 
 These are design findings only. No SQL, policy, trigger, function, Storage, or data changes were applied.
+
+
+### 11.10 Additional trigger, row-state, and RLS checks
+
+- `enforce_booking_confirmation_payment()` is a SECURITY INVOKER trigger function (not SECURITY DEFINER). When a booking becomes `confirmed`, it requires verified payment, a positive deposit, a non-empty receipt path, and a verification timestamp. It locks the property row and rejects overlapping confirmed date ranges. It does not read `traveler_id`; preserve this guard for guest bookings as well.
+- `expire_unpaid_bookings()` is SECURITY DEFINER and expires only overdue `awaiting_payment` bookings with unpaid/rejected payment and no pending cancellation request. Its notification recipient query filters NULL user IDs, so it is already NULL-safe for a guest booking. Keep this behavior and test guest expiry without generating a guest notification.
+- The inspected staging snapshot currently contains **0 booking rows**, **0 cancellation rows**, and **0 cancellation-history rows**; `notifications` contains 32 rows. The booking status/payment-state aggregate is empty. Therefore, there are no existing staging booking fixtures to validate against the proposed identity CHECK. This is a staging snapshot observation, not a statement about production.
+- Additional RLS policies inspected:
+  - `properties`: anon can SELECT approved properties only; authenticated users can read approved properties, their own properties, or all properties as main admin. Owner INSERT requires owner role and approved owner verification; owner UPDATE is limited to allowed statuses; admin DELETE is restricted to main admin.
+  - `profiles`: authenticated users can read their own profile or main-admin-visible profiles; self INSERT is restricted to traveler role; UPDATE is self/admin only.
+  - The participant policies on bookings/cancellations/history remain authenticated-only and continue to depend on traveler/owner/admin relationships. Do not add guest access through these table policies.
+- No PII or row-level booking details were selected during the row-count check.
+
+The remaining inspection is focused on the full bodies of the other admin/refund/cancel functions and the actual frontend query/export surface, plus confirming the Data API exposed-schema setting in the dashboard. The current audit is still insufficient to generate a migration.
