@@ -138,3 +138,22 @@ These are shared primitives only. No HTTP endpoint is functional until the datab
 ## Implementation gate
 
 Do not create or apply a database migration until all dependent routine definitions, triggers, RLS policies, Storage policies, role grants and frontend queries have been reviewed together. Use the Supabase CLI to generate the migration filename; do not hand-create a migration file. Apply to staging only after explicit user approval. Production requires separate approval.
+
+
+## Additional staging audit requirements — 23 November 2026
+
+The follow-up read-only routine review identified implementation requirements that every Edge Function/database migration must satisfy:
+
+- Guest booking creation must not create a `notifications` row for the guest. The current table requires a non-NULL `user_id`; owner and main-admin notifications must still be generated.
+- Guest cancellation creation must route notifications to the assigned property owner and main admin. The current cancellation trigger routes the owner only for `requester_role = 'traveler'`; the guest branch must be explicit.
+- Owner response to a guest cancellation must be supported by the server-side state machine. The current `owner_respond_to_cancellation()` routine accepts only `requester_role = 'traveler'`; update its authorization/state branch for `guest` without accepting a caller-supplied owner identity.
+- If the owner approves an exceptional guest cancellation, the booking cancellation and the separate main-admin refund review must follow the existing policy. The current admin refund-review continuation branch accepts only `traveler` and `owner`; it must also accept `guest`.
+- Skip NULL traveler notification inserts in `notify_new_booking()`, `respond_to_booking()`, `admin_review_owner_booking()`, and `admin_review_payment_receipt()`. Keep owner/admin notifications and all existing role checks. Do not solve these failures by making `notifications.user_id` nullable.
+- `admin_review_booking_cancellation()` and `admin_review_refund_execution()` already filter NULL notification recipients; preserve that behavior.
+- Guest status polling must be the only way the guest receives booking/cancellation/payment status. Do not issue a guest notification row, email/SMS assumption, or public booking lookup.
+
+The owner dashboard may show guest name/phone only for bookings belonging to that owner, after the database authorization boundary is verified. The current owner export intentionally excludes traveler/guest contact details and must continue to do so in the first release. The main-admin interface can show guest contact fields only through its authorized projection; do not expose the secret hash or access secret.
+
+The current frontend has no guest UI: registered booking, cancellation, and receipt flows still call the existing authenticated RPCs. Keep those flows unchanged and add guest UI only after the Edge Functions, private database routines, and guest state-machine tests are deployed and verified.
+
+These requirements are design guidance only. No database migration or Edge Function is deployed.
