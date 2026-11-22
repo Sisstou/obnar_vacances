@@ -3413,6 +3413,97 @@ if ("serviceWorker" in navigator && location.protocol === "https:") {
  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(error => console.warn("PWA registration:", error)));
 }
 </script>
+
+<script>
+/* OBNAR local-business bilingual UI: translates interface labels only, never user-submitted business content. */
+(function(){
+ const copy={
+  ar:{
+   title:'🏪 دليل نشاطات الحي',intro:'اكتشف المحلات والخدمات والمطاعم في أولاد بونار. تظهر هنا النشاطات التي راجعتها الإدارة ووافقت على نشرها.',
+   guestTitle:'هل تملك نشاطاً في الحي؟',guestText:'سجّل الدخول أو أنشئ حساباً لإرسال نشاطك إلى الإدارة. لن يظهر النشاط للزوار إلا بعد الموافقة عليه.',
+   guestButton:'التسجيل أو الدخول لإضافة نشاط',formTitle:'📢 سجّل نشاطك في دليل الحي',
+   formIntro:'أدخل بيانات نشاطك. يُنشر بعد مراجعة الإدارة والموافقة عليه.',
+   name:'اسم النشاط التجاري',namePlaceholder:'مثال: مطعم ...',category:'نوع النشاط',choose:'اختر نوع النشاط',
+   categories:['مطعم','فاست فود / وجبات سريعة','مقهى','حلويات','مواد غذائية','محل تجاري','صيدلية','حرفي وصناعة تقليدية','تنظيف المنازل','خدمات منزلية','مهن وخدمات مهنية','صيانة وإصلاح','حلاقة وتجميل','نقل وخدمات توصيل','خدمات عامة','نشاط آخر'],
+   address:'العنوان',addressPlaceholder:'الحي، الشارع أو علامة قريبة',phone:'رقم الهاتف (اختياري)',phonePlaceholder:'رقم التواصل',
+   description:'نبذة عن النشاط (اختياري)',descriptionPlaceholder:'الخدمات أو المنتجات التي يقدمها النشاط',
+   photos:'صور النشاط (اختياري)',photoNote:'حتى 5 صور بصيغة JPG أو PNG أو WebP، بحد أقصى 5 ميغابايت للصورة.',
+   submit:'إرسال النشاط للمراجعة',tracking:'📋 متابعة طلبات نشاطاتي',refresh:'تحديث طلباتي',
+   trackingEmpty:'تظهر حالة طلباتك هنا بعد الإرسال.',loading:'جارٍ تحميل دليل الأنشطة...',
+   noBusinesses:'سيتم عرض النشاطات هنا فور اعتماد أول نشاط تجاري.',
+   login:'سجّل الدخول لعرض أنشطتك.',empty:'لم ترسل أي نشاط تجاري بعد.',
+   submitting:'جارٍ إرسال الطلب...',saving:'يتم حفظ بيانات النشاط والصور...',
+   sent:'تم إرسال نشاطك التجاري بنجاح، وهو الآن قيد مراجعة الإدارة.',
+   loginFirst:'يرجى تسجيل الدخول أولاً لإرسال نشاطك التجاري.',
+   required:'يرجى إدخال اسم النشاط ونوعه وعنوانه.',
+   maxPhotos:'يمكن إضافة 5 صور كحد أقصى.',
+   badType:'إحدى الصور ليست بصيغة JPG أو PNG أو WebP.',
+   tooLarge:'يجب ألا يتجاوز حجم كل صورة 5 ميغابايت.',
+   rejected:'مرفوض',approved:'تمت الموافقة والنشر',pending:'قيد المراجعة',
+   categoriesShort:['مطعم','فاست فود','مقهى','حلويات','مواد غذائية','محل تجاري','صيدلية','حرفي وصناعة تقليدية','تنظيف المنازل','خدمات منزلية','مهن وخدمات مهنية','صيانة وإصلاح','حلاقة وتجميل','نقل وخدمات توصيل','خدمات عامة','نشاط آخر']
+  },
+  fr:{
+   title:'🏪 Annuaire des commerces du quartier',intro:'Découvrez les commerces, services et restaurants d’Ouled Bounar. Seules les activités vérifiées et approuvées par l’administration sont affichées.',
+   guestTitle:'Vous avez une activité dans le quartier ?',guestText:'Connectez-vous ou créez un compte pour soumettre votre activité à l’administration. Elle sera visible après approbation.',
+   guestButton:'Connexion / Inscription pour ajouter une activité',formTitle:'📢 Inscrire votre activité dans l’annuaire',
+   formIntro:'Saisissez les informations de votre activité. La publication intervient après vérification et approbation.',
+   name:'Nom de l’activité',namePlaceholder:'Ex. : Restaurant ...',category:'Type d’activité',choose:'Choisir un type',
+   categories:['Restaurant','Restauration rapide','Café','Pâtisserie','Alimentation générale','Commerce','Pharmacie','Artisanat','Nettoyage à domicile','Services à domicile','Services professionnels','Maintenance et réparation','Coiffure et beauté','Transport et livraison','Services généraux','Autre activité'],
+   address:'Adresse',addressPlaceholder:'Quartier, rue ou repère à proximité',phone:'Téléphone (facultatif)',phonePlaceholder:'Numéro de contact',
+   description:'Présentation de l’activité (facultatif)',descriptionPlaceholder:'Services ou produits proposés',
+   photos:'Photos de l’activité (facultatif)',photoNote:'Jusqu’à 5 images JPG, PNG ou WebP, 5 Mo maximum par image.',
+   submit:'Soumettre pour vérification',tracking:'📋 Suivi de mes activités',refresh:'Actualiser mes demandes',
+   trackingEmpty:'Le statut de vos demandes apparaîtra ici après l’envoi.',loading:'Chargement de l’annuaire...',
+   noBusinesses:'Les activités apparaîtront ici dès la première validation.',
+   login:'Connectez-vous pour consulter vos activités.',empty:'Vous n’avez encore soumis aucune activité.',
+   submitting:'Envoi de la demande...',saving:'Enregistrement des informations et des photos...',
+   sent:'Votre activité a été envoyée. Elle est en attente de vérification par l’administration.',
+   loginFirst:'Veuillez vous connecter avant de soumettre votre activité.',
+   required:'Veuillez saisir le nom, le type et l’adresse de l’activité.',
+   maxPhotos:'Vous pouvez ajouter 5 photos au maximum.',
+   badType:'Une image n’est pas au format JPG, PNG ou WebP.',
+   tooLarge:'Chaque image ne doit pas dépasser 5 Mo.',
+   rejected:'Refusée',approved:'Approuvée et publiée',pending:'En attente de vérification',
+   categoriesShort:['Restaurant','Restauration rapide','Café','Pâtisserie','Alimentation','Commerce','Pharmacie','Artisanat','Nettoyage à domicile','Services à domicile','Services professionnels','Maintenance','Coiffure et beauté','Transport et livraison','Services généraux','Autre activité']
+  }
+ };
+ const $=id=>document.getElementById(id);
+ const lang=()=>{try{return localStorage.getItem('obnar-language')==='fr'?'fr':'ar';}catch(e){return 'ar';}};
+ function apply(){
+  const t=copy[lang()],root=$('localBusinessAdvertising');if(!root)return;
+  const set=(selector,value)=>{const el=root.querySelector(selector);if(el&&el.textContent!==value)el.textContent=value;};
+  set(':scope > .home-intro > h2',t.title);
+  set(':scope > .home-intro > p',t.intro);
+  set('#activityGuestNotice h3',t.guestTitle);set('#activityGuestNotice p',t.guestText);
+  set('#activityGuestNotice button',t.guestButton);
+  set('#localBusinessSubmitArea h2',t.formTitle);set('#localBusinessSubmitArea > p.small',t.formIntro);
+  const fields=[
+   ['localBusinessName','name','namePlaceholder'],['localBusinessCategory','category',null],
+   ['localBusinessAddress','address','addressPlaceholder'],['localBusinessPhone','phone','phonePlaceholder'],
+   ['localBusinessDescription','description','descriptionPlaceholder'],['localBusinessPhotos','photos',null]
+  ];
+  fields.forEach(([id,label,placeholder])=>{
+   const el=$(id),lab=root.querySelector('label[for="'+id+'"]');
+   if(lab)lab.textContent=t[label];
+   if(el&&placeholder!==null)el.placeholder=t[placeholder];
+  });
+  const category=$('localBusinessCategory');
+  if(category)Array.from(category.options).forEach((option,index)=>{const value=option.value;const keys=['restaurant','fast_food','cafe','sweets','grocery','shop','pharmacy','crafts','home_cleaning','home_services','professional_services','maintenance','beauty','transport','services','other'];const i=keys.indexOf(value);option.textContent=value?(t.categories[i]||option.textContent):t.choose;});
+  const photoNote=$('localBusinessPhotos')?.previousElementSibling;if(photoNote)photoNote.textContent=t.photoNote;
+  set('#submitLocalBusinessButton',t.submit);
+  set('#myLocalBusinessesPanel h3',t.tracking);set('#myLocalBusinessesPanel button',t.refresh);
+  const tracker=$('myLocalBusinesses');if(tracker&&/تظهر حالة طلباتك هنا بعد الإرسال|Le statut de vos demandes apparaîtra ici après l’envoi\./.test(tracker.textContent))tracker.textContent=t.trackingEmpty;
+  const publicList=$('publicActivitiesList');
+  if(publicList&&publicList.children.length===1&&publicList.querySelector('p')&&/جارٍ تحميل النشاطات|Chargement de l’annuaire/.test(publicList.textContent))publicList.querySelector('p').textContent=t.loading;
+  const formMessage=$('localBusinessMessage');
+  if(formMessage&&formMessage.dataset.ovTranslationKey)formMessage.textContent=t[formMessage.dataset.ovTranslationKey]||formMessage.textContent;
+ }
+ $('ovLangAr')?.addEventListener('click',()=>setTimeout(apply,0));
+ $('ovLangFr')?.addEventListener('click',()=>setTimeout(apply,0));
+ apply();
+})();
+</script>
+
 </body></html>');
   win.document.close();setAdminBookingExportStatus('تم فتح نافذة الطباعة لحفظ '+rows.length+' حجزاً بصيغة PDF.');
  }
