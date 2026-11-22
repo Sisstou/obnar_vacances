@@ -301,3 +301,32 @@ These are design findings only. No SQL, policy, trigger, function, Storage, or d
 - No PII or row-level booking details were selected during the row-count check.
 
 The remaining inspection is focused on the full bodies of the other admin/refund/cancel functions and the actual frontend query/export surface, plus confirming the Data API exposed-schema setting in the dashboard. The current audit is still insufficient to generate a migration.
+
+
+### 11.11 Remaining RPC and frontend dependency findings
+
+#### Admin and owner RPCs
+
+- `admin_review_owner_booking(uuid,text,text)` is SECURITY DEFINER, checks the main-admin identity, locks/reads the booking and applies the owner-booking approval/rejection state transitions. Its notification branches insert directly to `v_booking.traveler_id` without a NULL guard. A guest booking can therefore fail the transaction when an admin approves/rejects the owner's decision unless the notification branch is made guest-safe.
+- `admin_review_payment_receipt(uuid,text,text)` is SECURITY DEFINER and main-admin-only. It reads/updates the booking then inserts traveler and owner notifications using `v_traveler_id`; the traveler notification is not guarded for NULL. A guest payment review cannot use this routine as-is; a NULL notification recipient can abort the transaction. Guest receipt verification needs a separate server-authorized route or a carefully reviewed guest-aware branch, while retaining the registered path.
+- `admin_review_refund_execution(uuid,text,text)` is SECURITY DEFINER and main-admin-only. It verifies the refund proof object and records execution/history; its notification recipient query filters NULL IDs. This part is NULL-safe for guest identity, but its eligibility and history workflow still requires regression tests for guest cancellation rows.
+- `admin_review_booking_cancellation(uuid,text,text,text)` is main-admin-only and filters NULL traveler/owner notification recipients. It can avoid inserting a guest notification, but guest status must be obtained through the guest secret flow.
+- `cancel_booking_by_traveler(uuid)` explicitly requires `auth.uid()` and matches `traveler_id = auth.uid()`; it is registered-traveler-only. Do not reuse it for guest cancellation.
+- `admin_review_owner_booking`, `admin_review_payment_receipt`, `respond_to_booking`, and both notification triggers must be treated as explicit guest compatibility work items, not assumed safe merely because they are SECURITY DEFINER.
+
+#### Frontend query and export surface (branch `pwa-foundation`, `index.html`)
+
+- Registered booking creation calls `create_booking()`; the current page flow does not yet implement guest booking.
+- Traveler dashboard queries bookings with `traveler_id = currentUser.id` and reads cancellation requests for those booking IDs. This remains registered-user-only and must not become a guest access path.
+- Admin booking loader selects `traveler_id`, then fetches profiles only for non-null traveler IDs. Its rendering currently resolves traveler details through the profile map and falls back to “unknown traveler”; it does not yet render `guest_name`/`guest_phone`. A future admin guest display needs a separately authorized projection and must avoid trying to resolve a guest through `profiles`.
+- Owner booking loader scopes bookings by the owner's property IDs and currently selects no traveler ID, profile, guest name, or guest phone. It must be extended to show guest contact details only after owner authorization is established, without broadening public or traveler queries.
+- Owner export fetches only property/date/guest-count/price/status/payment fields and contains no traveler or guest name/phone columns. Preserve this first-release policy: do not add guest contact information to owner exports.
+- Main-admin export currently includes registered traveler name and phone from the profiles map. Guest identity fields are not present in the export yet. The approved design decision is not to include guest name/phone in owner exports; main-admin export policy should remain explicit and least-privilege when guest columns are added.
+- Admin cancellation queue reads cancellation fields and booking IDs but does not fetch/display guest contact data. Guest requests need a secure, admin-authorized display path; do not expose guest credentials or secret hashes.
+- Owner and admin receipt viewing uses signed URLs for the private bucket. Keep this pattern; never make the bucket public.
+
+#### Configuration limitation
+
+The SQL session confirms `USAGE` grants on `public` and `graphql_public`, but it does not reveal the dashboard's actual PostgREST exposed-schema configuration. The configuration was not verifiable through the inspected SQL setting. The final private schema choice is blocked until the project's Data API > Exposed schemas setting is checked directly.
+
+No frontend, database, policy, function, trigger, or Storage changes were made in this audit.
