@@ -330,3 +330,60 @@ The remaining inspection is focused on the full bodies of the other admin/refund
 The SQL session confirms `USAGE` grants on `public` and `graphql_public`, but it does not reveal the dashboard's actual PostgREST exposed-schema configuration. The configuration was not verifiable through the inspected SQL setting. The final private schema choice is blocked until the project's Data API > Exposed schemas setting is checked directly.
 
 No frontend, database, policy, function, trigger, or Storage changes were made in this audit.
+
+
+### 11.12 Additional cancellation and notification routine review — read-only staging audit
+
+The complete compact definitions of the cancellation trigger and owner cancellation-response routine were inspected. This identified guest-specific failures that must be addressed together, not as isolated notification patches:
+
+- `notify_booking_cancellation()` currently chooses the owner as a recipient only when `requester_role = 'traveler'`, and chooses the traveler when `requester_role = 'owner'`. A `guest` requester matches neither branch. The main admin is still selected, so a guest cancellation can notify the admin while failing to notify the property owner. Add an explicit guest branch that selects the assigned owner and main admin, never a NULL guest recipient.
+- The same trigger currently uses a generic guest-compatible title/message fallback, but its recipient selection is not guest-compatible. The trigger must preserve the urgent `admin_review` route and the 48-hour `owner_review` route.
+- `owner_respond_to_cancellation()` explicitly rejects every requester role except `traveler`. A guest cancellation in `owner_review` therefore cannot be approved or rejected by the owner. The routine needs an explicit guest-eligible branch while retaining property ownership, booking-state, deadline and row-lock checks.
+- When an owner responds to a guest cancellation, `requester_id` is NULL. The routine's notification insert already filters NULL recipients and separately includes the main admin, so it must not be changed to create a notification for a guest. The guest receives the result only through the authenticated reference-plus-secret status endpoint.
+- `admin_review_booking_cancellation()` already filters NULL notification recipients, but its post-owner-approval refund-review branch currently accepts only requester roles `traveler` and `owner`. It must include `guest` so that an owner-approved exceptional guest cancellation can proceed to the separate main-admin refund decision. Keep the one-cancellation-per-booking constraint and existing state transitions.
+- `admin_review_refund_execution()` also filters NULL recipients when notifying the traveler/owner pair; this is NULL-safe for a guest booking and should remain so.
+
+### 11.13 Additional booking/payment notification failure paths
+
+The following existing routines perform direct inserts into `notifications.user_id` using the booking's traveler ID. Since `notifications.user_id` is NOT NULL, these paths will fail for guest bookings unless the traveler notification is skipped when the ID is NULL:
+
+- `notify_new_booking()` — AFTER INSERT trigger. Preserve owner and main-admin notifications; insert the traveler notification only for registered bookings.
+- `respond_to_booking(uuid,text)` — owner acceptance/rejection of a pending booking. Preserve the existing registered-traveler notification and skip it for a guest; owner authorization and booking-state checks remain unchanged.
+- `admin_review_owner_booking(uuid,text,text)` — main-admin review of owner acceptance. Both approve/reject paths must complete for a guest booking without inserting a NULL traveler notification; preserve owner/admin notifications.
+- `admin_review_payment_receipt(uuid,text,text)` — main-admin payment receipt review. Both verification and rejection must complete for a guest booking without a NULL traveler notification; preserve owner/admin notifications and the verified-payment confirmation trigger.
+
+The earlier inspection also confirmed that `expire_unpaid_bookings()`, `admin_review_booking_cancellation()`, and `admin_review_refund_execution()` filter NULL notification recipients. Retain those guards and regression-test their guest behavior rather than rewriting them unnecessarily.
+
+### 11.14 Frontend dependency review — current branch
+
+The current `index.html` was inspected at blob `54a889a88f3685542d20c27ab8e05b1ffb6906af`:
+
+- The existing booking form calls only `create_booking()`; it is a registered-user flow and must remain so. There is no guest booking endpoint or guest UI in the current page.
+- The traveler cancellation UI calls only `request_booking_cancellation()`; it must remain restricted to registered users. Guest cancellation must use the server-side reference-plus-secret endpoint.
+- The registered receipt upload uses the authenticated UID/booking-ID Storage path and `submit_payment_receipt()`; do not reuse or weaken it for guests.
+- The owner dashboard currently selects booking details by the owner's property IDs, but does not select or display `guest_name` or `guest_phone`. After the authorized guest columns/projection exist, the owner UI may display those contact fields only for bookings belonging to that owner's properties.
+- The owner export currently excludes traveler/guest names and phone numbers. Preserve this exclusion in the first release.
+- The main-admin booking query selects `traveler_id`, then fetches profiles only for non-NULL traveler IDs. Its display falls back to a generic unknown-traveler label for NULL IDs; the admin export similarly reports unavailable traveler details. After the guest fields exist, the main-admin UI should display guest name/phone using an admin-authorized query, and its export policy should be explicitly reviewed before adding personal contact fields.
+- Do not add guest columns to public property search, public booking-date views, registered-traveler queries, or owner exports. Do not return guest secret hashes, plaintext secrets, or private Storage paths in guest-facing projections.
+
+### 11.15 Security-advisor baseline
+
+The staging Security Advisor reported:
+- 12 warnings for SECURITY DEFINER functions executable by the `authenticated` role, including the booking, payment, cancellation and admin RPCs. These functions contain internal authentication/role checks and the prior effective-grant review found no anon/PUBLIC EXECUTE access for the audited booking RPC set. Treat the warnings as a review queue: verify each function's guard and effective grants, but do not remove authenticated EXECUTE blindly where the frontend intentionally calls a guarded RPC.
+- 1 warning: leaked-password protection is disabled in Supabase Auth. This is a separate account-security hardening item and does not block the guest booking database design directly.
+
+The staging Performance Advisor also reported 12 unused-index informational findings. No index was dropped or changed; the project currently has no meaningful guest booking workload, so usage statistics are not sufficient grounds for removal.
+
+### 11.16 Updated implementation blockers
+
+Before a migration can be prepared, the implementation plan must explicitly cover all of the following:
+
+1. Guard NULL traveler notification inserts in `notify_new_booking()`, `respond_to_booking()`, `admin_review_owner_booking()`, and `admin_review_payment_receipt()`.
+2. Add guest recipient routing to `notify_booking_cancellation()`.
+3. Permit guest requester role in `owner_respond_to_cancellation()` while preserving all existing owner authorization and timeout behavior.
+4. Permit guest in the admin refund-review continuation branch of `admin_review_booking_cancellation()`.
+5. Confirm that owner/admin guest-contact projections are authorized and that public/traveler/owner-export surfaces remain free of guest contact data.
+6. Confirm the actual Data API exposed-schema configuration and final server-only role/connection pattern. This setting could not be verified through the inspected SQL session.
+7. Add integration tests for every guest branch above, plus registered-user regression tests. The shared Deno test source has not been executed because Deno is not installed in the current environment.
+
+These are design findings only. No SQL/DDL, policy, Storage, secret, Edge Function deployment, or production change was made.
