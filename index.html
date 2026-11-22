@@ -3084,11 +3084,7 @@ function exportAdminBookings(format){
   const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const trs=rows.map(row=>'<tr>'+row.map(cell=>'<td>'+esc(cell)+'</td>').join('')+'</tr>').join('');
   const win=window.open('','_blank');if(!win){msg('اسمح بفتح النوافذ المنبثقة لإعداد ملف PDF.');return;}
-  win.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+filename+'</title><style>body{font-family:Arial,sans-serif;padding:18px;color:#222}h2,p{text-align:center}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #888;padding:6px;text-align:center}th{background:#eee}@page{size:landscape;margin:10mm}</style></head><body><h2>OBNAR VACANCES — جميع حجوزات المنصة</h2><p>السنة: '+year+' | عدد الحجوزات: '+rows.length+'</p><table><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+trs+'</tbody></table><script>window.onload=()=>window.print();<\/script>  <script>
-    if ("serviceWorker" in navigator && location.protocol === "https:") {
-      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch((error) => console.warn("PWA registration:", error)));
-    }
-  </script>
+  win.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>'+filename+'</title><style>body{font-family:Arial,sans-serif;padding:18px;color:#222}h2,p{text-align:center}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #888;padding:6px;text-align:center}th{background:#eee}@page{size:landscape;margin:10mm}</style></head><body><h2>OBNAR VACANCES — جميع حجوزات المنصة</h2><p>السنة: '+year+' | عدد الحجوزات: '+rows.length+'</p><table><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+trs+'</tbody></table><script>window.onload=()=>window.print();<\/script>
 
 <script>
 /* OBNAR bilingual public homepage: does not alter booking/account workflows. */
@@ -3363,6 +3359,12 @@ function exportAdminBookings(format){
 })();
 </script>
 
+
+<script>
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+ window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(error => console.warn("PWA registration:", error)));
+}
+</script>
 </body></html>');
   win.document.close();setAdminBookingExportStatus('تم فتح نافذة الطباعة لحفظ '+rows.length+' حجزاً بصيغة PDF.');
  }
