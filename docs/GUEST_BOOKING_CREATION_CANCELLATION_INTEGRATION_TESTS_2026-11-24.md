@@ -42,7 +42,12 @@ Record exact fixture IDs in the test runner output. Cleanup only rows created by
 | GC-07 | Client supplies price, commission, owner ID, traveler ID, status, reference, hash, or object path | Caller-controlled values ignored or request rejected; server-derived values only |
 | GC-08 | Two separate non-overlapping requests for same property | Both may succeed |
 | GC-09 | Adjacent half-open date ranges where first checkout equals second check-in | Both may succeed |
-| GC-10 | Same dates requested twice sequentially | Second request rejected |
+| GC-10 | Same idempotency key and same normalized booking inputs are retried | Original booking reference returned; no second booking; no secret returned by server |
+| GC-16 | Same idempotency key is reused with different normalized booking inputs | Generic conflict; no second booking or credential change |
+| GC-17 | Same idempotency key and same inputs are retried concurrently | Exactly one booking/credential/idempotency record; both calls resolve to the same reference |
+| GC-18 | Page reload after commit loses in-memory secret but retains idempotency key | Retry may return the original reference only; no secret or booking data disclosed; support reissue required |
+| GC-19 | Same key and same inputs are retried with a different secret digest | Rejected; original stored digest is never replaced |
+| GC-20 | Different idempotency key submits overlapping dates | Existing overlap protection rejects the conflicting booking |
 | GC-11 | Different guests concurrently request overlapping dates on same property | At most one active booking commits |
 | GC-12 | Guest creation transaction fails after booking insert but before credential insert | Entire transaction rolls back; neither row remains |
 | GC-13 | Credential insert succeeds but booking transaction later fails | Entire transaction rolls back; no orphan credential |
@@ -58,7 +63,9 @@ After every successful guest creation, assert:
 - exactly one credential registry row references that booking;
 - the reference is unique and independently generated;
 - the stored secret value is a digest only, never the plaintext secret;
-- the plaintext secret is returned once by the server response and is absent from DB rows and logs;
+- the browser generated the 256-bit secret before the request and retained plaintext only in page memory;
+- the server response contains the booking reference but never returns an access secret;
+- the access secret is absent from DB rows, logs, URLs, analytics and browser storage;
 - status/payment defaults match the registered booking creation contract;
 - is_test is false for real guest creation;
 - server-calculated nightly price, commission, total and deposit rules match the registered routine;
