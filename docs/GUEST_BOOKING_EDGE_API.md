@@ -2,7 +2,7 @@
 
 **Status:** implementation contract / not deployed  
 **Branch:** `pwa-foundation`  
-**Date:** 22 November 2026
+**Date:** 24 November 2026 (updated with approved retry design)
 
 This document defines the server boundary for guest bookings. It does not authorize a browser to access booking tables or Storage directly. The existing registered-traveler workflow remains unchanged.
 
@@ -12,7 +12,7 @@ This document defines the server boundary for guest bookings. It does not author
 2. Guest endpoints use a server-only Supabase credential and narrowly scoped database operations.
 3. No guest endpoint grants anonymous `SELECT`, `INSERT`, `UPDATE`, or `DELETE` on `bookings`, cancellation tables, history, or Storage objects.
 4. A booking reference is an identifier only. Every guest read or mutation requires both the reference and a 256-bit random secret.
-5. Store only the SHA-256 hash of the secret. Return plaintext once, immediately after successful creation; never put it in logs, analytics, URLs, browser storage, or error messages.
+5. The browser generates the 256-bit access secret and retains plaintext only in page memory. The server stores only its SHA-256 digest. Never put plaintext in logs, analytics, URLs, browser storage, or error messages.
 6. Use generic failure responses for invalid reference/secret combinations. Apply database-backed atomic throttling before expensive lookups and mutations.
 7. All state-changing operations must be transactional and re-check current booking/payment/cancellation state inside Postgres.
 8. Existing registered-user RPCs remain authenticated and must not be weakened or reused for guests.
@@ -38,8 +38,12 @@ All endpoints accept HTTPS POST with JSON except receipt upload, which accepts m
 - Recalculate availability, approval state, capacity, owner, price and commission in Postgres.
 - Reject owner self-booking and overlapping active bookings.
 - Preserve property advisory locking and the exclusion constraint.
-- Create the booking, opaque reference and secret hash in one database transaction.
-- Return booking reference and plaintext secret once; do not return internal IDs or privileged data.
+- Before the first request, the browser generates a 32-byte access secret and a separate high-entropy idempotency key using Web Crypto; it keeps the plaintext secret only in page memory.
+- The browser sends the secret digest and idempotency key over HTTPS POST. The idempotency key may be kept in sessionStorage for same-tab retry continuity, but is never accepted as booking authentication.
+- Create the booking, opaque reference, secret digest and idempotency record in one database transaction.
+- Bind the idempotency record to a canonical fingerprint of the normalized booking request and secret digest. Same key + same fingerprint returns the same reference without creating another booking; same key + different fingerprint is rejected.
+- Return the booking reference once the transaction commits. The browser already holds the access secret in page memory. Do not return internal IDs or privileged data.
+- If the response is lost, retry using the same idempotency key and same payload. If the page reloads/closes and the secret is lost, do not reconstruct it or store an encrypted copy; use the separately approved administrator-assisted reissue process.
 
 **Response**
 - `booking_reference`
@@ -100,6 +104,12 @@ Read-only inspection of staging project `rhxeclddohpwtpzkruzm` confirmed the fol
 7. Do not add guest access to `storage.objects` policies. A server-only Edge Function uploads to the existing private bucket and calls a private attachment routine after authorization and validation.
 
 The booking identity check, reference uniqueness, cancellation FK/role changes, notification trigger behavior, and all relevant views/RPC grants must be reviewed together in one migration. Do not relax RLS or expose raw guest columns through the Data API.
+
+## Approved lost-response and recovery behavior — 24 November 2026
+
+Option A is approved as the design direction. The client generates the guest access secret; the server stores only its digest. A separate idempotency key prevents duplicate creation for a repeated identical request and is not itself a guest authentication factor. Do not implement encrypted secret escrow. A same-key retry must be transactionally idempotent and must reject a different canonical request fingerprint.
+
+If the guest loses the in-memory secret after a reload or tab close, recovery requires an administrator-assisted reissue after a strong verification procedure. Booking reference, phone, name, property or dates alone are not sufficient proof. The verification evidence, administrator permissions, idempotency expiry, canonical fingerprint fields, duplicate-submission behavior and reissue audit contract remain to be specified before implementation.
 
 ## Database RPC contract required before handlers are completed
 
