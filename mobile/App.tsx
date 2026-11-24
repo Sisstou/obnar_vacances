@@ -63,9 +63,10 @@ const copy = {
     tagline: 'عطلتك تبدأ من هنا',
     intro: 'اكتشف إقامات العطلات في أولاد بونار وجيجل.',
     search: 'ابحث عن إقامة أو منطقة',
+    searchPending: 'البحث المباشر غير متاح بعد. لن نعرض بيانات الإقامات التجريبية على أنها عروض حقيقية.',
     categories: 'اكتشف الإقامات',
-    emptyTitle: 'الإقامات ستظهر هنا',
-    emptyBody: 'سيتم عرض الإقامات المعتمدة والمتاحة بعد ربط التطبيق ببيانات المنصة.',
+    emptyTitle: 'لا توجد إقامات منشورة حالياً',
+    emptyBody: 'الإقامات الموجودة في بيئة الاختبار تجريبية، لذلك نخفيها عن الزوار. ستظهر هنا الإقامات الحقيقية بعد اعتماد مصدر الإنتاج والتحقق منه.',
     discover: 'اكتشف',
     bookings: 'حجوزاتي',
     account: 'حسابي',
@@ -85,16 +86,17 @@ const copy = {
     loading: 'يرجى الانتظار...',
     language: 'Français',
     stay: 'إقامات معتمدة',
-    activities: 'نشاطات محلية',
+    activities: 'أنشطة محلية قريباً',
     secure: 'تصفح آمن وبسيط',
   },
   fr: {
     tagline: 'Vos vacances commencent ici',
     intro: 'Découvrez les séjours à Ouled Bounar et dans la wilaya de Jijel.',
     search: 'Rechercher un logement ou une zone',
+    searchPending: 'La recherche en direct n’est pas encore disponible. Les données de test ne seront pas présentées comme de vraies offres.',
     categories: 'Découvrir les séjours',
-    emptyTitle: 'Les logements apparaîtront ici',
-    emptyBody: 'Les logements approuvés et disponibles seront affichés après la connexion aux données de la plateforme.',
+    emptyTitle: 'Aucun logement publié pour le moment',
+    emptyBody: 'Les logements présents dans l’environnement de test sont fictifs et restent masqués aux visiteurs. Les véritables offres apparaîtront ici après validation d’une source de production.',
     discover: 'Découvrir',
     bookings: 'Mes réservations',
     account: 'Mon compte',
@@ -114,7 +116,7 @@ const copy = {
     loading: 'Veuillez patienter...',
     language: 'العربية',
     stay: 'Logements approuvés',
-    activities: 'Activités locales',
+    activities: 'Activités locales bientôt',
     secure: 'Simple et sécurisé',
   },
 } as const;
@@ -223,7 +225,11 @@ export default function App() {
               onChangeText={setSearch}
               style={[styles.search, rtl && styles.textRight]}
               textAlign={rtl ? 'right' : 'left'}
+              returnKeyType="search"
             />
+            {!!search.trim() && (
+              <Text style={[styles.searchNote, rtl && styles.textRight]}>{t.searchPending}</Text>
+            )}
           </View>
           <Text style={[styles.sectionTitle, rtl && styles.textRight]}>{t.categories}</Text>
           <View style={styles.featureRow}>
@@ -372,6 +378,7 @@ const styles = StyleSheet.create({
   heroTitle: { color: COLORS.navy, fontSize: 22, fontWeight: '800', lineHeight: 32 },
   textRight: { textAlign: 'right', writingDirection: 'rtl' },
   search: { minHeight: 50, backgroundColor: COLORS.white, borderRadius: 12, paddingHorizontal: 14, color: COLORS.ink, borderWidth: 1, borderColor: COLORS.line },
+  searchNote: { color: COLORS.muted, fontSize: 12, lineHeight: 19 },
   sectionTitle: { color: COLORS.navy, fontSize: 19, fontWeight: '800' },
   featureRow: { flexDirection: 'row', gap: 10 },
   feature: { flex: 1, minHeight: 92, padding: 14, backgroundColor: COLORS.white, borderRadius: 16, borderWidth: 1, borderColor: COLORS.line, justifyContent: 'center', gap: 6 },
