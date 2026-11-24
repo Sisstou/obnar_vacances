@@ -120,7 +120,8 @@ The create endpoint must:
 - apply creation throttles before database booking work;
 - preserve the existing property advisory lock and both exclusion constraints;
 - create booking, reference, client-supplied secret digest, idempotency record and expiry in one transaction;
-- never accept caller-supplied traveler ID, owner ID, price, commission, status, reference, secret hash or Storage path.
+- accept only the browser-generated SHA-256 secret digest in its strict 64-character lowercase-hex format; never accept a raw access secret from the browser;
+- never accept caller-supplied traveler ID, owner ID, price, commission, status, reference, or Storage path.
 
 Avoid storing contact data in rate-limit rows or logs. A keyed digest can support abuse controls without copying raw phone numbers into another table.
 
