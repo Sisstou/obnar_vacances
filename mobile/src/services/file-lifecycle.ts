@@ -1,4 +1,4 @@
-import { err, ok, type AppResult } from '../lib/result';
+import type { AppResult } from '../lib/result';
 
 export type StorageBucket =
   | 'property-images'
@@ -29,10 +29,7 @@ export interface VersionedPathInput {
 }
 
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
-const DOCUMENT_TYPES = [
-  ...IMAGE_TYPES,
-  'application/pdf',
-] as const;
+const DOCUMENT_TYPES = [...IMAGE_TYPES, 'application/pdf'] as const;
 
 const BUCKET_POLICIES: Record<StorageBucket, StorageBucketPolicy> = {
   'property-images': {
@@ -71,18 +68,25 @@ const EXTENSIONS: Record<string, string> = {
   'application/pdf': 'pdf',
 };
 
+function success<T>(data: T): AppResult<T> {
+  return { ok: true, data };
+}
+
+function failure<T = never>(message: string): AppResult<T> {
+  return {
+    ok: false,
+    error: {
+      code: 'invalid_storage_upload',
+      message,
+      retryable: false,
+    },
+  };
+}
+
 export function getStorageBucketPolicy(
   bucket: StorageBucket,
 ): StorageBucketPolicy | null {
   return BUCKET_POLICIES[bucket] ?? null;
-}
-
-function invalid(message: string): AppResult<never> {
-  return err({
-    code: 'invalid_storage_upload',
-    message,
-    retryable: false,
-  });
 }
 
 /** Validates client-side constraints; Storage RLS and bucket limits remain authoritative. */
@@ -90,18 +94,18 @@ export function validateStorageUpload(
   input: UploadValidationInput,
 ): AppResult<true> {
   const policy = getStorageBucketPolicy(input.bucket);
-  if (!policy) return invalid('حاوية الملفات غير مدعومة.');
+  if (!policy) return failure('حاوية الملفات غير مدعومة.');
 
   if (
     !Number.isSafeInteger(input.sizeBytes) ||
     input.sizeBytes <= 0 ||
     input.sizeBytes > policy.maxBytes
   ) {
-    return invalid('حجم الملف غير صالح أو يتجاوز الحد المسموح.');
+    return failure('حجم الملف غير صالح أو يتجاوز الحد المسموح.');
   }
 
   if (!policy.allowedContentTypes.includes(input.contentType)) {
-    return invalid('نوع الملف غير مسموح لهذه الحاوية.');
+    return failure('نوع الملف غير مسموح لهذه الحاوية.');
   }
 
   const segments = input.path.split('/');
@@ -116,15 +120,15 @@ export function validateStorageUpload(
         !/^[A-Za-z0-9_.-]{1,128}$/.test(segment),
     )
   ) {
-    return invalid('مسار الملف لا يطابق بنية الحاوية المطلوبة.');
+    return failure('مسار الملف لا يطابق بنية الحاوية المطلوبة.');
   }
 
   const extension = input.path.split('.').pop()?.toLowerCase();
   if (extension !== EXTENSIONS[input.contentType]) {
-    return invalid('امتداد الملف لا يتوافق مع نوع المحتوى.');
+    return failure('امتداد الملف لا يتوافق مع نوع المحتوى.');
   }
 
-  return ok(true);
+  return success(true);
 }
 
 /**
@@ -142,35 +146,38 @@ export function buildVersionedStoragePath(
   input: VersionedPathInput,
 ): AppResult<string> {
   const policy = getStorageBucketPolicy(input.bucket);
-  if (!policy) return invalid('حاوية الملفات غير مدعومة.');
+  if (!policy) return failure('حاوية الملفات غير مدعومة.');
 
   const primaryId = input.primaryId.trim();
   const secondaryId = input.secondaryId?.trim();
-  if (!SAFE_ID.test(primaryId)) return invalid('معرّف المجلد الأول غير صالح.');
+  if (!SAFE_ID.test(primaryId)) return failure('معرّف المجلد الأول غير صالح.');
 
   const needsSecondary = policy.folderDepth === 2;
   if (needsSecondary && (!secondaryId || !SAFE_ID.test(secondaryId))) {
-    return invalid('معرّف المجلد الثاني مطلوب وغير صالح.');
+    return failure('معرّف المجلد الثاني مطلوب وغير صالح.');
   }
   if (!needsSecondary && secondaryId) {
-    return invalid('هذه الحاوية لا تقبل مجلداً ثانياً.');
+    return failure('هذه الحاوية لا تقبل مجلداً ثانياً.');
   }
 
   const rawName = input.fileName.trim();
   const dot = rawName.lastIndexOf('.');
   const baseName = dot > 0 ? rawName.slice(0, dot) : rawName;
   const extension = dot > 0 ? rawName.slice(dot + 1).toLowerCase() : '';
-  if (!SAFE_BASENAME.test(baseName) || !Object.values(EXTENSIONS).includes(extension)) {
-    return invalid('اسم الملف أو امتداده غير صالح.');
+  if (
+    !SAFE_BASENAME.test(baseName) ||
+    !Object.values(EXTENSIONS).includes(extension)
+  ) {
+    return failure('اسم الملف أو امتداده غير صالح.');
   }
 
   const version = input.version ?? 1;
   if (!Number.isSafeInteger(version) || version < 1 || version > 9999) {
-    return invalid('رقم نسخة الملف غير صالح.');
+    return failure('رقم نسخة الملف غير صالح.');
   }
 
   const folders = needsSecondary
     ? [primaryId, secondaryId as string]
     : [primaryId];
-  return ok(`${folders.join('/')}/${baseName}_v${version}.${extension}`);
+  return success(`${folders.join('/')}/${baseName}_v${version}.${extension}`);
 }
