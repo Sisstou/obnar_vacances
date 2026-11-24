@@ -101,6 +101,18 @@ All of the following must continue to pass before guest UI is enabled:
 8. Request separate explicit approval before any production migration, function deployment, or frontend release.
 9. Enable guest UI only after the server paths and owner/admin receipt access are verified.
 
+## Staging inventory — 24 November 2026
+
+A fresh read-only check of staging project `rhxeclddohpwtpzkruzm` returned:
+
+- Project status: `ACTIVE_HEALTHY`.
+- Database engine: PostgreSQL 17.12.
+- Edge Functions deployed: none.
+- Migration history entries returned: 24.
+- No guest-booking migration appears in the returned migration history.
+
+This is an environment inventory, not a guest-feature test pass. It does not verify SQL behavior or endpoint security.
+
 ## Current execution status
 
 - Shared cryptographic helper exists.
