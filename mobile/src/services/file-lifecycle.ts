@@ -25,7 +25,8 @@ export interface VersionedPathInput {
   primaryId: string;
   secondaryId?: string;
   fileName: string;
-  version?: number;
+  /** Must be selected by the caller from an authoritative version record. */
+  version: number;
 }
 
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
@@ -104,7 +105,7 @@ export function validateStorageUpload(
     return failure('حجم الملف غير صالح أو يتجاوز الحد المسموح.');
   }
 
-  if (!policy.allowedContentTypes.includes(input.contentType)) {
+  if (!policy.allowedContentTypes.includes(input.contentType as (typeof DOCUMENT_TYPES)[number])) {
     return failure('نوع الملف غير مسموح لهذه الحاوية.');
   }
 
@@ -132,8 +133,8 @@ export function validateStorageUpload(
 }
 
 /**
- * Builds a non-overwriting object path. Each replacement gets a new versioned name;
- * the old object remains available for audit and manual review.
+ * Builds a non-overwriting object path. The caller must supply the next version
+ * from an authoritative workflow; this helper never guesses or increments it.
  *
  * primaryId / secondaryId mapping:
  * - property-images: ownerId / propertyId
@@ -171,13 +172,12 @@ export function buildVersionedStoragePath(
     return failure('اسم الملف أو امتداده غير صالح.');
   }
 
-  const version = input.version ?? 1;
-  if (!Number.isSafeInteger(version) || version < 1 || version > 9999) {
+  if (!Number.isSafeInteger(input.version) || input.version < 1 || input.version > 9999) {
     return failure('رقم نسخة الملف غير صالح.');
   }
 
   const folders = needsSecondary
     ? [primaryId, secondaryId as string]
     : [primaryId];
-  return success(`${folders.join('/')}/${baseName}_v${version}.${extension}`);
+  return success(`${folders.join('/')}/${baseName}_v${input.version}.${extension}`);
 }
