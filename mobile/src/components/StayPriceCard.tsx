@@ -1,4 +1,5 @@
 import React from 'react';
+import { calculateStayPrice } from '../lib/booking-calculations.mjs';
 import {
   StyleSheet,
   Text,
@@ -39,18 +40,14 @@ export function StayPriceCard({
   const isArabic = locale === 'ar';
   const rtl = isArabic;
 
-  const safePrice = Number.isFinite(pricePerNight) ? Math.max(0, pricePerNight) : 0;
-  const safeNights = Number.isFinite(nights) ? Math.max(0, Math.floor(nights)) : 0;
-  const safeDeposit = Number.isFinite(depositAmount)
-    ? Math.max(0, depositAmount)
-    : 0;
+  const priceBreakdown = calculateStayPrice(pricePerNight, nights, depositAmount);
 
-  const accommodationSubtotal = safePrice * safeNights;
-  const total = accommodationSubtotal + safeDeposit;
-  const formatPrice = (value: number) =>
-    `${new Intl.NumberFormat(isArabic ? 'ar-DZ' : 'fr-DZ', {
-      maximumFractionDigits: 0,
-    }).format(value)} ${currency}`;
+  const formatPrice = (value: number | null | undefined) =>
+    value === null || value === undefined
+      ? '—'
+      : `${new Intl.NumberFormat(isArabic ? 'ar-DZ' : 'fr-DZ', {
+          maximumFractionDigits: 0,
+        }).format(value)} ${currency}`;
 
   const labels = isArabic
     ? {
@@ -115,12 +112,12 @@ export function StayPriceCard({
       ) : null}
 
       <View style={styles.breakdown}>
-        {detailRow(labels.perNight, formatPrice(safePrice))}
-        {detailRow(labels.nights, String(safeNights))}
-        {detailRow(labels.accommodation, formatPrice(accommodationSubtotal))}
+        {detailRow(labels.perNight, formatPrice(priceBreakdown?.pricePerNight))}
+        {detailRow(labels.nights, String(priceBreakdown?.nights ?? '—'))}
+        {detailRow(labels.accommodation, formatPrice(priceBreakdown?.accommodationSubtotal))}
         {detailRow(
           labels.deposit,
-          safeDeposit > 0 ? formatPrice(safeDeposit) : labels.noDeposit,
+          priceBreakdown ? (priceBreakdown.depositAmount > 0 ? formatPrice(priceBreakdown.depositAmount) : labels.noDeposit) : '—',
         )}
       </View>
 
@@ -129,7 +126,7 @@ export function StayPriceCard({
           <Text style={[styles.totalLabel, { textAlign: rtl ? 'right' : 'left' }]}>
             {labels.total}
           </Text>
-          <Text style={styles.totalValue}>{formatPrice(total)}</Text>
+          <Text style={styles.totalValue}>{formatPrice(priceBreakdown?.total)}</Text>
         </View>
       </View>
 
