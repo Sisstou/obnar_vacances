@@ -31,6 +31,8 @@ All endpoints accept HTTPS POST with JSON except receipt upload, which accepts m
 - `guests`: positive integer
 - `guest_name`: bounded plain text
 - `guest_phone`: normalized Algerian/international phone string
+- `access_secret_digest`: SHA-256 hex digest of the 256-bit secret generated in the browser
+- `idempotency_key`: high-entropy value generated separately in the browser
 
 **Server responsibilities**
 - Enforce body size, type, length and date bounds.
@@ -41,14 +43,13 @@ All endpoints accept HTTPS POST with JSON except receipt upload, which accepts m
 - Before the first request, the browser generates a 32-byte access secret and a separate high-entropy idempotency key using Web Crypto; it keeps the plaintext secret only in page memory.
 - The browser sends the secret digest and idempotency key over HTTPS POST. The idempotency key may be kept in sessionStorage for same-tab retry continuity, but is never accepted as booking authentication.
 - Create the booking, opaque reference, secret digest and idempotency record in one database transaction.
-- Bind the idempotency record to a canonical fingerprint of the normalized booking request and secret digest. Same key + same fingerprint returns the same reference without creating another booking; same key + different fingerprint is rejected.
-- Return the booking reference once the transaction commits. The browser already holds the access secret in page memory. Do not return internal IDs or privileged data.
+- Bind the idempotency record to a canonical fingerprint of the normalized booking inputs (not the secret digest). The first request stores the supplied secret digest. A same-key/same-fingerprint replay returns only the original booking reference and never creates another booking; if a digest is supplied on replay it must match the original, and it must never replace it. Same key + different fingerprint is rejected. A replay after page reload may recover the reference only; it cannot recover the lost secret or authorize access.
+- Return the booking reference once the transaction commits. The browser already holds the access secret in page memory. The response must not contain `access_secret`; do not return internal IDs or privileged data.
 - If the response is lost, retry using the same idempotency key and same payload. If the page reloads/closes and the secret is lost, do not reconstruct it or store an encrypted copy; use the separately approved administrator-assisted reissue process.
 
 **Response**
 - `booking_reference`
-- `access_secret`
-- minimal confirmation fields only
+- minimal confirmation fields only; never return an access secret because the browser generated and already holds it.
 
 ### 2. Read guest booking / submit cancellation request
 
@@ -107,7 +108,7 @@ The booking identity check, reference uniqueness, cancellation FK/role changes, 
 
 ## Approved lost-response and recovery behavior — 24 November 2026
 
-Option A is approved as the design direction. The client generates the guest access secret; the server stores only its digest. A separate idempotency key prevents duplicate creation for a repeated identical request and is not itself a guest authentication factor. Do not implement encrypted secret escrow. A same-key retry must be transactionally idempotent and must reject a different canonical request fingerprint.
+Option A is approved as the design direction. The client generates the guest access secret; the server stores only its digest. A separate idempotency key prevents duplicate creation for a repeated identical request and is not itself a guest authentication factor. Do not implement encrypted secret escrow. The canonical request fingerprint covers normalized booking inputs, not the secret digest. A same-key retry returns only the original reference; if a digest is supplied, it must match the originally stored digest. A replay must never replace or reveal the secret.
 
 If the guest loses the in-memory secret after a reload or tab close, recovery requires an administrator-assisted reissue after a strong verification procedure. Booking reference, phone, name, property or dates alone are not sufficient proof. The verification evidence, administrator permissions, idempotency expiry, canonical fingerprint fields, duplicate-submission behavior and reissue audit contract remain to be specified before implementation.
 
