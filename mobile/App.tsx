@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Linking,
@@ -185,7 +184,13 @@ export default function App() {
 
   useEffect(() => {
     if (!supabaseConfigured) return;
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    supabase.auth.getSession()
+      .then(({ data, error }) => {
+        if (!error) setSession(data.session);
+      })
+      .catch(() => {
+        // Keep guest browsing available if session restoration temporarily fails.
+      });
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
     });
@@ -241,9 +246,19 @@ export default function App() {
   async function signOut() {
     if (!supabaseConfigured) return;
     setBusy(true);
-    const { error } = await supabase.auth.signOut();
-    setBusy(false);
-    if (error) Alert.alert('OBNAR VACANCES', t.authError);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    } catch {
+      Alert.alert('OBNAR VACANCES', t.authError);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function navigateTo(nextTab: Tab) {
+    setTab(nextTab);
+    if (nextTab !== 'discover') setShowDetailPreview(false);
   }
 
   return (
@@ -401,9 +416,9 @@ export default function App() {
       )}
 
       <View style={styles.tabBar}>
-        <TabButton title={t.discover} symbol="⌂" active={tab === 'discover'} onPress={() => setTab('discover')} />
-        <TabButton title={t.bookings} symbol="▤" active={tab === 'bookings'} onPress={() => setTab('bookings')} />
-        <TabButton title={t.account} symbol="○" active={tab === 'account'} onPress={() => setTab('account')} />
+        <TabButton title={t.discover} symbol="⌂" active={tab === 'discover'} onPress={() => navigateTo('discover')} />
+        <TabButton title={t.bookings} symbol="▤" active={tab === 'bookings'} onPress={() => navigateTo('bookings')} />
+        <TabButton title={t.account} symbol="○" active={tab === 'account'} onPress={() => navigateTo('account')} />
       </View>
     </SafeAreaView>
   );
