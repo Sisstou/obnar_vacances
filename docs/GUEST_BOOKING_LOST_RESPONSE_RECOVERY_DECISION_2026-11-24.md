@@ -150,8 +150,6 @@ The administrator recovery process must not accept booking reference, phone, nam
 
 ## 8. Required tests before implementation
 
-## 8. Required tests before implementation
-
 - Same idempotency key + same canonical payload, sequential retry: one booking only.
 - Same idempotency key + same payload, concurrent retry: one booking only.
 - Same idempotency key + different payload: generic conflict; no second booking.
@@ -162,7 +160,7 @@ The administrator recovery process must not accept booking reference, phone, nam
 - Rate limit applies atomically to replay attempts.
 - No secret, idempotency key, digest or ciphertext appears in logs, analytics, URLs or public DTOs.
 - For approved Option A: same-tab retry, page reload, tab close, cleared session storage and browser restart behavior are explicitly tested; no retry creates a duplicate.
-- For the approved support fallback: verification failure never discloses or reissues credentials; successful reissue requires administrator authorization, immediate old-secret revocation, one-time new-secret delivery and a sanitized audit trail.
+- For the proposed support fallback: verification failure never discloses or reissues credentials; successful reissue requires administrator authorization, in-person verification, immediate old-secret revocation, a one-time challenge/QR handoff, guest-generated replacement secret and sanitized audit trail. See [GUEST_BOOKING_ADMIN_ASSISTED_CREDENTIAL_REISSUE_DESIGN_2026-11-24.md](GUEST_BOOKING_ADMIN_ASSISTED_CREDENTIAL_REISSUE_DESIGN_2026-11-24.md).
 - Verify no encrypted or plaintext copy of the original access secret is persisted.
 - Existing registered booking and cancellation/payment regression suites continue to pass.
 
@@ -170,7 +168,7 @@ The administrator recovery process must not accept booking reference, phone, nam
 
 - Lost-response failure analyzed.
 - Three recovery patterns documented.
-- Option A approved as the design direction; administrator-assisted recovery is required but its verification procedure remains an implementation gate.
+- Option A approved as the design direction. An in-person administrator-assisted reissue flow has been documented as a proposal only; it is not yet an approved operational policy.
 - No SQL or Edge Function implementation produced; approval is for design direction only.
 - No database, Storage, secrets or deployment changed.
 - Guest UI remains disabled.
