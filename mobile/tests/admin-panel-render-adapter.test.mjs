@@ -92,6 +92,14 @@ function loadAdapter() {
 function findElement(node, type) {
   if (!node || typeof node !== 'object') return undefined;
   if (node.type === type) return node;
+
+  // React.createElement stores function components as element types; it does
+  // not execute them. Expand those components in this lightweight test
+  // renderer so assertions can inspect the native elements they return.
+  if (typeof node.type === 'function') {
+    return findElement(node.type(node.props ?? {}), type);
+  }
+
   const children = node.props?.children;
   for (const child of Array.isArray(children) ? children : [children]) {
     const match = findElement(child, type);
