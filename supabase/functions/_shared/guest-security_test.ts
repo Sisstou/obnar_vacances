@@ -64,7 +64,7 @@ Deno.test("hash comparison rejects malformed values without throwing", () => {
   }
 });
 
-Deno.test("distinct generated secrets produce distinct hashes", async () => {
+Deno.test("distinct valid secrets produce distinct hashes", async () => {
   const first = TEST_SECRET;
   const second = "B".repeat(43);
   const [firstHash, secondHash] = await Promise.all([
