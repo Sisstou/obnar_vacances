@@ -68,9 +68,9 @@ Add these cases to the existing creation/cancellation integration suite:
 | GCR-02 | Failure after booking insert but before credential insert | Entire transaction rolls back |
 | GCR-03 | Failure after credential insert but before commit | Entire transaction rolls back |
 | GCR-04 | Deferred invariant fails at commit | Entire transaction rolls back; no secret returned |
-| GCR-05 | Commit succeeds and response reaches client | One booking; one registry row; secret returned once |
-| GCR-06 | Commit succeeds but response is lost | Behavior follows the separately approved retry/recovery design; never create an unintended duplicate |
-| GCR-07 | Same creation request is submitted concurrently | Behavior follows the approved idempotency contract; no unintended duplicate |
+| GCR-05 | Commit succeeds and response reaches client | One booking; one registry row; reference returned; client already holds its secret in page memory |
+| GCR-06 | Commit succeeds but response is lost; same idempotency key and normalized inputs are retried | Original reference returned only; no duplicate; no secret disclosure or replacement |
+| GCR-07 | Same idempotency key and same normalized inputs are submitted concurrently | Exactly one booking; every replay returns the same reference |
 | GCR-08 | Two different requests overlap for the same property/dates | At most one active booking commits |
 | GCR-09 | Adjacent half-open date ranges | Both may commit |
 | GCR-10 | Different properties are booked concurrently | No unnecessary cross-property serialization |
@@ -85,8 +85,10 @@ For every successful guest creation:
 - exactly one booking is created;
 - `traveler_id` is NULL;
 - exactly one private credential row exists;
+- exactly one idempotency record exists for the logical create request;
 - reference uniqueness holds;
-- only the secret digest is persisted;
+- same-key/same-input replay returns the original reference only; same-key/different-input or changed digest is rejected;
+- only the client-generated secret digest is persisted; the server never receives or stores plaintext;
 - property approval, capacity, self-booking protections where applicable, pricing, commission and overlap rules match the registered business rules;
 - the existing property advisory lock and both exclusion constraints remain active;
 - guest contact and credentials do not appear in public availability projections;
