@@ -31,34 +31,32 @@ The proposed guest creation operation must be one database transaction, with all
 
 1. Edge Function validates bounded input syntax and request size; it does not accept price, commission, owner ID, traveler ID, booking status, reference, secret hash, or Storage path from the client.
 2. Edge Function applies the approved creation throttle using server-derived HMAC digests. It does not trust arbitrary client forwarding headers as network identity.
-3. Server generates the opaque booking reference and 32-byte access secret independently using a cryptographically secure random generator; computes the secret digest; plaintext secret remains only in transient server memory.
+3. Before the first request, the browser generates a 32-byte access secret and a separate high-entropy idempotency key using Web Crypto. It keeps the plaintext secret only in page memory and sends the secret digest plus idempotency key over HTTPS POST. The server independently generates the opaque booking reference; it never receives or stores the plaintext secret.
 4. Database routine reads and validates the property using the same approval, capacity, date and price rules as the registered routine.
 5. Database routine takes the same property-scoped advisory transaction lock as the registered path, then performs the authoritative overlap check. The existing exclusion constraints remain the final concurrency guard.
 6. Database routine inserts the guest booking with `traveler_id = NULL`, `is_test = false`, server-calculated prices, and the same appropriate initial status/payment defaults.
-7. In that same transaction, it inserts exactly one row into `private.guest_booking_access` with the booking ID, generated reference, digest, and approved expiry. It never stores plaintext secret.
+7. In that same transaction, it inserts exactly one row into `private.guest_booking_access` with the booking ID, server-generated reference, client-supplied secret digest, and approved expiry. It never stores plaintext secret. It also records the idempotency-key digest and canonical request fingerprint in a narrowly scoped private idempotency record, with an explicit expiry.
 8. Deferred booking/credential constraint triggers validate the final pair at transaction commit.
-9. Only after successful commit does the Edge Function return the reference and plaintext secret once, plus a minimal confirmation DTO. No internal booking UUID or private owner data is returned.
+9. Only after successful commit does the Edge Function return the booking reference and minimal confirmation DTO. The browser already holds the plaintext access secret in page memory. No internal booking UUID or private owner data is returned.
 10. All logs and error paths redact the secret, digest, reference/contact where appropriate, and raw database errors.
 
 The private-registry write path must obey the parent-first lock order documented in `GUEST_BOOKING_DEFERRED_INTEGRITY_TRIGGER_REVIEW_2026-11-24.md`. Do not add generic advisory-lock triggers on both tables.
 
-## 4. Critical unresolved retry case
+## 4. Approved retry and lost-secret behavior
 
-There is a product/security gap that must be resolved before enabling guest creation:
+Option A is approved as the design direction:
 
-- The database transaction may commit successfully.
-- The HTTPS response carrying the one-time plaintext secret may then be lost (network interruption, client disconnect, or Edge Function failure after commit).
-- The database correctly stores only a digest, so the server cannot reconstruct the original secret.
-- A blind client retry could create a second booking unless request deduplication is designed.
-- Returning the original secret later is not possible under the current one-time-secret model.
+- The browser generates the access secret and idempotency key before the first request.
+- It retains plaintext access secret only in page memory; the server receives and stores only its digest.
+- The idempotency key may be retained in sessionStorage for same-tab retry continuity, but it is not an authentication credential.
+- The database transaction atomically stores the booking, credential digest and idempotency record.
+- A retry using the same idempotency key and identical canonical request fingerprint returns the original booking reference without creating another booking.
+- Reuse of the same idempotency key with a different fingerprint is rejected.
+- The browser still needs the original in-memory secret to authenticate. If the page reloads/closes and the secret is lost, the server must not reconstruct it or store an encrypted copy. A separate administrator-assisted reissue process is required after strong verification and revocation of the old credential.
 
-Do not silently solve this by storing plaintext, returning the secret from a lookup endpoint, or treating booking reference/phone/name as sufficient recovery proof.
+The following remain implementation gates: idempotency expiry/cleanup, canonical fingerprint fields, different-key identical-payload behavior, support verification evidence, administrator permissions, reissue transaction semantics and sanitized audit design. Do not invent these in code.
 
-Before implementation, choose and document one safe product behavior:
-- a narrowly scoped idempotent creation protocol with a separately designed, short-lived recovery capability; or
-- no automatic replay, with a clearly defined support/reissue process that does not disclose credentials based only on public booking details.
-
-The idempotency/recovery mechanism itself must be reviewed for entropy, storage, expiry, replay, privacy, throttling and transaction semantics. No specific recovery policy is approved by this document.
+Do not solve lost-secret cases by storing plaintext, returning a secret from a lookup endpoint, or treating booking reference/phone/name as sufficient recovery proof.
 
 ## 5. Required additional tests
 
