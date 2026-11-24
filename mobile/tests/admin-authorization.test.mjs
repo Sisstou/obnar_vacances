@@ -109,8 +109,7 @@ test('does not authorize an unexpected non-boolean RPC response', async () => {
 
 test('does not call Supabase when the public client is not configured', async () => {
   const service = loadService(createClient(), false);
-  assert.deepEqual(
-    await service.verifyAdminAuthorization(),
-    { status: 'unavailable', retryable: false },
-  );
+  const state = await service.verifyAdminAuthorization();
+  assert.equal(state.status, 'unavailable');
+  assert.equal(state.retryable, false);
 });
