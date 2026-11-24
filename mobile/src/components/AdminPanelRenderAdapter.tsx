@@ -129,9 +129,9 @@ function StatusView({
 /**
  * Render the selected panel using the exact props associated with its id.
  *
- * For a successful state, props must already contain the panel's language
- * and any required trusted-source presentation flag. This adapter deliberately
- * does not set trustedAdminSource or infer it from the state.
+ * The current language is applied at render time so a language switch cannot
+ * leave a panel displaying stale-language props. The parent must still supply
+ * any required trusted-source presentation flag; this adapter never sets it.
  */
 export function renderAdminPanel<K extends ImplementedAdminPanelId>(
   panelId: K,
@@ -151,13 +151,14 @@ export function renderAdminPanel<K extends ImplementedAdminPanelId>(
   }
 
   const Panel = panelComponents[panelId] as React.ComponentType<AdminPanelProps<K>>;
-  return React.createElement(Panel, state.props);
+  return React.createElement(Panel, { ...state.props, language });
 }
 
 /**
  * Adapter matching AdminWorkspace's (panelId, language) callback signature.
  * The map may omit a panel; omitted entries render the safe idle state.
- * The bookings placeholder is handled explicitly and has no data contract.
+ * Recreate this renderer when the state map changes so it does not retain a
+ * stale snapshot. The bookings placeholder has no data contract.
  */
 export function createAdminPanelRenderer(
   states: AdminPanelDataStateMap,
