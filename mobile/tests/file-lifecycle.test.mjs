@@ -28,6 +28,7 @@ test('builds a payment receipt path with exactly two folders', () => {
     primaryId: 'traveler-123',
     secondaryId: 'booking-456',
     fileName: 'receipt.pdf',
+    version: 1,
   });
 
   assert.equal(result.ok, true);
@@ -98,6 +99,18 @@ test('rejects unsafe identifiers and filenames when generating paths', () => {
     bucket: 'refund-proofs',
     primaryId: '../cancellation',
     fileName: 'proof.pdf',
+    version: 1,
+  });
+
+  assert.equal(result.ok, false);
+});
+
+test('rejects a missing version at runtime', () => {
+  const result = buildVersionedStoragePath({
+    bucket: 'owner-documents',
+    primaryId: 'owner-123',
+    fileName: 'identity.pdf',
+    version: undefined,
   });
 
   assert.equal(result.ok, false);
