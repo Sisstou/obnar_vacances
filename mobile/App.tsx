@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   SafeAreaView,
@@ -13,8 +14,46 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import type { Session } from '@supabase/supabase-js';
+import type { EmailOtpType, Session } from '@supabase/supabase-js';
 import { supabase, supabaseConfigured } from './src/lib/supabase';
+
+const AUTH_REDIRECT_URL = 'dz.obnarvacances.app://auth/callback';
+
+async function completeAuthFromUrl(url: string) {
+  const query = url.includes('?') ? url.split('?')[1].split('#')[0] : '';
+  const hash = url.includes('#') ? url.split('#').slice(1).join('#') : '';
+  const params = new URLSearchParams([query, hash].filter(Boolean).join('&'));
+  const errorDescription = params.get('error_description');
+  if (errorDescription) throw new Error(errorDescription);
+
+  const code = params.get('code');
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) throw error;
+    return;
+  }
+
+  const tokenHash = params.get('token_hash');
+  const type = params.get('type');
+  if (tokenHash && type) {
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: type as EmailOtpType,
+    });
+    if (error) throw error;
+    return;
+  }
+
+  const accessToken = params.get('access_token');
+  const refreshToken = params.get('refresh_token');
+  if (accessToken && refreshToken) {
+    const { error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+    if (error) throw error;
+  }
+}
 
 type Language = 'ar' | 'fr';
 type Tab = 'discover' | 'bookings' | 'account';
@@ -97,7 +136,22 @@ export default function App() {
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
     });
-    return () => data.subscription.unsubscribe();
+    const deepLinkSubscription = Linking.addEventListener('url', ({ url }) => {
+      completeAuthFromUrl(url).catch(() => {
+        Alert.alert('OBNAR VACANCES', 'تعذر تأكيد البريد الإلكتروني. أعد فتح رابط التأكيد أو حاول تسجيل الدخول.');
+      });
+    });
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        completeAuthFromUrl(url).catch(() => {
+          Alert.alert('OBNAR VACANCES', 'تعذر تأكيد البريد الإلكتروني. أعد فتح رابط التأكيد أو حاول تسجيل الدخول.');
+        });
+      }
+    });
+    return () => {
+      data.subscription.unsubscribe();
+      deepLinkSubscription.remove();
+    };
   }, []);
 
   async function authenticate(mode: 'signIn' | 'signUp') {
@@ -113,7 +167,11 @@ export default function App() {
     try {
       const result = mode === 'signIn'
         ? await supabase.auth.signInWithPassword({ email: email.trim(), password })
-        : await supabase.auth.signUp({ email: email.trim(), password });
+        : await supabase.auth.signUp({
+            email: email.trim(),
+            password,
+            options: { emailRedirectTo: AUTH_REDIRECT_URL },
+          });
       if (result.error) throw result.error;
       if (mode === 'signUp' && !result.data.session) {
         Alert.alert('OBNAR VACANCES', language === 'ar'
