@@ -12,27 +12,31 @@ The registered-traveler flow remains unchanged. Guest access remains server-medi
 
 ## 2. Credential model
 
-### 2.1 Independent reference and secret
+### 2.1 Independent reference and client-generated secret
 
-Generate two independent values using a cryptographically secure random generator:
+Generate two independent values using cryptographically secure randomness:
 
-- **Booking reference:** at least 128 bits of randomness, encoded as a human-readable opaque identifier. It is a locator, not an authenticator.
-- **Access secret:** 32 random bytes (256 bits), Base64URL encoded as 43 characters. It is the authentication factor.
+- **Booking reference:** generated server-side with at least 128 bits of randomness, encoded as a human-readable opaque identifier. It is a locator, not an authenticator.
+- **Access secret:** generated in the browser before the first create request using Web Crypto; 32 random bytes (256 bits), Base64URL encoded as 43 characters. It is the authentication factor.
+- **Idempotency key:** generated separately in the browser using Web Crypto with high entropy. It prevents duplicate creation for a repeated logical request; it is not an authentication factor and must never authorize booking reads or mutations.
 
-Do not derive one value from the other, from booking ID, timestamp, phone number, property ID, or sequential database values. Do not use a UUID generated from timestamps as the guest secret.
+Do not derive any value from another, from booking ID, timestamp, phone number, property ID, or sequential database values. Do not use a timestamp-derived UUID as the guest secret.
+
+The browser keeps plaintext access secret only in page memory. It sends the SHA-256 digest of that secret and the idempotency key to the Edge Function over HTTPS POST. The idempotency key may be retained in sessionStorage for same-tab retry continuity; the access secret must never be written to browser storage.
 
 The database stores:
-- a unique booking reference;
-- only the SHA-256 digest of the access secret (one consistent representation, preferably 32-byte bytea or 64 lowercase hex);
-- expiry and revocation timestamps.
+- a unique server-generated booking reference;
+- only the SHA-256 digest of the client-generated access secret (one consistent representation, preferably 32-byte bytea or 64 lowercase hex);
+- a digest of the idempotency key and a canonical request fingerprint, under a bounded expiry policy;
+- credential expiry and revocation timestamps.
 
-The plaintext secret is returned once, only after the booking transaction commits successfully. If the response is lost, do not retrieve or reconstruct the plaintext from the database. A secure recovery/reissue process would need a separate identity-verification policy.
+A same-key retry with the identical canonical request fingerprint returns the original booking reference and does not create a second booking. The browser still needs the original secret in page memory to authenticate. A same key with a different fingerprint is rejected. If the response is lost and the page reloads/closes, the secret is not recoverable; do not retrieve, reconstruct or encrypt-escrow it. Use the separately approved administrator-assisted reissue process, after a strong verification procedure is defined.
 
 ### 2.2 Handling rules
 
-- Never place the secret in a URL, query string, route parameter, analytics event, crash report, application log, notification, or database history.
-- Do not persist it in localStorage, sessionStorage, IndexedDB, cookies, or service-worker caches.
-- Keep it only in transient page memory while the guest is using the session; clear it when the guest leaves the flow or explicitly ends access.
+- Never place the secret or idempotency key in a URL, query string, route parameter, analytics event, crash report, application log, notification, or database history.
+- Do not persist the access secret in localStorage, sessionStorage, IndexedDB, cookies, or service-worker caches. Keep it only in transient page memory and clear it when the guest leaves the flow or explicitly ends access.
+- The idempotency key may be kept in sessionStorage only to support same-tab retry continuity; it is not accepted by any guest status or mutation endpoint.
 - Use HTTPS and POST request bodies. Apply request-size limits and strict JSON/multipart parsing.
 - Redact credential fields at the Edge Function logging boundary before logging errors or request metadata.
 - Never return the stored hash, internal booking UUID, guest phone, owner private contact details, or internal review notes from guest endpoints.
@@ -115,7 +119,7 @@ The create endpoint must:
 - calculate availability, capacity, price, commission, deposit and owner identity server-side;
 - apply creation throttles before database booking work;
 - preserve the existing property advisory lock and both exclusion constraints;
-- create booking, reference, secret digest and expiry in one transaction;
+- create booking, reference, client-supplied secret digest, idempotency record and expiry in one transaction;
 - never accept caller-supplied traveler ID, owner ID, price, commission, status, reference, secret hash or Storage path.
 
 Avoid storing contact data in rate-limit rows or logs. A keyed digest can support abuse controls without copying raw phone numbers into another table.
@@ -178,13 +182,18 @@ Use explicit response DTOs; do not return select * or raw database records.
 1. Final post-booking credential expiry/retention period.
 2. Exact per-endpoint rate-limit thresholds, windows and temporary block durations.
 3. Documented trusted network-identity source, if an IP-based dimension is to be used.
-4. Approved support process for lost/reissued guest credentials.
-5. Final guest status response DTO and owner/admin signed-URL endpoint contract.
-6. Verified database connectivity/grant model for calling private routines and atomic limiter operations from Edge Functions.
+4. Strong support identity-verification evidence, administrator authorization, reissue RPC semantics and audit trail for lost credentials.
+5. Idempotency-key expiry/cleanup, canonical request fingerprint fields and behavior for different keys with identical booking inputs.
+6. Final guest status response DTO and owner/admin signed-URL endpoint contract.
+7. Verified database connectivity/grant model for calling private routines and atomic limiter operations from Edge Functions.
 
 These are implementation gates, not reasons to weaken the credential model.
 
-## 11. Release gate
+## 11. Approved retry design direction — 24 November 2026
+
+Option A is approved: client-generated access secret, digest-only persistence, same-key idempotent retry, and administrator-assisted reissue if the secret is lost. No encrypted secret escrow is permitted. The idempotency key is not guest authentication. The support verification procedure and operational parameters listed above remain release gates.
+
+## 12. Release gate
 
 Guest booking remains disabled until the schema migration, private database routines, atomic limiter, Edge Functions, receipt retrieval path, adversarial tests and registered-user regression tests are reviewed and verified in staging. A separate explicit user approval is required before applying any staging migration; production requires separate approval.
 
