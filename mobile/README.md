@@ -14,7 +14,7 @@ This is the separate Android/iOS application. The existing GitHub Pages website 
 1. Install Node.js 22.13 or newer and npm.
 2. From this directory, install dependencies: `npm install`.
 3. Copy `.env.example` to `.env`.
-4. Set the existing Supabase project URL and its public anon/publishable key in `.env`.
+4. Set the existing Supabase staging project URL and its public anon/publishable key in `.env`.
 5. Start the development server with `npm start`, then open the project with Expo Go or a development build.
 
 Only the public Supabase anon/publishable key belongs in the mobile app. Never add a `service_role` key, database password, or server secret.
@@ -26,6 +26,14 @@ Only the public Supabase anon/publishable key belongs in the mobile app. Never a
 - Main navigation for discovery, booking follow-up, and account.
 - Supabase email/password sign-in and sign-up foundation.
 - Guest-first browsing: viewing stays does not require an account.
+
+## Read-only backend review
+
+The staging database schema and RLS policies were inspected without changing the database:
+
+- Anonymous and authenticated users can read approved properties, their public images and amenities; locations and amenities are publicly readable.
+- The `properties` table currently has no `is_test` marker, while `bookings` does. Therefore the mobile app must not blindly display every approved staging property until test listings are identified and safely excluded.
+- Booking, guest-access, cancellation, deposit, and commission flows must follow the approved policy documents. The mobile app must not add in-app payment collection.
 
 ## Not implemented yet
 
