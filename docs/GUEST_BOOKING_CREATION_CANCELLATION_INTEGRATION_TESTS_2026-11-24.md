@@ -39,7 +39,8 @@ Record exact fixture IDs in the test runner output. Cleanup only rows created by
 | GC-04 | Check-out equals or precedes check-in | Rejected; no rows |
 | GC-05 | Guest count is zero, negative, or above capacity | Rejected; no rows |
 | GC-06 | Invalid or oversized name/phone payload | Rejected before database mutation |
-| GC-07 | Client supplies price, commission, owner ID, traveler ID, status, reference, hash, or object path | Caller-controlled values ignored or request rejected; server-derived values only |
+| GC-07 | Client supplies price, commission, owner ID, traveler ID, status, reference, raw secret, or object path | Caller-controlled values ignored or request rejected; server-derived values only |
+| GC-21 | First create request supplies malformed secret digest or raw secret instead of a valid digest | Rejected before booking mutation |
 | GC-08 | Two separate non-overlapping requests for same property | Both may succeed |
 | GC-09 | Adjacent half-open date ranges where first checkout equals second check-in | Both may succeed |
 | GC-10 | Same idempotency key and same normalized booking inputs are retried | Original booking reference returned; no second booking; no secret returned by server |
