@@ -112,6 +112,7 @@ const copy = {
     secretSafety: 'لا تشارك رمز الوصول مع أي شخص، ولا ترسله في رابط أو رسالة عامة.',
     trackingNoBackend: 'هذه واجهة تصميم فقط؛ لا يتم التحقق من أي حجز أو إرسال بيانات.',
     ownerPortal: 'واجهة صاحب الإقامة', ownerPreviewTitle: 'مساحة صاحب الإقامة', ownerPreviewIntro: 'معاينة أولية لإدارة الإقامات وطلبات الحجز. ستظهر البيانات الحقيقية بعد ربط الخدمات والتحقق من صلاحيات الحساب.', ownerProperties: 'إقاماتي', ownerPropertiesEmpty: 'ستظهر إقاماتك هنا بعد اعتماد حساب المالك وربط بيانات الإنتاج.', ownerRequests: 'طلبات الحجز', ownerRequestsEmpty: 'ستظهر طلبات الحجز الواردة هنا بعد ربط خدمة الحجوزات.', ownerVerification: 'حالة اعتماد حساب المالك', ownerVerificationInfo: 'هذه الحالات للتوضيح فقط؛ لا نقرأ حالة اعتماد حسابك من الخادم في هذه المعاينة.', ownerStatusPending: 'قيد المراجعة', ownerStatusPendingInfo: 'تم استلام طلب الاعتماد. انتظر مراجعة الوثائق والبيانات من إدارة المنصة.', ownerStatusApproved: 'معتمد', ownerStatusApprovedInfo: 'بعد الاعتماد يمكنك متابعة إعداد الإقامة وفق صلاحيات حسابك. النشر يبقى خاضعاً للتحقق المطلوب.', ownerStatusRejected: 'يحتاج إلى استكمال أو تصحيح', ownerStatusRejectedInfo: 'راجع ملاحظات الإدارة وقدّم المعلومات أو الوثائق المطلوبة عبر المسار الرسمي عند تفعيله.', ownerStatusNoLive: 'لا تمثل أي حالة من هذه الحالات وضع حسابك الحالي.', ownerPreviewOnly: 'معاينة فقط — لا يمكن إضافة أو تعديل أو نشر الإقامات، ولا قبول أو رفض الحجوزات.', ownerBack: 'العودة إلى الحساب', ownerFormPreview: 'معاينة إضافة إقامة', ownerEditPreview: 'معاينة نموذج بيانات الإقامة', ownerName: 'اسم الإقامة', ownerArea: 'المنطقة والعنوان', ownerDescription: 'وصف الإقامة', ownerPhotos: 'صور الإقامة', ownerPhotoSlots: 'أماكن مخصصة للصور — رفع الصور غير متاح', ownerAmenities: 'المرافق والتجهيزات', ownerAmenityList: 'واي فاي · موقف سيارات · مطبخ · تكييف · شرفة', ownerCapacity: 'عدد الأشخاص والغرف', ownerPriceLabel: 'السعر لكل ليلة (دج)', ownerDeposit: 'العربون: ليلة واحدة بالضبط، يضاف إلى سعر الإقامة', ownerSaveDisabled: 'حفظ ونشر الإقامة غير متاحين', ownerEditorNotice: 'الحقول التالية توضيحية فقط. لا تُحفظ أي معلومات ولا تُرسل إلى الخادم.', ownerRequestPreview: 'معاينة طلب حجز وارد', ownerRequestSample: 'طلب تجريبي — ليس حجزاً حقيقياً', ownerRequestStatus: 'بانتظار مراجعة المالك', ownerRequestRef: 'المرجع: DEMO-0001', ownerRequestDates: 'الوصول: —   |   المغادرة: —', ownerRequestGuests: 'عدد الضيوف: —', ownerRequestTotal: 'المبلغ الإجمالي: — دج', ownerAccept: 'قبول الطلب', ownerReject: 'رفض الطلب', ownerActionsDisabled: 'أزرار القبول والرفض غير مفعّلة في المعاينة.', ownerCancelPolicy: 'إذا ألغى المالك الحجز، يسترد الضيف كامل ما دفعه ولا تُحتسب عمولة للمنصة. الإلغاء الاستثنائي من الضيف قبل أقل من 5 أيام يخضع للمراجعة وفق السياسة المعتمدة.',
+    ownerDocsTitle: 'وثائق إثبات الملكية', ownerDocsIntro: 'معاينة قائمة الوثائق المطلوبة. المتطلبات النهائية تحددها إدارة المنصة عند تفعيل مسار التحقق.', ownerDocIdentity: 'وثيقة إثبات الهوية', ownerDocOwnership: 'وثيقة إثبات الملكية أو حق الاستغلال', ownerDocAddress: 'وثيقة إثبات العنوان', ownerDocStatusMissing: 'لم تُرفق وثيقة', ownerDocStatusReview: 'ستظهر حالة المراجعة هنا', ownerDocUploadDisabled: 'رفع الوثائق غير متاح حالياً', ownerDocsNotice: 'هذه عناصر توضيحية فقط. لا يتم اختيار ملفات أو رفعها أو تخزينها أو إرسالها إلى Supabase.',
 
   },
   fr: {
@@ -168,6 +169,7 @@ const copy = {
     secretSafety: 'Ne partagez pas votre code privé et ne l’ajoutez jamais à un lien ou à un message public.',
     trackingNoBackend: 'Écran de conception uniquement : aucune réservation n’est vérifiée et aucune donnée n’est envoyée.',
     ownerPortal: 'Espace propriétaire', ownerPreviewTitle: 'Espace du propriétaire', ownerPreviewIntro: 'Aperçu initial de la gestion des logements et des demandes. Les données réelles seront affichées après connexion des services et vérification des autorisations du compte.', ownerProperties: 'Mes logements', ownerPropertiesEmpty: 'Vos logements apparaîtront ici après validation du compte propriétaire et connexion aux données de production.', ownerRequests: 'Demandes de réservation', ownerRequestsEmpty: 'Les demandes reçues apparaîtront ici après connexion du service de réservation.', ownerVerification: 'État de validation du compte propriétaire', ownerVerificationInfo: 'Ces états sont présentés à titre indicatif ; cet aperçu ne consulte pas l’état réel de votre compte sur le serveur.', ownerStatusPending: 'En cours de vérification', ownerStatusPendingInfo: 'La demande de validation a été reçue. Attendez l’examen des informations et documents par l’administration.', ownerStatusApproved: 'Validé', ownerStatusApprovedInfo: 'Après validation, vous pourrez poursuivre la préparation du logement selon les autorisations de votre compte. La publication reste soumise aux contrôles requis.', ownerStatusRejected: 'À compléter ou à corriger', ownerStatusRejectedInfo: 'Consultez les remarques de l’administration et fournissez les informations ou documents demandés lorsque le parcours officiel sera activé.', ownerStatusNoLive: 'Aucun de ces états ne représente le statut actuel de votre compte.', ownerPreviewOnly: 'Aperçu uniquement — ajout, modification, publication, acceptation et refus des réservations sont désactivés.', ownerBack: 'Retour au compte', ownerFormPreview: 'Aperçu du formulaire logement', ownerEditPreview: 'Aperçu des informations du logement', ownerName: 'Nom du logement', ownerArea: 'Zone et adresse', ownerDescription: 'Description du logement', ownerPhotos: 'Photos du logement', ownerPhotoSlots: 'Emplacements photo — téléversement désactivé', ownerAmenities: 'Équipements et services', ownerAmenityList: 'Wi-Fi · Parking · Cuisine · Climatisation · Balcon', ownerCapacity: 'Capacité et chambres', ownerPriceLabel: 'Prix par nuit (DZD)', ownerDeposit: 'Acompte : exactement une nuit, ajouté au prix du séjour', ownerSaveDisabled: 'Enregistrement et publication indisponibles', ownerEditorNotice: 'Les champs suivants sont illustratifs. Aucune information ne sera enregistrée ni envoyée au serveur.', ownerRequestPreview: 'Aperçu d’une demande reçue', ownerRequestSample: 'Demande fictive — aucune réservation réelle', ownerRequestStatus: 'En attente de l’examen du propriétaire', ownerRequestRef: 'Référence : DEMO-0001', ownerRequestDates: 'Arrivée : —   |   Départ : —', ownerRequestGuests: 'Nombre de voyageurs : —', ownerRequestTotal: 'Montant total : — DZD', ownerAccept: 'Accepter la demande', ownerReject: 'Refuser la demande', ownerActionsDisabled: 'Les boutons accepter et refuser sont désactivés dans cet aperçu.', ownerCancelPolicy: 'Si le propriétaire annule, le voyageur reçoit un remboursement intégral et aucune commission n’est due à la plateforme. Les annulations exceptionnelles du voyageur à moins de 5 jours suivent la procédure de révision approuvée.',
+    ownerDocsTitle: 'Documents justificatifs de propriété', ownerDocsIntro: 'Aperçu de la liste des justificatifs. Les exigences définitives seront précisées par l’administration lors de l’activation du parcours de vérification.', ownerDocIdentity: 'Justificatif d’identité', ownerDocOwnership: 'Justificatif de propriété ou droit d’exploitation', ownerDocAddress: 'Justificatif d’adresse', ownerDocStatusMissing: 'Aucun document joint', ownerDocStatusReview: 'Le statut de vérification apparaîtra ici', ownerDocUploadDisabled: 'Téléversement désactivé pour le moment', ownerDocsNotice: 'Éléments illustratifs uniquement. Aucun fichier n’est sélectionné, téléversé, stocké ou envoyé à Supabase.',
 
   },
 } as const;
@@ -473,6 +475,24 @@ export default function App() {
                     </View>
                   </>
                 )}
+                <View style={styles.ownerDocs}>
+                  <Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerDocsTitle}</Text>
+                  <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerDocsIntro}</Text>
+                  {[t.ownerDocIdentity, t.ownerDocOwnership, t.ownerDocAddress].map((label) => (
+                    <View key={label} style={styles.ownerDocRow}>
+                      <View style={styles.ownerDocInfo}>
+                        <Text style={[styles.ownerDocName, rtl && styles.textRight]}>{label}</Text>
+                        <Text style={[styles.ownerDocStatus, rtl && styles.textRight]}>{t.ownerDocStatusMissing}</Text>
+                        <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerDocStatusReview}</Text>
+                      </View>
+                      <View style={styles.ownerDocPlaceholder}>
+                        <Text style={styles.ownerDocPlus}>＋</Text>
+                      </View>
+                    </View>
+                  ))}
+                  <View style={styles.disabledBooking}><Text style={styles.disabledBookingText}>{t.ownerDocUploadDisabled}</Text></View>
+                  <Text style={[styles.ownerDisabledNote, rtl && styles.textRight]}>{t.ownerDocsNotice}</Text>
+                </View>
                 <Text style={[styles.ownerDisabledNote, rtl && styles.textRight]}>{t.ownerPreviewOnly}</Text>
               </View>
             )}
@@ -605,6 +625,13 @@ const styles = StyleSheet.create({
   ownerSection: { backgroundColor: COLORS.background, borderRadius: 13, borderWidth: 1, borderColor: COLORS.line, padding: 15, gap: 9, minHeight: 100, justifyContent: 'center' },
   ownerSectionTitle: { color: COLORS.navy, fontWeight: '800', fontSize: 15 },
   ownerVerification: { backgroundColor: '#F1E7D3', borderRadius: 13, padding: 15, gap: 10 },
+  ownerDocs: { backgroundColor: COLORS.white, borderRadius: 13, borderWidth: 1, borderColor: COLORS.line, padding: 15, gap: 12 },
+  ownerDocRow: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.background, borderRadius: 11, borderWidth: 1, borderColor: COLORS.line, padding: 11 },
+  ownerDocInfo: { flex: 1, gap: 4 },
+  ownerDocName: { color: COLORS.navy, fontSize: 13, fontWeight: '800' },
+  ownerDocStatus: { color: '#8B6428', fontSize: 12, fontWeight: '700' },
+  ownerDocPlaceholder: { width: 54, height: 54, borderRadius: 10, borderWidth: 1, borderStyle: 'dashed', borderColor: COLORS.gold, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.white },
+  ownerDocPlus: { color: COLORS.gold, fontSize: 24, fontWeight: '700' },
   ownerStatusCard: { backgroundColor: COLORS.white, borderRadius: 11, borderWidth: 1, borderColor: COLORS.line, padding: 12, gap: 6 },
   ownerStatusTitle: { color: COLORS.navy, fontSize: 13, fontWeight: '800' },
   ownerDisabledNote: { color: '#7B5A24', fontSize: 12, lineHeight: 20, fontWeight: '700' },
