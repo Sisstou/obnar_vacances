@@ -83,9 +83,15 @@ export async function signOut(): Promise<AppResult<null>> {
   return ok(null);
 }
 
+/**
+ * Returns null when Supabase is not configured. Callers must handle that
+ * state rather than subscribing to the placeholder client.
+ */
 export function subscribeToAuthChanges(
   callback: (event: AuthChangeEvent, session: Session | null) => void,
-): { unsubscribe: () => void } {
+): { unsubscribe: () => void } | null {
+  if (!supabaseConfigured) return null;
+
   const { data } = supabase.auth.onAuthStateChange(callback);
   return data.subscription;
 }
