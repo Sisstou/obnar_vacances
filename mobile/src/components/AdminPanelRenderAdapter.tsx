@@ -151,7 +151,11 @@ export function renderAdminPanel<K extends ImplementedAdminPanelId>(
   }
 
   const Panel = panelComponents[panelId] as React.ComponentType<AdminPanelProps<K>>;
-  return React.createElement(Panel, { ...state.props, language });
+  const panelProps = {
+    ...state.props,
+    language,
+  } as React.Attributes & AdminPanelProps<K>;
+  return React.createElement(Panel, panelProps);
 }
 
 /**
