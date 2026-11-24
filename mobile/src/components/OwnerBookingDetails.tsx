@@ -1,9 +1,8 @@
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import {
+import type {
   OwnerBookingCommissionBasis,
   OwnerBookingItem,
-  OwnerBookingPaymentStatus,
   OwnerBookingStatus,
 } from './OwnerBookingsPanel';
 
