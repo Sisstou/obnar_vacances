@@ -14,17 +14,18 @@ This is the separate Android/iOS application. The existing GitHub Pages website 
 1. Install Node.js 22.13 or newer and npm.
 2. From this directory, install dependencies: `npm install`.
 3. Copy `.env.example` to `.env`.
-4. Set the existing Supabase staging project URL and its public anon/publishable key in `.env`.
-5. Start the development server with `npm start`, then open the project with Expo Go or a development build.
+4. Set the existing Supabase staging project URL and its public publishable key in `.env`.
+5. In Supabase Auth URL Configuration, add `dz.obnarvacances.app://auth/callback` to the allowed redirect URLs before testing email confirmation.
+6. Start the development server with `npm start`, then open the project with Expo Go or a development build.
 
-Only the public Supabase anon/publishable key belongs in the mobile app. Never add a `service_role` key, database password, or server secret.
+Only the public Supabase publishable key belongs in the mobile app. Never add a `service_role` key, database password, or server secret.
 
 ## Current milestone
 
 - Native app shell for Android and iOS.
 - Arabic/French language switch.
 - Main navigation for discovery, booking follow-up, and account.
-- Supabase email/password sign-in and sign-up foundation.
+- Supabase email/password sign-in and sign-up foundation, including native email-confirmation callback handling.
 - Guest-first browsing: viewing stays does not require an account.
 
 ## Read-only backend review
