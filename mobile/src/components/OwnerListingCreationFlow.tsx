@@ -12,7 +12,7 @@ import OwnerListingPhotoPicker, {
 import OwnerListingReview from './OwnerListingReview';
 
 type Language = 'ar' | 'fr';
-type Step = 'details' | 'photos' | 'review';
+type Step = 'details' | 'photos' | 'review' | 'complete';
 
 export type OwnerListingCreationFlowProps = {
   language: Language;
@@ -30,6 +30,7 @@ export default function OwnerListingCreationFlow({
   const [step, setStep] = useState<Step>('details');
   const [draft, setDraft] = useState<NewListingDraft | null>(null);
   const [photos, setPhotos] = useState<OwnerListingLocalPhoto[]>([]);
+  const [formKey, setFormKey] = useState(0);
   const isArabic = language === 'ar';
   const rtl = isArabic;
 
@@ -43,6 +44,11 @@ export default function OwnerListingCreationFlow({
         editDetails: 'تعديل المعلومات',
         editPhotos: 'تعديل الصور',
         missingDraft: 'أدخل معلومات الإقامة أولاً.',
+        finishPreview: 'إنهاء المعاينة',
+        successTitle: 'اكتملت المعاينة بنجاح',
+        successBody: 'تمت مراجعة معلومات الإقامة والصور في هذه الجلسة فقط. لم يتم تقديم طلب أو نشر الإقامة.',
+        returnReview: 'العودة إلى المراجعة',
+        newPreview: 'بدء معاينة جديدة',
         localOnly: 'مسار تجريبي محلي: لا يتم إنشاء إقامة أو حفظ بيانات أو إرسال طلب أو رفع صور.',
       }
     : {
@@ -54,6 +60,11 @@ export default function OwnerListingCreationFlow({
         editDetails: 'Modifier les informations',
         editPhotos: 'Modifier les photos',
         missingDraft: 'Saisissez d’abord les informations du logement.',
+        finishPreview: 'Terminer l’aperçu',
+        successTitle: 'Aperçu terminé',
+        successBody: 'Les informations et les photos ont été vérifiées dans cette session uniquement. Aucune demande n’a été envoyée et le logement n’a pas été publié.',
+        returnReview: 'Revenir à la vérification',
+        newPreview: 'Commencer un nouvel aperçu',
         localOnly: 'Parcours de démonstration local : aucun logement n’est créé, aucune donnée n’est enregistrée, aucune demande ni photo n’est envoyée.',
       };
 
@@ -86,6 +97,7 @@ export default function OwnerListingCreationFlow({
 
       <View style={step === 'details' ? styles.visibleStep : styles.hiddenStep}>
         <OwnerListingForm
+          key={formKey}
           language={language}
           onPreview={(nextDraft) => {
             setDraft(nextDraft);
@@ -139,6 +151,30 @@ export default function OwnerListingCreationFlow({
               secondary
             />
           </View>
+          <ActionButton label={t.finishPreview} onPress={() => setStep('complete')} />
+        </View>
+      ) : null}
+
+      {step === 'complete' ? (
+        <View style={styles.successContent}>
+          <View style={styles.successMark}>
+            <Text style={styles.successMarkText}>✓</Text>
+          </View>
+          <Text accessibilityRole="header" style={styles.successTitle}>{t.successTitle}</Text>
+          <Text style={[styles.successBody, { textAlign: rtl ? 'right' : 'left' }]}>{t.successBody}</Text>
+          <View style={styles.successNotice}>
+            <Text style={[styles.successNoticeText, { textAlign: rtl ? 'right' : 'left' }]}>{t.localOnly}</Text>
+          </View>
+          <ActionButton label={t.returnReview} onPress={() => setStep('review')} secondary />
+          <ActionButton
+            label={t.newPreview}
+            onPress={() => {
+              setDraft(null);
+              setPhotos([]);
+              setFormKey((value) => value + 1);
+              setStep('details');
+            }}
+          />
         </View>
       ) : null}
 
@@ -236,6 +272,51 @@ const styles = StyleSheet.create({
     gap: 14,
     paddingHorizontal: 16,
     paddingVertical: 10,
+  },
+  successContent: {
+    alignItems: 'stretch',
+    flex: 1,
+    gap: 16,
+    justifyContent: 'center',
+    paddingHorizontal: 22,
+    paddingVertical: 24,
+  },
+  successMark: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    backgroundColor: '#E8F4EC',
+    borderRadius: 34,
+    height: 68,
+    justifyContent: 'center',
+    width: 68,
+  },
+  successMarkText: {
+    color: '#247A45',
+    fontSize: 36,
+    fontWeight: '800',
+  },
+  successTitle: {
+    color: '#12345A',
+    fontSize: 21,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  successBody: {
+    color: '#475467',
+    fontSize: 14,
+    lineHeight: 22,
+  },
+  successNotice: {
+    backgroundColor: '#FFF8E8',
+    borderColor: '#F2D49B',
+    borderRadius: 11,
+    borderWidth: 1,
+    padding: 12,
+  },
+  successNoticeText: {
+    color: '#694B16',
+    fontSize: 12,
+    lineHeight: 19,
   },
   actions: {
     alignItems: 'stretch',
