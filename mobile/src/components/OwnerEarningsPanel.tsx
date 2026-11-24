@@ -98,6 +98,14 @@ function validAmount(value: number | undefined): number | null {
   return value !== undefined && Number.isFinite(value) && value >= 0 ? value : null;
 }
 
+function paidAmountFor(booking: OwnerBookingItem): number | null {
+  // A cancelled or refunded booking needs refund-ledger data before net receipts can be stated.
+  if (booking.status === 'cancelled' || booking.paymentStatus === 'refunded' || booking.paymentStatus === 'unknown') {
+    return null;
+  }
+  return validAmount(booking.amountPaid);
+}
+
 function commissionFor(booking: OwnerBookingItem): number | null {
   if (!Number.isInteger(booking.nights) || booking.nights < 1) return null;
 
@@ -138,7 +146,7 @@ export default function OwnerEarningsPanel({
 
   const rows: FinancialRow[] = bookings.map((booking) => {
     const commission = trustedBookingSource ? commissionFor(booking) : null;
-    const paidAmount = trustedBookingSource ? validAmount(booking.amountPaid) : null;
+    const paidAmount = trustedBookingSource ? paidAmountFor(booking) : null;
     const commissionState: FinancialRow['commissionState'] = commission === null
       ? 'unknown'
       : commission === 0
