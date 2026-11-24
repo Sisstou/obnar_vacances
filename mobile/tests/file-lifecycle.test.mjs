@@ -34,6 +34,18 @@ test('builds a payment receipt path with exactly two folders', () => {
   if (result.ok) assert.equal(result.data, 'traveler-123/booking-456/receipt_v1.pdf');
 });
 
+test('builds a one-folder owner document path', () => {
+  const result = buildVersionedStoragePath({
+    bucket: 'owner-documents',
+    primaryId: 'owner-123',
+    fileName: 'identity.pdf',
+    version: 3,
+  });
+
+  assert.equal(result.ok, true);
+  if (result.ok) assert.equal(result.data, 'owner-123/identity_v3.pdf');
+});
+
 test('rejects a payment receipt path with an extra folder', () => {
   const result = validateStorageUpload({
     bucket: 'payment-receipts',
