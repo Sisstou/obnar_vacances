@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, type ReactNode } from 'react';
+import React, { useEffect, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   AppState,
@@ -17,7 +17,7 @@ export type AdminGateProps = {
   readonly language?: 'ar' | 'fr';
   /** Recheck while the admin area is open. Defaults to 60 seconds. */
   readonly refreshIntervalMs?: number;
-  /** Optional custom status UI; protected children are never passed to it. */
+  /** Optional non-sensitive status UI; protected children are never passed to it. */
   readonly fallback?: ReactNode;
 };
 
@@ -64,10 +64,7 @@ export default function AdminGate({
   fallback,
 }: AdminGateProps) {
   const [state, setState] = useState<AdminGateState>({ status: 'checking' });
-
-  const retry = useCallback(() => {
-    setState({ status: 'checking' });
-  }, []);
+  const [retryNonce, setRetryNonce] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -78,9 +75,7 @@ export default function AdminGate({
       if (showChecking && mounted) setState({ status: 'checking' });
 
       void verifyAdminAuthorization().then((nextState) => {
-        if (mounted && currentRequest === requestNumber) {
-          setState(nextState);
-        }
+        if (mounted && currentRequest === requestNumber) setState(nextState);
       }).catch(() => {
         if (mounted && currentRequest === requestNumber) {
           setState({ status: 'unavailable', retryable: true });
@@ -117,14 +112,12 @@ export default function AdminGate({
       appStateSubscription.remove();
       clearInterval(interval);
     };
-  }, [refreshIntervalMs]);
+  }, [refreshIntervalMs, retryNonce]);
 
-  const retryCheck = useCallback(() => {
-    retry();
-    void verifyAdminAuthorization().then(setState).catch(() => {
-      setState({ status: 'unavailable', retryable: true });
-    });
-  }, [retry]);
+  const retryCheck = () => {
+    setState({ status: 'checking' });
+    setRetryNonce((value) => value + 1);
+  };
 
   if (state.status === 'authorized') {
     return getAdminGateContent(state, children);
