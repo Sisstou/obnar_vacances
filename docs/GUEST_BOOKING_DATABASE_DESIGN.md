@@ -420,3 +420,22 @@ Read-only inspection of staging `rhxeclddohpwtpzkruzm` confirmed:
 - No guest RPC exists in staging yet. The six planned guest RPC names in the design remain design placeholders, not deployed functions.
 
 **No changes applied:** this section records inspection results only. No grants, RLS policies, constraints, views, functions or data were changed.
+
+
+### 11.18 Guest receipt Storage authorization — additional blocker
+
+A fresh read-only inspection of staging Storage confirmed:
+
+- `payment-receipts` is private, limited to 5 MiB, and allows only JPEG, PNG, WebP and PDF. Keep these settings.
+- `traveler_upload_payment_receipt` permits authenticated INSERT only when the first object-path segment equals the authenticated traveler UID and the booking belongs to that traveler. Do not weaken or reuse this policy for guests.
+- `payment_receipt_participants_read` currently validates both the booking ID in the second path segment and the first path segment against `bookings.traveler_id`. It then authorizes the registered traveler, assigned owner or main admin. For a guest booking, `traveler_id` is NULL, so the existing read policy cannot authorize an owner/admin to read a guest receipt, even if the Edge Function uploaded it using service role.
+
+**Required guest receipt design:** use a distinct server-generated object path such as `guest/<booking_id>/<random-object-id>.<validated-extension>`. Never accept the path or booking ID as an authorization claim from the browser. The upload Edge Function must authenticate the guest reference+secret, validate the current payment state and actual file signature, generate the path itself, and upload with server-only credentials. The database attachment routine must bind that object to the same authorized booking.
+
+For owner/admin receipt viewing, either:
+1. add a separate narrowly scoped SELECT policy for this guest-only path format that requires a matching booking with `traveler_id IS NULL` and the authenticated user to be that booking's assigned property owner or main admin; or
+2. issue short-lived signed URLs from a server endpoint that independently verifies the owner/admin relationship before signing.
+
+Choose one approach and test it before the guest receipt feature is enabled. Do not grant anon Storage SELECT, do not make the bucket public, and do not broaden the registered-traveler upload policy. The guest must not receive a permanent public URL or be able to read another guest's receipt.
+
+This is a read-only audit finding; no bucket setting, object, or Storage policy was changed.
