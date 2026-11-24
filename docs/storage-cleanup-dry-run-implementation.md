@@ -11,6 +11,8 @@
 - Uses a 30-day minimum age.
 - Returns at most 20 candidate keys to an authenticated server-side caller.
 - Refuses incomplete scans, reference-query failures, and configured scan-limit overflows.
+- Enforces a hard total limit of 500 Storage directories and 2,000 Storage list requests per run; exceeding either limit aborts the report.
+- Includes directory and list-request totals in the successful report and aggregate server log.
 - Does not accept bucket names, paths, retention periods, or batch sizes from the request.
 - Does not write object keys, signed URLs, or credentials to logs.
 - Contains no delete, upload, database update, cron, or audit-table operation.
