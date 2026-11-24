@@ -29,7 +29,7 @@ Guest creation must be a separate server-only path. It must not call the registe
 
 The proposed guest creation operation must be one database transaction, with all booking and credential writes committed or rolled back together:
 
-1. Edge Function validates bounded input syntax and request size; it does not accept price, commission, owner ID, traveler ID, booking status, reference, secret hash, or Storage path from the client.
+1. Edge Function validates bounded input syntax and request size; it accepts only a strictly validated SHA-256 digest of the client-generated secret and a high-entropy idempotency key; it does not accept raw secret, price, commission, owner ID, traveler ID, booking status, reference, or Storage path from the client.
 2. Edge Function applies the approved creation throttle using server-derived HMAC digests. It does not trust arbitrary client forwarding headers as network identity.
 3. Before the first request, the browser generates a 32-byte access secret and a separate high-entropy idempotency key using Web Crypto. It keeps the plaintext secret only in page memory and sends the secret digest plus idempotency key over HTTPS POST. The server independently generates the opaque booking reference; it never receives or stores the plaintext secret.
 4. Database routine reads and validates the property using the same approval, capacity, date and price rules as the registered routine.
