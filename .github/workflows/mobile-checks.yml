@@ -1,0 +1,52 @@
+name: Mobile app checks
+
+on:
+  push:
+    branches: ["mobile-phase-1-services"]
+    paths:
+      - "mobile/**"
+      - ".github/workflows/mobile-checks.yml"
+  pull_request:
+    branches: ["mobile-phase-1-services"]
+    paths:
+      - "mobile/**"
+      - ".github/workflows/mobile-checks.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mobile-checks:
+    name: TypeScript, unit tests and Expo compatibility
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run service utility tests
+        run: npm test
+
+      - name: TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Check Expo package compatibility
+        run: npx expo install --check
+
+      - name: Run Expo Doctor
+        run: npx --yes expo-doctor
