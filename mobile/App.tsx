@@ -111,6 +111,7 @@ const copy = {
     trackingSecurity: 'الرقم المرجعي وحده لا يكشف تفاصيل الحجز ولا يسمح بتعديله. يلزم معه رمز الوصول الخاص.',
     secretSafety: 'لا تشارك رمز الوصول مع أي شخص، ولا ترسله في رابط أو رسالة عامة.',
     trackingNoBackend: 'هذه واجهة تصميم فقط؛ لا يتم التحقق من أي حجز أو إرسال بيانات.',
+    ownerPortal: 'واجهة صاحب الإقامة', ownerPreviewTitle: 'مساحة صاحب الإقامة', ownerPreviewIntro: 'معاينة أولية لإدارة الإقامات وطلبات الحجز. ستظهر البيانات الحقيقية بعد ربط الخدمات والتحقق من صلاحيات الحساب.', ownerProperties: 'إقاماتي', ownerPropertiesEmpty: 'ستظهر إقاماتك هنا بعد اعتماد حساب المالك وربط بيانات الإنتاج.', ownerRequests: 'طلبات الحجز', ownerRequestsEmpty: 'ستظهر طلبات الحجز الواردة هنا بعد ربط خدمة الحجوزات.', ownerVerification: 'اعتماد حساب المالك', ownerVerificationInfo: 'يلزم اعتماد حساب المالك قبل نشر أي إقامة.', ownerPreviewOnly: 'معاينة فقط — لا يمكن إضافة أو تعديل أو نشر الإقامات، ولا قبول أو رفض الحجوزات.', ownerBack: 'العودة إلى الحساب',
 
   },
   fr: {
@@ -166,6 +167,7 @@ const copy = {
     trackingSecurity: 'La référence seule ne révèle pas les détails et ne permet aucune modification. Le code privé est également nécessaire.',
     secretSafety: 'Ne partagez pas votre code privé et ne l’ajoutez jamais à un lien ou à un message public.',
     trackingNoBackend: 'Écran de conception uniquement : aucune réservation n’est vérifiée et aucune donnée n’est envoyée.',
+    ownerPortal: 'Espace propriétaire', ownerPreviewTitle: 'Espace du propriétaire', ownerPreviewIntro: 'Aperçu initial de la gestion des logements et des demandes. Les données réelles seront affichées après connexion des services et vérification des autorisations du compte.', ownerProperties: 'Mes logements', ownerPropertiesEmpty: 'Vos logements apparaîtront ici après validation du compte propriétaire et connexion aux données de production.', ownerRequests: 'Demandes de réservation', ownerRequestsEmpty: 'Les demandes reçues apparaîtront ici après connexion du service de réservation.', ownerVerification: 'Validation du compte propriétaire', ownerVerificationInfo: 'Le compte propriétaire doit être validé avant toute publication de logement.', ownerPreviewOnly: 'Aperçu uniquement — ajout, modification, publication, acceptation et refus des réservations sont désactivés.', ownerBack: 'Retour au compte',
 
   },
 } as const;
@@ -179,6 +181,7 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState('');
   const [showDetailPreview, setShowDetailPreview] = useState(false);
+  const [showOwnerPreview, setShowOwnerPreview] = useState(false);
   const t = copy[language];
   const rtl = language === 'ar';
 
@@ -411,6 +414,23 @@ export default function App() {
                 </>
               )}
             </View>
+            {!showOwnerPreview ? (
+              <Pressable accessibilityRole="button" onPress={() => setShowOwnerPreview(true)} style={styles.ownerEntryButton}>
+                <Text style={styles.ownerEntryText}>{t.ownerPortal}  ›</Text>
+              </Pressable>
+            ) : (
+              <View style={styles.ownerPanel}>
+                <Pressable accessibilityRole="button" onPress={() => setShowOwnerPreview(false)} style={styles.backButton}>
+                  <Text style={styles.backButtonText}>‹  {t.ownerBack}</Text>
+                </Pressable>
+                <Text style={[styles.sectionTitle, rtl && styles.textRight]}>{t.ownerPreviewTitle}</Text>
+                <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerPreviewIntro}</Text>
+                <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerProperties}</Text><Text style={[styles.emptyBody, rtl && styles.textRight]}>{t.ownerPropertiesEmpty}</Text></View>
+                <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerRequests}</Text><Text style={[styles.emptyBody, rtl && styles.textRight]}>{t.ownerRequestsEmpty}</Text></View>
+                <View style={styles.ownerVerification}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerVerification}</Text><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerVerificationInfo}</Text></View>
+                <Text style={[styles.ownerDisabledNote, rtl && styles.textRight]}>{t.ownerPreviewOnly}</Text>
+              </View>
+            )}
           </ScrollView>
         </KeyboardAvoidingView>
       )}
@@ -533,6 +553,14 @@ const styles = StyleSheet.create({
   trackingIntro: { color: COLORS.ink, fontSize: 13, lineHeight: 22 },
   securityText: { color: COLORS.blue, fontSize: 12, lineHeight: 20 },
   accountCard: { backgroundColor: COLORS.white, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: COLORS.line, gap: 14 },
+  ownerEntryButton: { minHeight: 50, borderRadius: 13, backgroundColor: COLORS.navy, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
+  ownerEntryText: { color: COLORS.white, fontWeight: '800', fontSize: 14 },
+  ownerPanel: { backgroundColor: COLORS.white, borderRadius: 18, padding: 18, borderWidth: 1, borderColor: COLORS.line, gap: 14 },
+  ownerIntro: { color: COLORS.muted, fontSize: 13, lineHeight: 22 },
+  ownerSection: { backgroundColor: COLORS.background, borderRadius: 13, borderWidth: 1, borderColor: COLORS.line, padding: 15, gap: 9, minHeight: 100, justifyContent: 'center' },
+  ownerSectionTitle: { color: COLORS.navy, fontWeight: '800', fontSize: 15 },
+  ownerVerification: { backgroundColor: '#F1E7D3', borderRadius: 13, padding: 15, gap: 8 },
+  ownerDisabledNote: { color: '#7B5A24', fontSize: 12, lineHeight: 20, fontWeight: '700' },
   helper: { color: COLORS.muted, lineHeight: 22, fontSize: 13 },
   field: { gap: 7 },
   label: { color: COLORS.ink, fontWeight: '700', fontSize: 13 },
