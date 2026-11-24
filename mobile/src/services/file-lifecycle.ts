@@ -105,7 +105,7 @@ export function validateStorageUpload(
     return failure('حجم الملف غير صالح أو يتجاوز الحد المسموح.');
   }
 
-  if (!policy.allowedContentTypes.includes(input.contentType as (typeof DOCUMENT_TYPES)[number])) {
+  if (!policy.allowedContentTypes.some((allowedType) => allowedType === input.contentType)) {
     return failure('نوع الملف غير مسموح لهذه الحاوية.');
   }
 
