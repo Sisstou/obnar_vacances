@@ -2,12 +2,12 @@ name: Mobile app checks
 
 on:
   push:
-    branches: ["mobile-phase-1-services"]
+    branches: ["mobile-phase-1-services", "mobile-integration-review"]
     paths:
       - "mobile/**"
       - ".github/workflows/mobile-checks.yml"
   pull_request:
-    branches: ["mobile-phase-1-services"]
+    branches: ["mobile-phase-1-services", "mobile-integration-review"]
     paths:
       - "mobile/**"
       - ".github/workflows/mobile-checks.yml"

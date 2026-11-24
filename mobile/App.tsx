@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import type { EmailOtpType, Session } from '@supabase/supabase-js';
 import { supabase, supabaseConfigured } from './src/lib/supabase';
+import OwnerPortal from './src/components/OwnerPortal';
 
 const AUTH_REDIRECT_URL = 'dz.obnarvacances.app://auth/callback';
 
@@ -191,7 +192,6 @@ export default function App() {
   const [search, setSearch] = useState('');
   const [showDetailPreview, setShowDetailPreview] = useState(false);
   const [showOwnerPreview, setShowOwnerPreview] = useState(false);
-  const [showOwnerEditor, setShowOwnerEditor] = useState(false);
   const t = copy[language];
   const rtl = language === 'ar';
 
@@ -444,77 +444,7 @@ export default function App() {
               </Pressable>
             ) : (
               <View style={styles.ownerPanel}>
-                <Pressable accessibilityRole="button" onPress={() => setShowOwnerPreview(false)} style={styles.backButton}>
-                  <Text style={styles.backButtonText}>‹  {t.ownerBack}</Text>
-                </Pressable>
-                <Text style={[styles.sectionTitle, rtl && styles.textRight]}>{t.ownerPreviewTitle}</Text>
-                <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerPreviewIntro}</Text>
-                <Pressable accessibilityRole="button" onPress={() => setShowOwnerEditor(!showOwnerEditor)} style={styles.ownerEntryButton}>
-                  <Text style={styles.ownerEntryText}>{t.ownerFormPreview}  ›</Text>
-                </Pressable>
-                {showOwnerEditor ? (
-                  <View style={styles.ownerEditor}>
-                    <Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerEditPreview}</Text>
-                    <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerEditorNotice}</Text>
-                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerName}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>—</Text></View></View>
-                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerArea}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>—</Text></View></View>
-                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerDescription}</Text><View style={[styles.readOnlyField, styles.ownerMultiline]}><Text style={styles.readOnlyText}>—</Text></View></View>
-                    <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerPhotos}</Text><View style={styles.ownerPhotoRow}><View style={styles.ownerPhotoSlot}><Text style={styles.ownerPhotoText}>＋</Text></View><View style={styles.ownerPhotoSlot}><Text style={styles.ownerPhotoText}>＋</Text></View><View style={styles.ownerPhotoSlot}><Text style={styles.ownerPhotoText}>＋</Text></View></View><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerPhotoSlots}</Text></View>
-                    <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerAmenities}</Text><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerAmenityList}</Text></View>
-                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerCapacity}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>—</Text></View></View>
-                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerPriceLabel}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>— DZD</Text></View><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerDeposit}</Text></View>
-                    <View style={styles.disabledBooking}><Text style={styles.disabledBookingText}>{t.ownerSaveDisabled}</Text></View>
-                  </View>
-                ) : (
-                  <>
-                    <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerProperties}</Text><Text style={[styles.emptyBody, rtl && styles.textRight]}>{t.ownerPropertiesEmpty}</Text></View>
-                    <View style={styles.ownerSection}>
-                      <Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerRequests}</Text>
-                      <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerRequestPreview}</Text>
-                      <View style={styles.requestSample}>
-                        <Text style={[styles.requestSampleLabel, rtl && styles.textRight]}>{t.ownerRequestSample}</Text>
-                        <Text style={[styles.requestStatus, rtl && styles.textRight]}>{t.ownerRequestStatus}</Text>
-                        <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerRequestRef}</Text>
-                        <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerRequestDates}</Text>
-                        <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerRequestGuests}</Text>
-                        <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerRequestTotal}</Text>
-                        <View style={styles.requestActions}>
-                          <View style={[styles.requestAction, styles.requestAcceptDisabled]}><Text style={styles.requestActionText}>{t.ownerAccept}</Text></View>
-                          <View style={[styles.requestAction, styles.requestRejectDisabled]}><Text style={styles.requestActionText}>{t.ownerReject}</Text></View>
-                        </View>
-                        <Text style={[styles.ownerDisabledNote, rtl && styles.textRight]}>{t.ownerActionsDisabled}</Text>
-                      </View>
-                      <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerCancelPolicy}</Text>
-                    </View>
-                    <View style={styles.ownerVerification}>
-                      <Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerVerification}</Text>
-                      <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerVerificationInfo}</Text>
-                      <View style={styles.ownerStatusCard}><Text style={[styles.ownerStatusTitle, rtl && styles.textRight]}>{t.ownerStatusPending}</Text><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerStatusPendingInfo}</Text></View>
-                      <View style={styles.ownerStatusCard}><Text style={[styles.ownerStatusTitle, rtl && styles.textRight]}>{t.ownerStatusApproved}</Text><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerStatusApprovedInfo}</Text></View>
-                      <View style={styles.ownerStatusCard}><Text style={[styles.ownerStatusTitle, rtl && styles.textRight]}>{t.ownerStatusRejected}</Text><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerStatusRejectedInfo}</Text></View>
-                      <Text style={[styles.ownerDisabledNote, rtl && styles.textRight]}>{t.ownerStatusNoLive}</Text>
-                    </View>
-                  </>
-                )}
-                <View style={styles.ownerDocs}>
-                  <Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerDocsTitle}</Text>
-                  <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerDocsIntro}</Text>
-                  {[t.ownerDocIdentity, t.ownerDocOwnership, t.ownerDocAddress].map((label) => (
-                    <View key={label} style={styles.ownerDocRow}>
-                      <View style={styles.ownerDocInfo}>
-                        <Text style={[styles.ownerDocName, rtl && styles.textRight]}>{label}</Text>
-                        <Text style={[styles.ownerDocStatus, rtl && styles.textRight]}>{t.ownerDocStatusMissing}</Text>
-                        <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerDocStatusReview}</Text>
-                      </View>
-                      <View style={styles.ownerDocPlaceholder}>
-                        <Text style={styles.ownerDocPlus}>＋</Text>
-                      </View>
-                    </View>
-                  ))}
-                  <View style={styles.disabledBooking}><Text style={styles.disabledBookingText}>{t.ownerDocUploadDisabled}</Text></View>
-                  <Text style={[styles.ownerDisabledNote, rtl && styles.textRight]}>{t.ownerDocsNotice}</Text>
-                </View>
-                <Text style={[styles.ownerDisabledNote, rtl && styles.textRight]}>{t.ownerPreviewOnly}</Text>
+                <OwnerPortal language={language} />
               </View>
             )}
           </ScrollView>
