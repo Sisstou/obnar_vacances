@@ -1,13 +1,9 @@
 /**
- * Security primitives for OBNAR VACANCES guest booking.
+ * Server-side validation and hashing primitives for OBNAR VACANCES guest booking.
  *
- * This module is deliberately independent of database and HTTP handlers.
- * It does not persist tokens, log secrets, authorize bookings, or replace
- * database-backed throttling. Callers must return the plaintext token only
- * once and persist only the SHA-256 hash.
- */
-
-const TOKEN_BYTES = 32;
+ * The browser generates the guest access secret with Web Crypto. This server
+ * module must not mint guest access secrets. It does not persist tokens, log
+ * secrets, authorize bookings, or replace database-backed throttling.
 const TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 const encoder = new TextEncoder();
 
@@ -19,12 +15,6 @@ function toBase64Url(bytes: Uint8Array): string {
 
 function toHex(bytes: Uint8Array): string {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-
-/** Generate a cryptographically random 256-bit bearer secret. */
-export function createGuestAccessSecret(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(TOKEN_BYTES));
-  return toBase64Url(bytes);
 }
 
 /** Reject malformed or truncated tokens before any database lookup. */
