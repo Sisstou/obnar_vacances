@@ -102,6 +102,17 @@ const copy = {
     stay: 'إقامات معتمدة',
     activities: 'أنشطة محلية قريباً',
     secure: 'تصفح آمن وبسيط',
+    trackingIntro: 'أدخل بيانات الوصول الخاصة بحجزك لمتابعة حالته.',
+    bookingReference: 'الرقم المرجعي للحجز',
+    privateSecret: 'رمز الوصول الخاص',
+    referencePlaceholder: 'يظهر هنا الرقم المرجعي',
+    secretPlaceholder: 'يُدخل هنا الرمز الخاص',
+    trackingButton: 'متابعة الحجز',
+    trackingDisabled: 'المتابعة غير مفعّلة في هذه النسخة التجريبية',
+    trackingSecurity: 'الرقم المرجعي وحده لا يكشف تفاصيل الحجز ولا يسمح بتعديله. يلزم معه رمز الوصول الخاص.',
+    secretSafety: 'لا تشارك رمز الوصول مع أي شخص، ولا ترسله في رابط أو رسالة عامة.',
+    trackingNoBackend: 'هذه واجهة تصميم فقط؛ لا يتم التحقق من أي حجز أو إرسال بيانات.',
+
   },
   fr: {
     tagline: 'Vos vacances commencent ici',
@@ -146,6 +157,17 @@ const copy = {
     stay: 'Logements approuvés',
     activities: 'Activités locales bientôt',
     secure: 'Simple et sécurisé',
+    trackingIntro: 'Saisissez les éléments d’accès privés de votre réservation pour suivre son état.',
+    bookingReference: 'Référence de réservation',
+    privateSecret: 'Code d’accès privé',
+    referencePlaceholder: 'La référence apparaîtra ici',
+    secretPlaceholder: 'Saisir le code privé',
+    trackingButton: 'Suivre la réservation',
+    trackingDisabled: 'Le suivi n’est pas activé dans cette version de démonstration',
+    trackingSecurity: 'La référence seule ne révèle pas les détails et ne permet aucune modification. Le code privé est également nécessaire.',
+    secretSafety: 'Ne partagez pas votre code privé et ne l’ajoutez jamais à un lien ou à un message public.',
+    trackingNoBackend: 'Écran de conception uniquement : aucune réservation n’est vérifiée et aucune donnée n’est envoyée.',
+
   },
 } as const;
 
@@ -314,6 +336,27 @@ export default function App() {
       {tab === 'bookings' && (
         <ScrollView contentContainerStyle={styles.content}>
           <Text style={[styles.sectionTitle, rtl && styles.textRight]}>{t.bookingsTitle}</Text>
+          <View style={styles.trackingCard}>
+            <Text style={[styles.trackingIntro, rtl && styles.textRight]}>{t.trackingIntro}</Text>
+            <View style={styles.previewField}>
+              <Text style={[styles.label, rtl && styles.textRight]}>{t.bookingReference}</Text>
+              <View style={styles.readOnlyField}>
+                <Text style={[styles.readOnlyText, rtl && styles.textRight]}>{t.referencePlaceholder}</Text>
+              </View>
+            </View>
+            <View style={styles.previewField}>
+              <Text style={[styles.label, rtl && styles.textRight]}>{t.privateSecret}</Text>
+              <View style={styles.readOnlyField}>
+                <Text style={[styles.readOnlyText, rtl && styles.textRight]}>••••••••••••••••</Text>
+              </View>
+            </View>
+            <View style={styles.disabledBooking}>
+              <Text style={styles.disabledBookingText}>{t.trackingDisabled}</Text>
+            </View>
+            <Text style={[styles.securityText, rtl && styles.textRight]}>{t.trackingSecurity}</Text>
+            <Text style={[styles.securityText, rtl && styles.textRight]}>{t.secretSafety}</Text>
+            <Text style={[styles.bookingNotice, rtl && styles.textRight]}>{t.trackingNoBackend}</Text>
+          </View>
           <View style={styles.emptyCard}>
             <Text style={styles.emptyIcon}>▤</Text>
             <Text style={[styles.emptyBody, rtl && styles.textRight]}>{t.noBookings}</Text>
@@ -471,6 +514,9 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 34, color: COLORS.gold },
   emptyTitle: { color: COLORS.navy, fontWeight: '800', fontSize: 17 },
   emptyBody: { color: COLORS.muted, fontSize: 13, lineHeight: 22, textAlign: 'center' },
+  trackingCard: { backgroundColor: COLORS.white, borderRadius: 18, borderWidth: 1, borderColor: COLORS.line, padding: 18, gap: 14 },
+  trackingIntro: { color: COLORS.ink, fontSize: 13, lineHeight: 22 },
+  securityText: { color: COLORS.blue, fontSize: 12, lineHeight: 20 },
   accountCard: { backgroundColor: COLORS.white, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: COLORS.line, gap: 14 },
   helper: { color: COLORS.muted, lineHeight: 22, fontSize: 13 },
   field: { gap: 7 },
