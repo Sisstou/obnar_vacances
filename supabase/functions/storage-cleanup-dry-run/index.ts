@@ -7,8 +7,8 @@ import {
   recordStorageListRequest,
   type StorageScanBudget,
   isDryRunCandidate,
-  isSafeStorageFileName,
-  isUuidFolder,
+  isSupportedFileEntry,
+  isSupportedFolderEntry,
 } from "../_shared/storage-cleanup.ts";
 
 const PAGE_SIZE = 100;
@@ -96,26 +96,37 @@ async function listDirectory(
 async function discoverPropertyImageObjects(supabase: any): Promise<{
   objects: StorageEntry[];
   budget: StorageScanBudget;
+  unsupportedEntryCount: number;
 }> {
   const budget: StorageScanBudget = { directoriesScanned: 0, listRequests: 0 };
+  let unsupportedEntryCount = 0;
   const rootEntries = await listDirectory(supabase, "", budget);
-  const owners = rootEntries.filter(
-    (entry) => entry.id == null && isUuidFolder(entry.name),
-  );
-  const objects: StorageEntry[] = [];
+  const owners: StorageEntry[] = [];
 
+  for (const entry of rootEntries) {
+    if (isSupportedFolderEntry(entry)) owners.push(entry);
+    else unsupportedEntryCount += 1;
+  }
+
+  const objects: StorageEntry[] = [];
   for (const owner of owners) {
     const ownerEntries = await listDirectory(supabase, owner.name, budget);
-    const properties = ownerEntries.filter(
-      (entry) => entry.id == null && isUuidFolder(entry.name),
-    );
+    const properties: StorageEntry[] = [];
+
+    for (const entry of ownerEntries) {
+      if (isSupportedFolderEntry(entry)) properties.push(entry);
+      else unsupportedEntryCount += 1;
+    }
 
     for (const property of properties) {
       const propertyPath = `${owner.name}/${property.name}`;
       const fileEntries = await listDirectory(supabase, propertyPath, budget);
 
       for (const entry of fileEntries) {
-        if (entry.id == null || !isSafeStorageFileName(entry.name)) continue;
+        if (!isSupportedFileEntry(entry)) {
+          unsupportedEntryCount += 1;
+          continue;
+        }
         objects.push({ ...entry, name: `${propertyPath}/${entry.name}` });
         if (objects.length > MAX_STORAGE_OBJECTS_SCANNED) {
           throw new Error("SCAN_LIMIT_REACHED");
@@ -124,7 +135,7 @@ async function discoverPropertyImageObjects(supabase: any): Promise<{
     }
   }
 
-  return { objects, budget };
+  return { objects, budget, unsupportedEntryCount };
 }
 
 function safeErrorCode(error: unknown): string {
@@ -160,7 +171,7 @@ Deno.serve(
         loadReferencedPaths(context.supabaseAdmin),
         discoverPropertyImageObjects(context.supabaseAdmin),
       ]);
-      const { objects: storageObjects, budget } = discovery;
+      const { objects: storageObjects, budget, unsupportedEntryCount } = discovery;
 
       const nowMs = Date.now();
       const candidates: Array<{
@@ -171,7 +182,6 @@ Deno.serve(
       }> = [];
       let eligibleCount = 0;
       let skippedRecentOrReferenced = 0;
-      let skippedUnsupported = 0;
       let skippedMissingTimestamp = 0;
 
       for (const object of storageObjects) {
@@ -191,10 +201,6 @@ Deno.serve(
         if (!eligible) {
           if (!Number.isFinite(Date.parse(object.created_at))) {
             skippedMissingTimestamp += 1;
-          } else if (!object.name.split("/").every((part, index) =>
-            index === 2 ? isSafeStorageFileName(part) : isUuidFolder(part)
-          )) {
-            skippedUnsupported += 1;
           } else {
             skippedRecentOrReferenced += 1;
           }
@@ -227,13 +233,11 @@ Deno.serve(
         candidates_truncated: eligibleCount > candidates.length,
         candidates,
         skipped_recent_or_referenced: skippedRecentOrReferenced,
-        skipped_unsupported_path: skippedUnsupported,
+        skipped_unsupported_path: unsupportedEntryCount,
         skipped_missing_or_invalid_timestamp: skippedMissingTimestamp,
         duration_ms: Date.now() - startedAt,
       };
 
-      // Object keys are returned only to the authenticated server-side caller.
-      // Logs contain aggregate counts only.
       console.info(JSON.stringify({
         event: "storage_cleanup_dry_run_completed",
         run_id: runId,
@@ -243,6 +247,7 @@ Deno.serve(
         storage_list_requests: report.storage_list_requests,
         reference_count: report.reference_count,
         eligible_candidate_count: report.eligible_candidate_count,
+        skipped_unsupported_path: report.skipped_unsupported_path,
         duration_ms: report.duration_ms,
       }));
 
