@@ -15,13 +15,14 @@ export type VersionedUploadInput = Omit<
 > &
   Omit<VersionedPathInput, 'fileName' | 'version'> & {
     fileName: string;
-    version?: number;
+    /** Must come from the caller's authoritative version workflow. */
+    version: number;
   };
 
 /**
  * Generates a new versioned path and uploads without overwriting an older file.
- * The caller remains responsible for updating the corresponding database
- * reference through an approved server-side workflow.
+ * The caller remains responsible for selecting a unique version and updating
+ * the corresponding database reference through an approved workflow.
  */
 export async function uploadVersionedStorageObject(
   input: VersionedUploadInput,
