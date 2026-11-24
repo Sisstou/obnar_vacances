@@ -24,11 +24,35 @@ function loadGate() {
   });
   const module = { exports: {} };
   const react = {
-    createElement: (type, props) => ({ type, props: props ?? {} }),
+    useEffect: () => undefined,
+    useState: () => [null, () => undefined],
+  };
+  const reactNative = {
+    ActivityIndicator: 'ActivityIndicator',
+    AppState: { addEventListener: () => ({ remove: () => undefined }) },
+    Pressable: 'Pressable',
+    StyleSheet: { create: (styles) => styles },
+    Text: 'Text',
+    View: 'View',
+  };
+  const jsxRuntime = {
+    jsx: (type, props) => ({ type, props: props ?? {} }),
+    jsxs: (type, props) => ({ type, props: props ?? {} }),
+    Fragment: 'Fragment',
   };
   const localRequire = (specifier) => {
     if (specifier === 'react') return react;
-    if (specifier === '../types/admin-gate') return {};
+    if (specifier === 'react-native') return reactNative;
+    if (specifier === 'react/jsx-runtime') return jsxRuntime;
+    if (specifier === '../services/admin-authorization.service') {
+      return { verifyAdminAuthorization: async () => ({ status: 'unauthenticated' }) };
+    }
+    if (specifier === '../lib/supabase') {
+      return {
+        supabase: { auth: { onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) } },
+        supabaseConfigured: true,
+      };
+    }
     throw new Error(`Unexpected gate dependency: ${specifier}`);
   };
 
@@ -41,40 +65,55 @@ function loadGate() {
   return module.exports;
 }
 
-test('renders protected children for an authorized state', () => {
-  const { AdminGate } = loadGate();
+test('renders protected children only for an authorized state', () => {
+  const { getAdminGateContent } = loadGate();
   const protectedContent = { type: 'ProtectedAdminWorkspace' };
-  const result = AdminGate({
-    state: { status: 'authorized', userId: 'admin-1', checkedAt: 1 },
-    children: protectedContent,
-  });
-  assert.equal(result, protectedContent);
+  const fallback = { type: 'AccessStatus' };
+
+  assert.equal(
+    getAdminGateContent(
+      { status: 'authorized', userId: 'admin-1', checkedAt: 1 },
+      protectedContent,
+      fallback,
+    ),
+    protectedContent,
+  );
 });
 
-test('does not render protected children in any non-authorized state', () => {
-  const { AdminGate } = loadGate();
+test('fails closed for every non-authorized state', () => {
+  const { getAdminGateContent } = loadGate();
   const protectedContent = { type: 'ProtectedAdminWorkspace' };
+  const fallback = { type: 'AccessStatus' };
   const states = [
     { status: 'checking' },
     { status: 'unauthenticated' },
     { status: 'forbidden' },
     { status: 'session_expired' },
     { status: 'unavailable', retryable: true },
+    { status: 'unavailable', retryable: false },
   ];
 
   for (const state of states) {
-    assert.equal(AdminGate({ state, children: protectedContent }), null, state.status);
+    assert.equal(
+      getAdminGateContent(state, protectedContent, fallback),
+      fallback,
+      state.status,
+    );
   }
 });
 
-test('renders only the supplied fallback when access is not authorized', () => {
-  const { AdminGate } = loadGate();
-  const protectedContent = { type: 'ProtectedAdminWorkspace' };
-  const fallback = { type: 'AccessStatus' };
-  const result = AdminGate({
-    state: { status: 'forbidden' },
-    children: protectedContent,
-    fallback,
-  });
-  assert.equal(result, fallback);
+test('returns null rather than protected content when no fallback is supplied', () => {
+  const { getAdminGateContent } = loadGate();
+  assert.equal(
+    getAdminGateContent({ status: 'forbidden' }, { type: 'ProtectedAdminWorkspace' }),
+    null,
+  );
+});
+
+test('gate source revalidates on auth changes, foreground, and interval', () => {
+  const source = readFileSync(gatePath, 'utf8');
+  assert.match(source, /onAuthStateChange/);
+  assert.match(source, /AppState\.addEventListener/);
+  assert.match(source, /setInterval/);
+  assert.match(source, /verifyAdminAuthorization/);
 });
