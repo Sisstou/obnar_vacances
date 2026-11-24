@@ -28,6 +28,10 @@ Only the public Supabase publishable key belongs in the mobile app. Never add a 
 - Supabase email/password sign-in and sign-up foundation, including native email-confirmation callback handling.
 - Guest-first browsing: viewing stays does not require an account.
 
+## Staging data classification
+
+The user confirmed that **all property listings currently present in the staging environment are test data**. They must never be presented as real or publicly bookable accommodation in the mobile app. Keep staging catalogue output hidden from guest discovery until a separately approved production catalogue/source is configured and verified. Do not delete or modify the staging test records.
+
 ## Read-only backend review
 
 The staging database schema and RLS policies were inspected without changing the database:
