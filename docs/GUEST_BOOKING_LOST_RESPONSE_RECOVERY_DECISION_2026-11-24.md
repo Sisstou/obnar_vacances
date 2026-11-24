@@ -2,7 +2,7 @@
 
 **Date:** 24 November 2026  
 **Branch:** `pwa-foundation`  
-**Status:** decision analysis only — no policy selected, no implementation  
+**Status:** Option A approved as the design direction; support/reissue procedure remains to be specified; no implementation  
 **Scope:** prevent duplicate guest bookings and handle a committed booking whose creation response is lost.
 
 ## 1. The exact failure
@@ -130,15 +130,25 @@ This is a release blocker. Do not solve it by storing plaintext, exposing a look
 | Manual support needed | For lost secret | After replay window/key loss | Always for lost secret |
 | Main trade-off | Lowest recoverability | Better recovery, larger server compromise impact | Strong storage model, weaker UX |
 
-## 7. Preliminary engineering recommendation
+## 7. Approved decision
 
-Do not select a policy silently. The trade-off is a product/security decision.
+**The user approved Option A as the guest credential/retry design direction on 24 November 2026.** The approved direction is:
 
-- If the highest priority is never making the access secret recoverable by the server, choose Option A plus a separately designed support/reissue fallback. Explicitly accept that a page reload can make the secret unrecoverable.
-- If reliable recovery after a lost response is essential, Option B is the only option here that can replay the original secret without asking the guest to retain it. It requires explicit approval to relax the current digest-only-at-rest rule by adding short-lived encrypted escrow.
-- Option C is the simplest operationally only if a real support and identity-verification process exists. Do not assume that process already exists.
+- The browser generates a 32-byte access secret and a separate high-entropy idempotency key using Web Crypto before the first create request.
+- The plaintext access secret remains only in page memory. It is never written to localStorage, sessionStorage, IndexedDB, cookies, service-worker caches, URLs, logs or analytics.
+- The browser sends the access-secret digest and idempotency key over HTTPS POST. The server stores only the secret digest, an idempotency-key digest and a canonical request fingerprint.
+- The idempotency key may be retained in sessionStorage for same-tab retry continuity; it is not a booking authentication credential and cannot read or mutate a booking.
+- A retry with the same idempotency key and identical canonical payload returns the original booking reference and never creates another booking. A key reused with a different payload is rejected.
+- If the page reloads/closes and the access secret is lost, the server must not reconstruct it. A separate administrator-assisted reissue process is required after strong, documented verification and revocation of the old credential.
+- Option B encrypted escrow is not selected. Do not store a recoverable encrypted copy of the access secret.
 
-No option is approved by this document.
+### Explicitly not yet decided
+
+The approval selects the security direction, not every operational parameter. Before implementation, specify and review: idempotency-key expiry and cleanup; canonical request fingerprint fields; handling of different idempotency keys with identical booking inputs; support identity-verification evidence; administrator authorization and audit; reissue transaction semantics; and guest-facing failure wording. Do not invent these values or procedures in code.
+
+The administrator recovery process must not accept booking reference, phone, name, property or dates alone as proof. If adequate verification cannot be established, do not reissue the credential.
+
+## 8. Required tests before implementation
 
 ## 8. Required tests before implementation
 
@@ -151,17 +161,17 @@ No option is approved by this document.
 - Idempotency key malformed, expired, reused or guessed: no credential disclosure.
 - Rate limit applies atomically to replay attempts.
 - No secret, idempotency key, digest or ciphertext appears in logs, analytics, URLs or public DTOs.
-- For Option B: wrong key, modified ciphertext, modified associated data, nonce reuse prevention, key rotation, expiry, concurrent replay and post-expiry deletion are tested.
-- For Option A: same-tab retry, page reload, tab close, cleared session storage and browser restart behavior are explicitly tested.
-- For Option C: support verification, administrator authorization, old-secret revocation, one-time new-secret delivery and audit trail are tested.
+- For approved Option A: same-tab retry, page reload, tab close, cleared session storage and browser restart behavior are explicitly tested; no retry creates a duplicate.
+- For the approved support fallback: verification failure never discloses or reissues credentials; successful reissue requires administrator authorization, immediate old-secret revocation, one-time new-secret delivery and a sanitized audit trail.
+- Verify no encrypted or plaintext copy of the original access secret is persisted.
 - Existing registered booking and cancellation/payment regression suites continue to pass.
 
 ## 9. Current disposition
 
 - Lost-response failure analyzed.
 - Three recovery patterns documented.
-- No product policy selected.
-- No SQL or Edge Function implementation produced.
+- Option A approved as the design direction; administrator-assisted recovery is required but its verification procedure remains an implementation gate.
+- No SQL or Edge Function implementation produced; approval is for design direction only.
 - No database, Storage, secrets or deployment changed.
 - Guest UI remains disabled.
 - Staging migration and production changes still require separate explicit approvals.
