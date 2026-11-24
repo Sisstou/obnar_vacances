@@ -1,0 +1,4 @@
+# Only the report-only Storage cleanup function uses named secret-key auth.
+# No other function configuration is changed by this file.
+[functions.storage-cleanup-dry-run]
+verify_jwt = false
