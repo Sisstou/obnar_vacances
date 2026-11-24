@@ -40,19 +40,28 @@ function loadService(client, configured = true) {
 }
 
 function createClient({
-  session = { access_token: 'test-token' },
+  session = {
+    access_token: 'test-token',
+    user: { id: 'admin-user' },
+  },
   sessionError = null,
   user = { id: 'admin-user' },
   userError = null,
   rpcData = true,
   rpcError = null,
   throwAt = null,
+  finalSession = session,
 } = {}) {
+  let sessionCalls = 0;
   return {
     auth: {
       getSession: async () => {
+        sessionCalls += 1;
         if (throwAt === 'getSession') throw new Error('network failure');
-        return { data: { session }, error: sessionError };
+        return {
+          data: { session: sessionCalls > 1 ? finalSession : session },
+          error: sessionError,
+        };
       },
       getUser: async () => {
         if (throwAt === 'getUser') throw new Error('network failure');
@@ -86,9 +95,16 @@ test('rejects a user with no active session before calling Auth user or RPC', as
   assert.equal((await service.verifyAdminAuthorization()).status, 'unauthenticated');
 });
 
-test('classifies an expired Auth session separately', async () => {
+test('classifies a missing Auth session as unauthenticated', async () => {
   const service = loadService(createClient({
     userError: { name: 'AuthSessionMissingError', status: 400 },
+  }));
+  assert.equal((await service.verifyAdminAuthorization()).status, 'unauthenticated');
+});
+
+test('classifies an expired Auth session separately', async () => {
+  const service = loadService(createClient({
+    userError: { status: 401, code: 'bad_jwt' },
   }));
   assert.equal((await service.verifyAdminAuthorization()).status, 'session_expired');
 });
@@ -105,6 +121,16 @@ test('does not authorize an unexpected non-boolean RPC response', async () => {
   const state = await service.verifyAdminAuthorization();
   assert.equal(state.status, 'unavailable');
   assert.equal(state.retryable, false);
+});
+
+test('does not authorize if the signed-in account changes during the RPC check', async () => {
+  const service = loadService(createClient({
+    finalSession: {
+      access_token: 'new-token',
+      user: { id: 'different-user' },
+    },
+  }));
+  assert.equal((await service.verifyAdminAuthorization()).status, 'unauthenticated');
 });
 
 test('does not call Supabase when the public client is not configured', async () => {
