@@ -5,7 +5,7 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "scheme": "obnarvacances",
+    "scheme": "dz.obnarvacances.app",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "dz.obnarvacances.app"
