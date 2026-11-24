@@ -10,12 +10,33 @@ const RETRYABLE_CODES = new Set([
   'fetch_error',
   'network_error',
   'timeout',
-  '429',
-  '500',
-  '502',
-  '503',
-  '504',
+  'authretryablefetcherror',
 ]);
+
+function isRetryable(value: unknown, code: string): boolean {
+  if (RETRYABLE_CODES.has(code.toLowerCase())) return true;
+
+  const candidate =
+    typeof value === 'object' && value !== null
+      ? (value as ErrorLike)
+      : undefined;
+
+  const status = candidate?.status;
+  if (typeof status === 'number') {
+    return status === 408 || status === 425 || status === 429 || status >= 500;
+  }
+
+  const message =
+    typeof candidate?.message === 'string'
+      ? candidate.message
+      : value instanceof Error
+        ? value.message
+        : '';
+
+  return /network request failed|failed to fetch|fetch failed|timed? ?out|timeout|network error/i.test(
+    message,
+  );
+}
 
 export function toAppError(
   value: unknown,
@@ -31,7 +52,9 @@ export function toAppError(
       ? candidate.code
       : typeof candidate?.status === 'number'
         ? String(candidate.status)
-        : 'unknown_error';
+        : value instanceof Error && value.name
+          ? value.name
+          : 'unknown_error';
 
   const message =
     typeof candidate?.message === 'string' && candidate.message.trim()
@@ -43,6 +66,6 @@ export function toAppError(
   return {
     code,
     message,
-    retryable: RETRYABLE_CODES.has(code.toLowerCase()),
+    retryable: isRetryable(value, code),
   };
 }
