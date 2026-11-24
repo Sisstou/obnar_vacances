@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  AppState,
   KeyboardAvoidingView,
   Linking,
   Platform,
@@ -19,9 +20,24 @@ import { supabase, supabaseConfigured } from './src/lib/supabase';
 const AUTH_REDIRECT_URL = 'dz.obnarvacances.app://auth/callback';
 
 async function completeAuthFromUrl(url: string) {
-  const query = url.includes('?') ? url.split('?')[1].split('#')[0] : '';
-  const hash = url.includes('#') ? url.split('#').slice(1).join('#') : '';
-  const params = new URLSearchParams([query, hash].filter(Boolean).join('&'));
+  let callbackUrl: URL;
+  try {
+    callbackUrl = new URL(url);
+  } catch {
+    return;
+  }
+
+  if (
+    callbackUrl.protocol !== 'dz.obnarvacances.app:' ||
+    callbackUrl.hostname !== 'auth' ||
+    callbackUrl.pathname !== '/callback'
+  ) {
+    return;
+  }
+
+  const params = new URLSearchParams(
+    [callbackUrl.search.slice(1), callbackUrl.hash.slice(1)].filter(Boolean).join('&'),
+  );
   const errorDescription = params.get('error_description');
   if (errorDescription) throw new Error(errorDescription);
 
@@ -43,15 +59,6 @@ async function completeAuthFromUrl(url: string) {
     return;
   }
 
-  const accessToken = params.get('access_token');
-  const refreshToken = params.get('refresh_token');
-  if (accessToken && refreshToken) {
-    const { error } = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
-    if (error) throw error;
-  }
 }
 
 type Language = 'ar' | 'fr';
@@ -190,6 +197,19 @@ export default function App() {
 
   useEffect(() => {
     if (!supabaseConfigured) return;
+    const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        void supabase.auth.startAutoRefresh();
+      } else {
+        void supabase.auth.stopAutoRefresh();
+      }
+    });
+    if (AppState.currentState === 'active') {
+      void supabase.auth.startAutoRefresh();
+    } else {
+      void supabase.auth.stopAutoRefresh();
+    }
+
     supabase.auth.getSession()
       .then(({ data, error }) => {
         if (!error) setSession(data.session);
@@ -215,6 +235,7 @@ export default function App() {
     return () => {
       data.subscription.unsubscribe();
       deepLinkSubscription.remove();
+      appStateSubscription.remove();
     };
   }, []);
 
@@ -269,7 +290,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.navy} />
+      <StatusBar barStyle="light-content" />
       <View style={[styles.header, rtl && styles.rtl]}>
         <View>
           <Text style={styles.brand}>OBNAR VACANCES</Text>
