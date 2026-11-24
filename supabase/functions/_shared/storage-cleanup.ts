@@ -6,6 +6,27 @@
 export const CLEANUP_BUCKET = "property-images" as const;
 export const GRACE_PERIOD_DAYS = 30;
 export const MAX_REPORTED_CANDIDATES = 20;
+export const MAX_DIRECTORIES_SCANNED = 500;
+export const MAX_STORAGE_LIST_REQUESTS = 2_000;
+
+export type StorageScanBudget = {
+  directoriesScanned: number;
+  listRequests: number;
+};
+
+export function recordDirectoryScan(budget: StorageScanBudget): void {
+  budget.directoriesScanned += 1;
+  if (budget.directoriesScanned > MAX_DIRECTORIES_SCANNED) {
+    throw new Error("DIRECTORY_LIMIT_REACHED");
+  }
+}
+
+export function recordStorageListRequest(budget: StorageScanBudget): void {
+  budget.listRequests += 1;
+  if (budget.listRequests > MAX_STORAGE_LIST_REQUESTS) {
+    throw new Error("LIST_REQUEST_LIMIT_REACHED");
+  }
+}
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
