@@ -10,7 +10,7 @@ import {
 export interface StorageUploadInput {
   bucket: StorageBucket;
   path: string;
-  body: ArrayBuffer | Uint8Array;
+  body: ArrayBuffer;
   contentType: string;
   sizeBytes: number;
   cacheControlSeconds?: number;
@@ -72,19 +72,31 @@ export async function createStorageSignedUrl(
 ): Promise<AppResult<string>> {
   if (!supabaseConfigured) return unavailable();
 
-  if (!path.trim() || path.startsWith('/') || path.split('/').some((part) => !part || part === '.' || part === '..')) {
-    return err({
-      code: 'invalid_storage_path',
-      message: 'مسار الملف غير صالح.',
-      retryable: false,
-    });
-  }
-
   const policy = getStorageBucketPolicy(bucket);
   if (!policy) {
     return err({
       code: 'unsupported_storage_bucket',
       message: 'حاوية الملفات غير مدعومة.',
+      retryable: false,
+    });
+  }
+
+  const segments = path.split('/');
+  if (
+    !path.trim() ||
+    path.startsWith('/') ||
+    segments.length !== policy.folderDepth + 1 ||
+    segments.some(
+      (part) =>
+        !part ||
+        part === '.' ||
+        part === '..' ||
+        !/^[A-Za-z0-9_.-]{1,128}$/.test(part),
+    )
+  ) {
+    return err({
+      code: 'invalid_storage_path',
+      message: 'مسار الملف غير صالح.',
       retryable: false,
     });
   }
