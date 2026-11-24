@@ -3,6 +3,9 @@ import {
   CLEANUP_BUCKET,
   GRACE_PERIOD_DAYS,
   MAX_REPORTED_CANDIDATES,
+  recordDirectoryScan,
+  recordStorageListRequest,
+  type StorageScanBudget,
   isDryRunCandidate,
   isSafeStorageFileName,
   isUuidFolder,
@@ -30,9 +33,11 @@ async function listAllPages(
     error: { message: string } | null;
   }>,
   maxEntries: number,
+  budget: StorageScanBudget,
 ): Promise<StorageEntry[]> {
   const entries: StorageEntry[] = [];
   for (let offset = 0; ; offset += PAGE_SIZE) {
+    recordStorageListRequest(budget);
     const { data, error } = await listPage(offset, PAGE_SIZE);
     if (error) throw new Error("STORAGE_LIST_FAILED");
     const page = data ?? [];
@@ -71,7 +76,12 @@ async function loadReferencedPaths(supabase: any): Promise<Set<string>> {
   }
 }
 
-async function listDirectory(supabase: any, path: string): Promise<StorageEntry[]> {
+async function listDirectory(
+  supabase: any,
+  path: string,
+  budget: StorageScanBudget,
+): Promise<StorageEntry[]> {
+  recordDirectoryScan(budget);
   return await listAllPages(
     (offset, limit) => supabase.storage.from(CLEANUP_BUCKET).list(path, {
       limit,
@@ -79,25 +89,30 @@ async function listDirectory(supabase: any, path: string): Promise<StorageEntry[
       sortBy: { column: "name", order: "asc" },
     }),
     MAX_DIRECTORY_ENTRIES,
+    budget,
   );
 }
 
-async function discoverPropertyImageObjects(supabase: any): Promise<StorageEntry[]> {
-  const rootEntries = await listDirectory(supabase, "");
+async function discoverPropertyImageObjects(supabase: any): Promise<{
+  objects: StorageEntry[];
+  budget: StorageScanBudget;
+}> {
+  const budget: StorageScanBudget = { directoriesScanned: 0, listRequests: 0 };
+  const rootEntries = await listDirectory(supabase, "", budget);
   const owners = rootEntries.filter(
     (entry) => entry.id == null && isUuidFolder(entry.name),
   );
   const objects: StorageEntry[] = [];
 
   for (const owner of owners) {
-    const ownerEntries = await listDirectory(supabase, owner.name);
+    const ownerEntries = await listDirectory(supabase, owner.name, budget);
     const properties = ownerEntries.filter(
       (entry) => entry.id == null && isUuidFolder(entry.name),
     );
 
     for (const property of properties) {
       const propertyPath = `${owner.name}/${property.name}`;
-      const fileEntries = await listDirectory(supabase, propertyPath);
+      const fileEntries = await listDirectory(supabase, propertyPath, budget);
 
       for (const entry of fileEntries) {
         if (entry.id == null || !isSafeStorageFileName(entry.name)) continue;
@@ -109,7 +124,7 @@ async function discoverPropertyImageObjects(supabase: any): Promise<StorageEntry
     }
   }
 
-  return objects;
+  return { objects, budget };
 }
 
 function safeErrorCode(error: unknown): string {
@@ -141,10 +156,11 @@ Deno.serve(
     const startedAt = Date.now();
 
     try {
-      const [referencedPaths, storageObjects] = await Promise.all([
+      const [referencedPaths, discovery] = await Promise.all([
         loadReferencedPaths(context.supabaseAdmin),
         discoverPropertyImageObjects(context.supabaseAdmin),
       ]);
+      const { objects: storageObjects, budget } = discovery;
 
       const nowMs = Date.now();
       const candidates: Array<{
@@ -204,6 +220,8 @@ Deno.serve(
         grace_period_days: GRACE_PERIOD_DAYS,
         max_candidates_returned: MAX_REPORTED_CANDIDATES,
         scanned_objects: storageObjects.length,
+        scanned_directories: budget.directoriesScanned,
+        storage_list_requests: budget.listRequests,
         reference_count: referencedPaths.size,
         eligible_candidate_count: eligibleCount,
         candidates_truncated: eligibleCount > candidates.length,
@@ -221,6 +239,8 @@ Deno.serve(
         run_id: runId,
         bucket: CLEANUP_BUCKET,
         scanned_objects: report.scanned_objects,
+        scanned_directories: report.scanned_directories,
+        storage_list_requests: report.storage_list_requests,
         reference_count: report.reference_count,
         eligible_candidate_count: report.eligible_candidate_count,
         duration_ms: report.duration_ms,
