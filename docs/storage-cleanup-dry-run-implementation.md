@@ -1,6 +1,6 @@
 # Storage Cleanup — Report-Only Implementation
 
-**Status:** Source prepared on `mobile-phase-1-services`; not deployed or scheduled.  
+**Status:** Deployed and manually verified in the staging project; not scheduled.  
 **Deletion:** Not implemented. This function contains no Storage remove call.
 
 ## Fixed behavior
@@ -28,7 +28,7 @@ The function uses the current Supabase server-side authentication pattern:
 
 Both credentials must be held by a trusted server-side caller only. Never place them in the mobile app, website, repository, or client-visible environment variables.
 
-The named API key and Edge Function secret have **not** been created. The function is not scheduled. No Vault secret, pg_cron job, Edge Function secret, or hosted setting is created by this source-only change.
+The required named API key and Edge Function invocation secret were configured by the project owner and used for a successful manual invocation. Their values are not stored in this repository. The function is not scheduled. No Vault secret or pg_cron job was created.
 
 ## Report interpretation
 
@@ -36,14 +36,20 @@ A successful HTTP 200 means the full bounded scan and reference read completed. 
 
 Only the authenticated caller receives object keys. Server logs contain aggregate counts and a run identifier, not keys.
 
-## Required before any deployment
+## Deployment and verification
 
-1. Review this source and its tests.
-2. Confirm the deployed project schema and Storage path layout still match the assumptions.
-3. Separately approve and create the named API secret key and Edge Function invocation secret.
-4. Review the exact deployment settings and invoke the function manually in report-only mode.
-5. Inspect multiple dry-run reports before considering any scheduled invocation.
-6. Obtain separate explicit approval before any future deletion implementation. This source does not contain deletion capability.
+- Supabase staging project: `obnar-vacances-staging` (`rhxeclddohpwtpzkruzm`).
+- Function: `storage-cleanup-dry-run`; deployed status `ACTIVE`, version 2.
+- Gateway JWT verification is disabled for this function only; invocation is protected by the named `storage_cleanup` API key and the separate `STORAGE_CLEANUP_INVOKE_SECRET` header check.
+- A manual POST invocation returned HTTP 200 on 2026-11-24.
+- Verified report: `mode: dry-run`, `deletion_enabled: false`, bucket `property-images`, 30-day grace period, 4 objects scanned, 4 directories scanned, 4 Storage list requests, 3 database references, 0 eligible candidates, and no truncated candidates. All 4 objects were skipped because they were recent or referenced. No unsupported paths or invalid timestamps were encountered; duration was 709 ms.
+- This invocation performed a read-only scan. It did not delete objects, change database rows, or schedule future runs.
+
+## Remaining controls and future approval
+
+1. Keep the function report-only and unscheduled while more reports are reviewed.
+2. Treat each report as a point-in-time result; repeat the bounded scan before making any future cleanup decision.
+3. Obtain separate explicit approval before adding any deletion capability, changing retention rules, broadening bucket/path scope, or scheduling invocations. The deployed function currently has no deletion capability.
 
 ## References
 
