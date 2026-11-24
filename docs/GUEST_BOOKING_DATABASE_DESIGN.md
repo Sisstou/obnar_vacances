@@ -387,3 +387,36 @@ Before a migration can be prepared, the implementation plan must explicitly cove
 7. Add integration tests for every guest branch above, plus registered-user regression tests. The shared Deno test source has not been executed because Deno is not installed in the current environment.
 
 These are design findings only. No SQL/DDL, policy, Storage, secret, Edge Function deployment, or production change was made.
+
+
+### 11.17 Final RLS, grants, public availability view and dependency review — 24 November 2026
+
+Read-only inspection of staging `rhxeclddohpwtpzkruzm` confirmed:
+
+**Protected booking and cancellation tables**
+- RLS is enabled on `bookings`, `booking_cancellations`, `booking_cancellation_history`, and `notifications`.
+- Effective table privileges for `anon` on the first four tables: no SELECT, INSERT, UPDATE or DELETE.
+- `authenticated` has SELECT only on these four tables; it has no direct INSERT, UPDATE or DELETE.
+- The existing participant SELECT policies limit bookings/cancellations/history to the main admin, the assigned owner, and the registered traveler/requester as applicable. Guest access must remain outside these direct table policies and use the server-authorized reference-plus-secret flow.
+- The cancellation history actor foreign key points to `auth.users(id)`, but `actor_id` is nullable. This supports a guest/system history record with a NULL actor ID once the role constraint explicitly permits `guest`; never substitute a shared or fabricated user ID.
+
+**Public availability projection**
+- `property_public_booked_dates` is a view with `security_invoker=true` and `security_barrier=true`; its definition exposes exactly `property_id, check_in, check_out` from `property_public_booking_dates`.
+- The underlying table has RLS enabled and its only row policy is a SELECT policy with `USING (true)`; the public date tuple is therefore intentionally readable.
+- `anon` has SELECT only on the underlying table and SELECT on the view. No guest identity, booking ID, contact information, receipt path or secret is present in this projection.
+- **Hardening finding:** `authenticated` currently has table-level INSERT, UPDATE and DELETE grants on `property_public_booking_dates`, although there are no corresponding write policies, so RLS currently denies those writes. These unused direct-write grants should be revoked in a later hardening migration, leaving SELECT only for `anon` and `authenticated`. Do not add write policies to this table; synchronization remains trigger/server controlled.
+- The view itself also has authenticated write grants in its ACL, but it is a security-invoker view over the RLS-protected base table. Revoke INSERT/UPDATE/DELETE from authenticated on the view as well, leaving SELECT only. Do not change the intended anonymous read-only availability feature.
+
+**Booking constraints that must survive guest support**
+- The exclusion constraint `no_overlapping_bookings` covers pending, awaiting-admin-approval, awaiting-payment and confirmed bookings using half-open date ranges `[check_in, check_out)`.
+- A second `no_overlapping_confirmed_bookings` constraint exists for confirmed bookings. Preserve both until a separately tested redundancy review; do not drop either during guest support work.
+- `bookings_confirmed_requires_verified_payment`, positive guest count, date ordering, nonnegative pricing/commission and the existing payment/status checks remain in force.
+- `booking_cancellations_booking_id_key` is UNIQUE. The first guest release continues to allow only one cancellation lifecycle per booking.
+- `reviews.traveler_id` and `complaints.user_id` currently require registered profile identities. Guest reviews and direct guest complaints are therefore outside the first guest release unless a separately designed secure workflow is approved. Do not weaken these foreign keys or add anonymous table policies as a shortcut.
+
+**PostgREST/Data API configuration**
+- The SQL session returns NULL for `pgrst.db_schemas`, `pgrst.db_extra_search_path` and `pgrst.db_anon_role`. These values are not authoritative proof of the Dashboard's exposed-schema setting.
+- The Supabase project details API confirms staging is active and healthy in `eu-west-1`, but does not expose the Data API schema allowlist. The exact exposed schema configuration remains a manual Dashboard verification item.
+- No guest RPC exists in staging yet. The six planned guest RPC names in the design remain design placeholders, not deployed functions.
+
+**No changes applied:** this section records inspection results only. No grants, RLS policies, constraints, views, functions or data were changed.
