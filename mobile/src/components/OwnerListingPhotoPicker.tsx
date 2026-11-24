@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
+  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -7,6 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 
 export type OwnerListingLocalPhoto = {
   id: string;
@@ -20,49 +22,88 @@ export type OwnerListingPhotoPickerProps = {
   language: Language;
   photos: OwnerListingLocalPhoto[];
   onChange: (photos: OwnerListingLocalPhoto[]) => void;
-  /** Parent may connect a native image picker later; this component never opens one itself. */
-  onRequestPick?: () => void;
   maxPhotos?: number;
 };
 
 /**
- * Local photo selection preview for the owner listing form.
- * Receives device-local URIs from its parent and emits removals through onChange.
- * It does not request permissions, open the device library, upload, fetch, or persist images.
+ * Opens the native photo library and keeps selected image URIs in parent state.
+ * This component does not upload, fetch, or persist photos.
  */
 export default function OwnerListingPhotoPicker({
   language,
   photos,
   onChange,
-  onRequestPick,
   maxPhotos = 8,
 }: OwnerListingPhotoPickerProps) {
+  const [isPicking, setIsPicking] = useState(false);
   const isArabic = language === 'ar';
   const rtl = isArabic;
   const limit = Math.max(1, Math.floor(maxPhotos));
-  const canAdd = photos.length < limit && typeof onRequestPick === 'function';
+  const remaining = Math.max(0, limit - photos.length);
+  const canAdd = remaining > 0 && !isPicking;
 
   const t = isArabic
     ? {
         title: 'صور الإقامة',
         add: 'إضافة صور',
+        opening: 'جارٍ فتح معرض الصور...',
         count: (count: number) => `${count} من ${limit} صور`,
         remove: 'حذف الصورة من المعاينة',
         empty: 'لم تتم إضافة صور بعد.',
         limit: 'وصلت إلى الحد الأقصى للصور.',
-        pickerUnavailable: 'اختيار الصور من الهاتف غير مفعّل في هذه المرحلة.',
+        pickerErrorTitle: 'تعذر فتح الصور',
+        pickerError: 'حدث خطأ أثناء اختيار الصور. حاول مرة أخرى.',
         note: 'تُعرض الصور محلياً فقط. لا يتم رفعها أو حفظها أو إرسالها إلى المنصة.',
       }
     : {
         title: 'Photos du logement',
         add: 'Ajouter des photos',
+        opening: 'Ouverture de la galerie...',
         count: (count: number) => `${count} sur ${limit} photos`,
         remove: 'Retirer la photo de l’aperçu',
         empty: 'Aucune photo ajoutée pour le moment.',
         limit: 'Le nombre maximal de photos est atteint.',
-        pickerUnavailable: 'La sélection depuis la galerie du téléphone n’est pas encore activée.',
+        pickerErrorTitle: 'Impossible d’ouvrir les photos',
+        pickerError: 'Une erreur est survenue lors de la sélection. Réessayez.',
         note: 'Aperçu local uniquement. Les photos ne sont ni téléversées, ni enregistrées, ni envoyées à la plateforme.',
       };
+
+  const pickPhotos = async () => {
+    if (!canAdd) return;
+
+    setIsPicking(true);
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsMultipleSelection: true,
+        selectionLimit: remaining,
+        orderedSelection: true,
+        quality: 0.85,
+      });
+
+      if (result.canceled || !result.assets?.length) return;
+
+      const existingUris = new Set(photos.map((photo) => photo.uri));
+      const selected = result.assets
+        .filter((asset) => !existingUris.has(asset.uri))
+        .slice(0, remaining)
+        .map((asset, index) => ({
+          id: asset.assetId ?? asset.uri,
+          uri: asset.uri,
+          accessibilityLabel: isArabic
+            ? `صورة الإقامة ${photos.length + index + 1}`
+            : `Photo du logement ${photos.length + index + 1}`,
+        }));
+
+      if (selected.length > 0) {
+        onChange([...photos, ...selected]);
+      }
+    } catch {
+      Alert.alert(t.pickerErrorTitle, t.pickerError);
+    } finally {
+      setIsPicking(false);
+    }
+  };
 
   const removePhoto = (id: string) => {
     onChange(photos.filter((photo) => photo.id !== id));
@@ -123,7 +164,7 @@ export default function OwnerListingPhotoPicker({
         accessibilityRole="button"
         accessibilityState={{ disabled: !canAdd }}
         disabled={!canAdd}
-        onPress={onRequestPick}
+        onPress={pickPhotos}
         style={({ pressed }) => [
           styles.addButton,
           !canAdd && styles.addButtonDisabled,
@@ -131,14 +172,12 @@ export default function OwnerListingPhotoPicker({
         ]}
       >
         <Text style={[styles.addButtonText, !canAdd && styles.addButtonTextDisabled]}>
-          + {t.add}
+          + {isPicking ? t.opening : t.add}
         </Text>
       </Pressable>
 
       {photos.length >= limit ? (
         <Text style={styles.helper}>{t.limit}</Text>
-      ) : !onRequestPick ? (
-        <Text style={styles.helper}>{t.pickerUnavailable}</Text>
       ) : null}
 
       <Text style={[styles.disclaimer, { textAlign: rtl ? 'right' : 'left' }]}>
