@@ -1,0 +1,46 @@
+name: Storage cleanup report-only checks
+
+on:
+  push:
+    branches: ["mobile-phase-1-services"]
+    paths:
+      - "supabase/functions/_shared/storage-cleanup.ts"
+      - "supabase/functions/_shared/storage-cleanup_test.ts"
+      - "supabase/functions/storage-cleanup-dry-run/**"
+      - "supabase/config.toml"
+      - ".github/workflows/storage-cleanup-dry-run.yml"
+  pull_request:
+    branches: ["mobile-phase-1-services"]
+    paths:
+      - "supabase/functions/_shared/storage-cleanup.ts"
+      - "supabase/functions/_shared/storage-cleanup_test.ts"
+      - "supabase/functions/storage-cleanup-dry-run/**"
+      - "supabase/config.toml"
+      - ".github/workflows/storage-cleanup-dry-run.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: storage-cleanup-dry-run-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  report-only-checks:
+    name: Safety unit tests and Edge Function typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Run pure safety tests
+        run: deno test supabase/functions/_shared/storage-cleanup_test.ts
+
+      - name: Typecheck report-only Edge Function
+        run: deno check supabase/functions/storage-cleanup-dry-run/index.ts
