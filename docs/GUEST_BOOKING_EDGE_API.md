@@ -157,3 +157,16 @@ The owner dashboard may show guest name/phone only for bookings belonging to tha
 The current frontend has no guest UI: registered booking, cancellation, and receipt flows still call the existing authenticated RPCs. Keep those flows unchanged and add guest UI only after the Edge Functions, private database routines, and guest state-machine tests are deployed and verified.
 
 These requirements are design guidance only. No database migration or Edge Function is deployed.
+
+
+## Storage authorization finding — 24 November 2026
+
+The existing private `payment-receipts` bucket is configured for 5 MiB and JPEG/PNG/WebP/PDF. The current registered-traveler upload policy requires the object path to begin with the authenticated traveler UID. The current participant-read policy also checks that path segment against `bookings.traveler_id`; therefore it cannot authorize owner/admin reads for guest receipts where `traveler_id` is NULL.
+
+For guest uploads, the Edge Function must generate a distinct object path such as `guest/<booking_id>/<random-object-id>.<validated-extension>`, after validating the reference+secret and the booking's payment state. Do not accept a caller-supplied object path. Keep the bucket private and the existing registered-user upload policy unchanged.
+
+Before enabling guest receipt uploads, implement and test exactly one owner/admin read path:
+- a separate Storage SELECT policy that matches the guest path to the booking, requires `traveler_id IS NULL`, and authorizes only the assigned property owner or main admin; or
+- a server endpoint that checks the assigned owner/main-admin identity and returns a short-lived signed URL.
+
+The guest receives no direct Storage access. No anonymous Storage policy or public bucket is permitted.
