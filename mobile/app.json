@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "OBNAR VACANCES",
+    "slug": "obnar-vacances",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "obnarvacances",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "dz.obnarvacances.app"
+    },
+    "android": {
+      "package": "dz.obnarvacances.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#102D46"
+      }
+    }
+  }
+}
