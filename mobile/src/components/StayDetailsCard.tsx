@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  I18nManager,
   StyleSheet,
   Text,
   View,
@@ -43,7 +42,6 @@ export function StayDetailsCard({
 }: StayDetailsCardProps) {
   const isArabic = locale === 'ar';
   const rtl = isArabic;
-  const direction = rtl ? 'rtl' : 'ltr';
   const formatPrice = (value: number) =>
     new Intl.NumberFormat(isArabic ? 'ar-DZ' : 'fr-DZ').format(value);
 
