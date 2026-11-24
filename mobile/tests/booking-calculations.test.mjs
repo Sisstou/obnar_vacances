@@ -1,10 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  calculateFullPaymentCommission,
   calculateRetainedDepositCommission,
   calculateStayPrice,
   getDisplayInitials,
 } from '../src/lib/booking-calculations.mjs';
+
+test('full-payment commission is 500 DZD for each paid night', () => {
+  assert.equal(calculateFullPaymentCommission(5), 2500);
+  assert.equal(calculateFullPaymentCommission(1), 500);
+  assert.equal(calculateFullPaymentCommission(0), null);
+  assert.equal(calculateFullPaymentCommission(Number.MAX_SAFE_INTEGER), null);
+});
 
 test('commission follows the number of full nights covered by a retained deposit', () => {
   assert.equal(calculateRetainedDepositCommission(5, 1), 500);
