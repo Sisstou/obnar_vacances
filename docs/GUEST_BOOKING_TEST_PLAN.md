@@ -116,7 +116,8 @@ This is an environment inventory, not a guest-feature test pass. It does not ver
 ## Current execution status
 
 - Shared cryptographic helper exists.
-- Expanded unit-test source is committed, but Deno is not available in the current execution environment; these tests are **not yet run**.
+- Expanded Deno unit-test source is committed, but Deno is not available in the current execution environment; the Deno suite is **not yet run**.
+- A Node.js 22.16 smoke test of the same shared helper logic passed 100-token generation/format checks, sample uniqueness, SHA-256 format and determinism, hash equality, and malformed-input rejection. This is supplementary validation, not a substitute for running the committed Deno test file.
 - No guest HTTP handler is deployed.
 - No database migration has been applied.
 - No Supabase policy, grant, Storage configuration, secret, or production site has been changed.
