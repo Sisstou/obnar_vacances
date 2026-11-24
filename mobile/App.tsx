@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import type { EmailOtpType, Session } from '@supabase/supabase-js';
 import { supabase, supabaseConfigured } from './src/lib/supabase';
+import OwnerListingCreationFlow from './src/components/OwnerListingCreationFlow';
 
 const AUTH_REDIRECT_URL = 'dz.obnarvacances.app://auth/callback';
 
@@ -454,16 +455,7 @@ export default function App() {
                 </Pressable>
                 {showOwnerEditor ? (
                   <View style={styles.ownerEditor}>
-                    <Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerEditPreview}</Text>
-                    <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerEditorNotice}</Text>
-                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerName}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>—</Text></View></View>
-                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerArea}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>—</Text></View></View>
-                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerDescription}</Text><View style={[styles.readOnlyField, styles.ownerMultiline]}><Text style={styles.readOnlyText}>—</Text></View></View>
-                    <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerPhotos}</Text><View style={styles.ownerPhotoRow}><View style={styles.ownerPhotoSlot}><Text style={styles.ownerPhotoText}>＋</Text></View><View style={styles.ownerPhotoSlot}><Text style={styles.ownerPhotoText}>＋</Text></View><View style={styles.ownerPhotoSlot}><Text style={styles.ownerPhotoText}>＋</Text></View></View><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerPhotoSlots}</Text></View>
-                    <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerAmenities}</Text><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerAmenityList}</Text></View>
-                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerCapacity}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>—</Text></View></View>
-                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerPriceLabel}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>— DZD</Text></View><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerDeposit}</Text></View>
-                    <View style={styles.disabledBooking}><Text style={styles.disabledBookingText}>{t.ownerSaveDisabled}</Text></View>
+                    <OwnerListingCreationFlow language={language} />
                   </View>
                 ) : (
                   <>
