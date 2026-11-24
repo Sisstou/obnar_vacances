@@ -1,4 +1,5 @@
 import React from 'react';
+import { getDisplayInitials } from '../lib/booking-calculations.mjs';
 import {
   StyleSheet,
   Text,
@@ -68,15 +69,7 @@ export function StayHostInfoCard({
         privacy: 'Seules les informations publiques autorisées par l’hôte sont affichées ici.',
       };
 
-  const safeInitials =
-    initials?.trim() ||
-    displayName
-      .trim()
-      .split(/\\s+/)
-      .slice(0, 2)
-      .map((part) => part.charAt(0))
-      .join('')
-      .toUpperCase();
+  const safeInitials = getDisplayInitials(displayName, initials);
 
   const hasContact = Boolean(contactLabel?.trim() && contactValue?.trim());
   const hasResponse = Boolean(responseLabel?.trim() || responseValue?.trim());
