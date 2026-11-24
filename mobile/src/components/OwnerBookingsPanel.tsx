@@ -1,4 +1,5 @@
 import React from 'react';
+import { calculateRetainedDepositCommission } from '../lib/booking-calculations.mjs';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export type OwnerBookingStatus =
@@ -35,6 +36,8 @@ export type OwnerBookingItem = {
   amountPaid?: number;
   /** Set only from a verified accounting outcome, never inferred from a request. */
   commissionBasis: OwnerBookingCommissionBasis;
+  /** Number of full nights covered by a retained no-show deposit, from verified accounting data. */
+  retainedDepositNights?: number;
   /** Whether the owner has manually settled the platform commission. */
   commissionSettled?: boolean;
 };
@@ -82,7 +85,7 @@ const copy = {
     sourceTrusted: 'بيانات الحجوزات واردة من مصدر موثوق.',
     sourceUntrusted: 'بيانات الحجوزات غير مؤكدة؛ لا تعتمد الحالات أو المبالغ قبل التحقق من مصدرها.',
     staging: 'تنبيه: حجوزات الاختبار ليست حجوزات حقيقية لعملاء ولا تثبت توفر أي إقامة.',
-    commissionRule: 'العمولة 500 دج عن كل ليلة مدفوعة. وفي حالة عدم الحضور، تُحتسب 500 دج فقط إذا احتفظ المالك بعربون ليلة واحدة.',
+    commissionRule: 'العمولة 500 دج عن كل ليلة مدفوعة. وفي حالة عدم الحضور، تُحتسب 500 دج عن كل ليلة كاملة يغطيها العربون الذي احتفظ به المالك.',
     manualRule: 'تسوية العمولة يدوية في المرحلة الحالية. لا يوجد دفع داخل التطبيق أو تحصيل آلي.',
     noAutoInference: 'لا تُحتسب العمولة لمجرد إنشاء طلب حجز؛ يجب التحقق من الدفع وسبب استحقاقها.',
     ownerCancel: 'عند إلغاء المالك، يسترد الضيف كامل المبلغ ولا تستحق عمولة عن الحجز الملغى.',
@@ -123,7 +126,7 @@ const copy = {
     sourceTrusted: 'Les réservations proviennent d’une source fiable.',
     sourceUntrusted: 'Les réservations ne sont pas vérifiées ; ne vous fiez pas aux statuts ou montants avant validation de la source.',
     staging: 'Attention : les réservations de test ne sont pas de vraies réservations clients et ne prouvent aucune disponibilité.',
-    commissionRule: 'La commission est de 500 DZD par nuit payée. En cas de non-présentation, 500 DZD sont dus uniquement si le propriétaire conserve le dépôt d’une nuit.',
+    commissionRule: 'La commission est de 500 DZD par nuit payée. En cas de non-présentation, 500 DZD sont dus pour chaque nuit complète couverte par l’acompte conservé par le propriétaire.',
     manualRule: 'Le règlement de la commission est manuel à ce stade. Aucun paiement intégré ni prélèvement automatique.',
     noAutoInference: 'Une simple demande ne déclenche pas de commission ; le paiement et le motif d’exigibilité doivent être vérifiés.',
     ownerCancel: 'En cas d’annulation par le propriétaire, le voyageur reçoit un remboursement intégral et aucune commission n’est due pour la réservation annulée.',
@@ -161,7 +164,7 @@ function commissionFor(booking: OwnerBookingItem): number | null {
   }
   if (booking.commissionBasis === 'retained_no_show_deposit') {
     if (booking.status !== 'no_show') return null;
-    return 500;
+    return calculateRetainedDepositCommission(booking.nights, booking.retainedDepositNights ?? 0);
   }
   return 0;
 }
