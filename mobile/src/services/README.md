@@ -26,8 +26,9 @@ Services in this folder isolate application workflows from screen components.
   (`traveler_id/booking_id/file`).
 - No client-side delete, overwrite, cleanup queue, or database reference update
   is implemented in this phase.
-- Versioned uploads preserve old objects; they do not by themselves guarantee
-  that a database record points to the new version.
+- Versioned uploads require an explicit version supplied by the caller; the
+  caller must obtain it from an authoritative workflow. Uploads preserve old
+  objects but do not by themselves update the database reference.
 - Never put a Supabase service-role key in the mobile app.
 
 ## Boundaries
