@@ -64,6 +64,20 @@ const copy = {
     intro: 'اكتشف إقامات العطلات في أولاد بونار وجيجل.',
     search: 'ابحث عن إقامة أو منطقة',
     searchPending: 'البحث المباشر غير متاح بعد. لن نعرض بيانات الإقامات التجريبية على أنها عروض حقيقية.',
+    previewDetails: 'معاينة تصميم صفحة الإقامة',
+    back: 'العودة إلى الإقامات',
+    demoLabel: 'مثال توضيحي فقط — ليس عرضاً حقيقياً',
+    detailName: 'اسم الإقامة يظهر هنا',
+    detailLocation: 'المنطقة وموقع الإقامة',
+    detailDescription: 'سيعرض هذا القسم وصف الإقامة، الصور، المرافق، والشروط بعد إدخال بيانات حقيقية والتحقق منها.',
+    bookingPanel: 'تفاصيل طلب الحجز',
+    checkIn: 'تاريخ الوصول',
+    checkOut: 'تاريخ المغادرة',
+    guests: 'عدد الضيوف',
+    ownerPrice: 'السعر يحدده صاحب الإقامة',
+    bookingDisabled: 'الحجز غير متاح في هذه المعاينة',
+    bookingNotice: 'هذه شاشة تصميم فقط. لم يتم إنشاء حجز أو إرسال أي بيانات.',
+
     categories: 'اكتشف الإقامات',
     emptyTitle: 'لا توجد إقامات منشورة حالياً',
     emptyBody: 'الإقامات الموجودة في بيئة الاختبار تجريبية، لذلك نخفيها عن الزوار. ستظهر هنا الإقامات الحقيقية بعد اعتماد مصدر الإنتاج والتحقق منه.',
@@ -94,6 +108,20 @@ const copy = {
     intro: 'Découvrez les séjours à Ouled Bounar et dans la wilaya de Jijel.',
     search: 'Rechercher un logement ou une zone',
     searchPending: 'La recherche en direct n’est pas encore disponible. Les données de test ne seront pas présentées comme de vraies offres.',
+    previewDetails: 'Aperçu de la fiche logement',
+    back: 'Retour aux logements',
+    demoLabel: 'Exemple visuel uniquement — offre fictive',
+    detailName: 'Le nom du logement apparaîtra ici',
+    detailLocation: 'Quartier et emplacement du logement',
+    detailDescription: 'Cette section présentera la description, les photos, les équipements et les conditions après validation de vraies données.',
+    bookingPanel: 'Détails de la demande',
+    checkIn: 'Date d’arrivée',
+    checkOut: 'Date de départ',
+    guests: 'Nombre de voyageurs',
+    ownerPrice: 'Le propriétaire fixe le prix',
+    bookingDisabled: 'Réservation indisponible dans cet aperçu',
+    bookingNotice: 'Ceci est un écran de conception. Aucune réservation ni donnée n’a été envoyée.',
+
     categories: 'Découvrir les séjours',
     emptyTitle: 'Aucun logement publié pour le moment',
     emptyBody: 'Les logements présents dans l’environnement de test sont fictifs et restent masqués aux visiteurs. Les véritables offres apparaîtront ici après validation d’une source de production.',
@@ -129,6 +157,7 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState('');
+  const [showDetailPreview, setShowDetailPreview] = useState(false);
   const t = copy[language];
   const rtl = language === 'ar';
 
@@ -213,7 +242,7 @@ export default function App() {
         </Pressable>
       </View>
 
-      {tab === 'discover' && (
+      {tab === 'discover' && !showDetailPreview && (
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.hero}>
             <Text style={[styles.heroTitle, rtl && styles.textRight]}>{t.intro}</Text>
@@ -240,6 +269,44 @@ export default function App() {
             <Text style={styles.emptyIcon}>⌂</Text>
             <Text style={[styles.emptyTitle, rtl && styles.textRight]}>{t.emptyTitle}</Text>
             <Text style={[styles.emptyBody, rtl && styles.textRight]}>{t.emptyBody}</Text>
+            <Pressable accessibilityRole="button" onPress={() => setShowDetailPreview(true)} style={styles.secondaryButton}>
+              <Text style={styles.secondaryButtonText}>{t.previewDetails}</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      )}
+
+      {tab === 'discover' && showDetailPreview && (
+        <ScrollView contentContainerStyle={styles.content}>
+          <Pressable accessibilityRole="button" onPress={() => setShowDetailPreview(false)} style={styles.backButton}>
+            <Text style={styles.backButtonText}>‹  {t.back}</Text>
+          </Pressable>
+          <View style={styles.detailHero}>
+            <Text style={styles.detailPlaceholderIcon}>⌂</Text>
+            <Text style={styles.demoLabel}>{t.demoLabel}</Text>
+          </View>
+          <View style={styles.detailCard}>
+            <Text style={[styles.detailTitle, rtl && styles.textRight]}>{t.detailName}</Text>
+            <Text style={[styles.detailLocation, rtl && styles.textRight]}>⌖  {t.detailLocation}</Text>
+            <Text style={[styles.detailDescription, rtl && styles.textRight]}>{t.detailDescription}</Text>
+          </View>
+          <View style={styles.detailCard}>
+            <Text style={[styles.sectionTitle, rtl && styles.textRight]}>{t.bookingPanel}</Text>
+            <View style={styles.previewField}>
+              <Text style={[styles.label, rtl && styles.textRight]}>{t.checkIn}</Text>
+              <View style={styles.readOnlyField}><Text style={styles.readOnlyText}>— / — / — — — —</Text></View>
+            </View>
+            <View style={styles.previewField}>
+              <Text style={[styles.label, rtl && styles.textRight]}>{t.checkOut}</Text>
+              <View style={styles.readOnlyField}><Text style={styles.readOnlyText}>— / — / — — — —</Text></View>
+            </View>
+            <View style={styles.previewField}>
+              <Text style={[styles.label, rtl && styles.textRight]}>{t.guests}</Text>
+              <View style={styles.readOnlyField}><Text style={styles.readOnlyText}>—</Text></View>
+            </View>
+            <Text style={[styles.ownerPrice, rtl && styles.textRight]}>{t.ownerPrice}</Text>
+            <View style={styles.disabledBooking}><Text style={styles.disabledBookingText}>{t.bookingDisabled}</Text></View>
+            <Text style={[styles.bookingNotice, rtl && styles.textRight]}>{t.bookingNotice}</Text>
           </View>
         </ScrollView>
       )}
@@ -385,6 +452,22 @@ const styles = StyleSheet.create({
   featureSymbol: { color: COLORS.gold, fontSize: 23, fontWeight: '800' },
   featureText: { color: COLORS.blue, fontWeight: '700', fontSize: 13 },
   emptyCard: { backgroundColor: COLORS.white, borderRadius: 18, borderWidth: 1, borderColor: COLORS.line, padding: 22, alignItems: 'center', gap: 10 },
+  backButton: { alignSelf: 'flex-start', minHeight: 42, justifyContent: 'center', paddingHorizontal: 8 },
+  backButtonText: { color: COLORS.blue, fontWeight: '800', fontSize: 14 },
+  detailHero: { minHeight: 170, backgroundColor: '#E8E2D6', borderRadius: 18, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 18 },
+  detailPlaceholderIcon: { fontSize: 54, color: COLORS.blue },
+  demoLabel: { color: '#7B5A24', fontSize: 12, fontWeight: '800', textAlign: 'center' },
+  detailCard: { backgroundColor: COLORS.white, borderRadius: 18, borderWidth: 1, borderColor: COLORS.line, padding: 18, gap: 13 },
+  detailTitle: { color: COLORS.navy, fontSize: 20, fontWeight: '800' },
+  detailLocation: { color: COLORS.muted, fontSize: 13 },
+  detailDescription: { color: COLORS.ink, fontSize: 13, lineHeight: 23 },
+  previewField: { gap: 7 },
+  readOnlyField: { minHeight: 46, borderRadius: 11, borderWidth: 1, borderColor: COLORS.line, backgroundColor: COLORS.background, justifyContent: 'center', paddingHorizontal: 13 },
+  readOnlyText: { color: COLORS.muted, fontSize: 14 },
+  ownerPrice: { color: COLORS.blue, fontWeight: '800', fontSize: 14 },
+  disabledBooking: { minHeight: 48, borderRadius: 12, backgroundColor: '#E8E8E8', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
+  disabledBookingText: { color: '#6F777B', fontWeight: '800', fontSize: 13, textAlign: 'center' },
+  bookingNotice: { color: COLORS.muted, fontSize: 12, lineHeight: 19 },
   emptyIcon: { fontSize: 34, color: COLORS.gold },
   emptyTitle: { color: COLORS.navy, fontWeight: '800', fontSize: 17 },
   emptyBody: { color: COLORS.muted, fontSize: 13, lineHeight: 22, textAlign: 'center' },
