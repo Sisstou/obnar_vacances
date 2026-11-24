@@ -179,3 +179,42 @@ No staging or production database changes were made. No Edge Functions were depl
 - Supabase changelog: https://supabase.com/changelog?types=breaking-change
 
 Relevant current platform note: Supabase announced that new tables would stop being automatically exposed through the Data and GraphQL APIs, with enforcement across projects from 30 October 2026. This does not remove the need to inspect effective grants and the Dashboard's exposed-schema configuration; never infer safety from automatic-exposure defaults alone.
+
+
+## 11. Existing staging trigger and constraint compatibility audit
+
+A read-only catalog inspection was run after this design was committed. The relevant existing objects are:
+
+### Existing booking triggers
+
+- `bookings_require_verified_payment`: BEFORE INSERT OR UPDATE OF status, payment_status, deposit_amount, payment_receipt_path, payment_verified_at.
+- `guard_test_booking_mutation`: BEFORE DELETE OR UPDATE.
+- `sync_property_public_booking_dates`: AFTER INSERT OR DELETE OR UPDATE.
+- `trg_notify_new_booking`: AFTER INSERT.
+
+### Existing cancellation triggers
+
+- `guard_test_booking_cancellation_mutation`: BEFORE INSERT OR DELETE OR UPDATE.
+- `trg_notify_booking_cancellation`: AFTER INSERT.
+- `protect_cancellation_history`: BEFORE UPDATE OR DELETE on history.
+
+### Existing relevant constraints
+
+- `bookings.traveler_id` references `profiles(id)`; it is not a direct FK to `auth.users`.
+- Booking primary key is `bookings_pkey`.
+- Both `no_overlapping_bookings` and `no_overlapping_confirmed_bookings` are present. The first excludes overlaps for pending, awaiting_admin_approval, awaiting_payment and confirmed rows using half-open date ranges. Preserve both until a separate test-backed cleanup decision.
+- `booking_cancellations.booking_id` is both an FK to bookings and UNIQUE, enforcing the existing first-release single cancellation lifecycle.
+- Current cancellation role CHECK allows only traveler/owner.
+- Current history actor role CHECK allows traveler/owner/admin/system; actor_id is an FK to auth.users and nullable.
+- Booking checks still require valid dates, positive guest count, nonnegative prices, and verified payment for confirmed status.
+
+### Compatibility consequences
+
+1. The deferred integrity trigger must be additive and read-only with respect to the booking row; it must not interfere with the existing payment, test-booking, availability-sync or notification triggers.
+2. Existing BEFORE triggers still run before the deferred commit-time assertion. Guest creation must therefore preserve their existing checks and transaction semantics.
+3. The immediate `trg_notify_new_booking` remains a release blocker until its NULL-traveler path is patched: it currently inserts a traveler notification using `NEW.traveler_id`, while `notifications.user_id` is NOT NULL. The deferred integrity trigger does not fix this.
+4. The availability-sync trigger runs on all booking updates and must be regression-tested when a new guest row is inserted or when booking state changes. Its previously audited logic does not depend on traveler_id; keep its implementation unchanged unless a test demonstrates otherwise.
+5. Do not drop or weaken the existing booking exclusion constraints, test-booking guards, payment-confirmation guard, cancellation uniqueness, or history immutability trigger as part of the guest credential work.
+6. Guest cancellation support still requires the coordinated requester-role and history-role constraint changes already identified in the schema draft, plus NULL-safe cancellation notifications and the reviewed owner/admin RPC changes.
+
+This catalog review did not execute a write statement. It does not establish that the proposed deferred triggers have been implemented or tested; it only records the existing objects that the future migration must coexist with.
