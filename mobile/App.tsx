@@ -111,7 +111,7 @@ const copy = {
     trackingSecurity: 'الرقم المرجعي وحده لا يكشف تفاصيل الحجز ولا يسمح بتعديله. يلزم معه رمز الوصول الخاص.',
     secretSafety: 'لا تشارك رمز الوصول مع أي شخص، ولا ترسله في رابط أو رسالة عامة.',
     trackingNoBackend: 'هذه واجهة تصميم فقط؛ لا يتم التحقق من أي حجز أو إرسال بيانات.',
-    ownerPortal: 'واجهة صاحب الإقامة', ownerPreviewTitle: 'مساحة صاحب الإقامة', ownerPreviewIntro: 'معاينة أولية لإدارة الإقامات وطلبات الحجز. ستظهر البيانات الحقيقية بعد ربط الخدمات والتحقق من صلاحيات الحساب.', ownerProperties: 'إقاماتي', ownerPropertiesEmpty: 'ستظهر إقاماتك هنا بعد اعتماد حساب المالك وربط بيانات الإنتاج.', ownerRequests: 'طلبات الحجز', ownerRequestsEmpty: 'ستظهر طلبات الحجز الواردة هنا بعد ربط خدمة الحجوزات.', ownerVerification: 'اعتماد حساب المالك', ownerVerificationInfo: 'يلزم اعتماد حساب المالك قبل نشر أي إقامة.', ownerPreviewOnly: 'معاينة فقط — لا يمكن إضافة أو تعديل أو نشر الإقامات، ولا قبول أو رفض الحجوزات.', ownerBack: 'العودة إلى الحساب',
+    ownerPortal: 'واجهة صاحب الإقامة', ownerPreviewTitle: 'مساحة صاحب الإقامة', ownerPreviewIntro: 'معاينة أولية لإدارة الإقامات وطلبات الحجز. ستظهر البيانات الحقيقية بعد ربط الخدمات والتحقق من صلاحيات الحساب.', ownerProperties: 'إقاماتي', ownerPropertiesEmpty: 'ستظهر إقاماتك هنا بعد اعتماد حساب المالك وربط بيانات الإنتاج.', ownerRequests: 'طلبات الحجز', ownerRequestsEmpty: 'ستظهر طلبات الحجز الواردة هنا بعد ربط خدمة الحجوزات.', ownerVerification: 'اعتماد حساب المالك', ownerVerificationInfo: 'يلزم اعتماد حساب المالك قبل نشر أي إقامة.', ownerPreviewOnly: 'معاينة فقط — لا يمكن إضافة أو تعديل أو نشر الإقامات، ولا قبول أو رفض الحجوزات.', ownerBack: 'العودة إلى الحساب', ownerFormPreview: 'معاينة إضافة إقامة', ownerEditPreview: 'معاينة نموذج بيانات الإقامة', ownerName: 'اسم الإقامة', ownerArea: 'المنطقة والعنوان', ownerDescription: 'وصف الإقامة', ownerPhotos: 'صور الإقامة', ownerPhotoSlots: 'أماكن مخصصة للصور — رفع الصور غير متاح', ownerAmenities: 'المرافق والتجهيزات', ownerAmenityList: 'واي فاي · موقف سيارات · مطبخ · تكييف · شرفة', ownerCapacity: 'عدد الأشخاص والغرف', ownerPriceLabel: 'السعر لكل ليلة (دج)', ownerDeposit: 'العربون: ليلة واحدة بالضبط، يضاف إلى سعر الإقامة', ownerSaveDisabled: 'حفظ ونشر الإقامة غير متاحين', ownerEditorNotice: 'الحقول التالية توضيحية فقط. لا تُحفظ أي معلومات ولا تُرسل إلى الخادم.',
 
   },
   fr: {
@@ -167,7 +167,7 @@ const copy = {
     trackingSecurity: 'La référence seule ne révèle pas les détails et ne permet aucune modification. Le code privé est également nécessaire.',
     secretSafety: 'Ne partagez pas votre code privé et ne l’ajoutez jamais à un lien ou à un message public.',
     trackingNoBackend: 'Écran de conception uniquement : aucune réservation n’est vérifiée et aucune donnée n’est envoyée.',
-    ownerPortal: 'Espace propriétaire', ownerPreviewTitle: 'Espace du propriétaire', ownerPreviewIntro: 'Aperçu initial de la gestion des logements et des demandes. Les données réelles seront affichées après connexion des services et vérification des autorisations du compte.', ownerProperties: 'Mes logements', ownerPropertiesEmpty: 'Vos logements apparaîtront ici après validation du compte propriétaire et connexion aux données de production.', ownerRequests: 'Demandes de réservation', ownerRequestsEmpty: 'Les demandes reçues apparaîtront ici après connexion du service de réservation.', ownerVerification: 'Validation du compte propriétaire', ownerVerificationInfo: 'Le compte propriétaire doit être validé avant toute publication de logement.', ownerPreviewOnly: 'Aperçu uniquement — ajout, modification, publication, acceptation et refus des réservations sont désactivés.', ownerBack: 'Retour au compte',
+    ownerPortal: 'Espace propriétaire', ownerPreviewTitle: 'Espace du propriétaire', ownerPreviewIntro: 'Aperçu initial de la gestion des logements et des demandes. Les données réelles seront affichées après connexion des services et vérification des autorisations du compte.', ownerProperties: 'Mes logements', ownerPropertiesEmpty: 'Vos logements apparaîtront ici après validation du compte propriétaire et connexion aux données de production.', ownerRequests: 'Demandes de réservation', ownerRequestsEmpty: 'Les demandes reçues apparaîtront ici après connexion du service de réservation.', ownerVerification: 'Validation du compte propriétaire', ownerVerificationInfo: 'Le compte propriétaire doit être validé avant toute publication de logement.', ownerPreviewOnly: 'Aperçu uniquement — ajout, modification, publication, acceptation et refus des réservations sont désactivés.', ownerBack: 'Retour au compte', ownerFormPreview: 'Aperçu du formulaire logement', ownerEditPreview: 'Aperçu des informations du logement', ownerName: 'Nom du logement', ownerArea: 'Zone et adresse', ownerDescription: 'Description du logement', ownerPhotos: 'Photos du logement', ownerPhotoSlots: 'Emplacements photo — téléversement désactivé', ownerAmenities: 'Équipements et services', ownerAmenityList: 'Wi-Fi · Parking · Cuisine · Climatisation · Balcon', ownerCapacity: 'Capacité et chambres', ownerPriceLabel: 'Prix par nuit (DZD)', ownerDeposit: 'Acompte : exactement une nuit, ajouté au prix du séjour', ownerSaveDisabled: 'Enregistrement et publication indisponibles', ownerEditorNotice: 'Les champs suivants sont illustratifs. Aucune information ne sera enregistrée ni envoyée au serveur.',
 
   },
 } as const;
@@ -182,6 +182,7 @@ export default function App() {
   const [search, setSearch] = useState('');
   const [showDetailPreview, setShowDetailPreview] = useState(false);
   const [showOwnerPreview, setShowOwnerPreview] = useState(false);
+  const [showOwnerEditor, setShowOwnerEditor] = useState(false);
   const t = copy[language];
   const rtl = language === 'ar';
 
@@ -425,9 +426,29 @@ export default function App() {
                 </Pressable>
                 <Text style={[styles.sectionTitle, rtl && styles.textRight]}>{t.ownerPreviewTitle}</Text>
                 <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerPreviewIntro}</Text>
-                <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerProperties}</Text><Text style={[styles.emptyBody, rtl && styles.textRight]}>{t.ownerPropertiesEmpty}</Text></View>
-                <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerRequests}</Text><Text style={[styles.emptyBody, rtl && styles.textRight]}>{t.ownerRequestsEmpty}</Text></View>
-                <View style={styles.ownerVerification}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerVerification}</Text><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerVerificationInfo}</Text></View>
+                <Pressable accessibilityRole="button" onPress={() => setShowOwnerEditor(!showOwnerEditor)} style={styles.ownerEntryButton}>
+                  <Text style={styles.ownerEntryText}>{t.ownerFormPreview}  ›</Text>
+                </Pressable>
+                {showOwnerEditor ? (
+                  <View style={styles.ownerEditor}>
+                    <Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerEditPreview}</Text>
+                    <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerEditorNotice}</Text>
+                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerName}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>—</Text></View></View>
+                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerArea}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>—</Text></View></View>
+                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerDescription}</Text><View style={[styles.readOnlyField, styles.ownerMultiline]}><Text style={styles.readOnlyText}>—</Text></View></View>
+                    <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerPhotos}</Text><View style={styles.ownerPhotoRow}><View style={styles.ownerPhotoSlot}><Text style={styles.ownerPhotoText}>＋</Text></View><View style={styles.ownerPhotoSlot}><Text style={styles.ownerPhotoText}>＋</Text></View><View style={styles.ownerPhotoSlot}><Text style={styles.ownerPhotoText}>＋</Text></View></View><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerPhotoSlots}</Text></View>
+                    <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerAmenities}</Text><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerAmenityList}</Text></View>
+                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerCapacity}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>—</Text></View></View>
+                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerPriceLabel}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>— DZD</Text></View><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerDeposit}</Text></View>
+                    <View style={styles.disabledBooking}><Text style={styles.disabledBookingText}>{t.ownerSaveDisabled}</Text></View>
+                  </View>
+                ) : (
+                  <>
+                    <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerProperties}</Text><Text style={[styles.emptyBody, rtl && styles.textRight]}>{t.ownerPropertiesEmpty}</Text></View>
+                    <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerRequests}</Text><Text style={[styles.emptyBody, rtl && styles.textRight]}>{t.ownerRequestsEmpty}</Text></View>
+                    <View style={styles.ownerVerification}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerVerification}</Text><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerVerificationInfo}</Text></View>
+                  </>
+                )}
                 <Text style={[styles.ownerDisabledNote, rtl && styles.textRight]}>{t.ownerPreviewOnly}</Text>
               </View>
             )}
@@ -561,6 +582,11 @@ const styles = StyleSheet.create({
   ownerSectionTitle: { color: COLORS.navy, fontWeight: '800', fontSize: 15 },
   ownerVerification: { backgroundColor: '#F1E7D3', borderRadius: 13, padding: 15, gap: 8 },
   ownerDisabledNote: { color: '#7B5A24', fontSize: 12, lineHeight: 20, fontWeight: '700' },
+  ownerEditor: { gap: 12 },
+  ownerMultiline: { minHeight: 86 },
+  ownerPhotoRow: { flexDirection: 'row', gap: 9 },
+  ownerPhotoSlot: { flex: 1, minHeight: 76, borderRadius: 11, borderWidth: 1, borderStyle: 'dashed', borderColor: COLORS.gold, backgroundColor: COLORS.white, alignItems: 'center', justifyContent: 'center' },
+  ownerPhotoText: { color: COLORS.gold, fontSize: 26, fontWeight: '700' },
   helper: { color: COLORS.muted, lineHeight: 22, fontSize: 13 },
   field: { gap: 7 },
   label: { color: COLORS.ink, fontWeight: '700', fontSize: 13 },
