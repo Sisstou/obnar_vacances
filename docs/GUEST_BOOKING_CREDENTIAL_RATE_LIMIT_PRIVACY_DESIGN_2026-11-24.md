@@ -183,7 +183,7 @@ Use explicit response DTOs; do not return select * or raw database records.
 1. Final post-booking credential expiry/retention period.
 2. Exact per-endpoint rate-limit thresholds, windows and temporary block durations.
 3. Documented trusted network-identity source, if an IP-based dimension is to be used.
-4. Strong support identity-verification evidence, administrator authorization, reissue RPC semantics and audit trail for lost credentials.
+4. Strong support identity-verification evidence, administrator authorization, reissue RPC semantics and audit trail for lost credentials; see the proposed in-person-only flow in [GUEST_BOOKING_ADMIN_ASSISTED_CREDENTIAL_REISSUE_DESIGN_2026-11-24.md](GUEST_BOOKING_ADMIN_ASSISTED_CREDENTIAL_REISSUE_DESIGN_2026-11-24.md).
 5. Idempotency-key expiry/cleanup, canonical request fingerprint fields and behavior for different keys with identical booking inputs.
 6. Final guest status response DTO and owner/admin signed-URL endpoint contract.
 7. Verified database connectivity/grant model for calling private routines and atomic limiter operations from Edge Functions.
