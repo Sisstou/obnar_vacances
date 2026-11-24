@@ -1,9 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import type {
-  OwnerBookingItem,
-  OwnerBookingStatus,
-} from './OwnerBookingsPanel';
+import type { OwnerBookingItem } from './OwnerBookingsPanel';
 
 type Language = 'ar' | 'fr';
 
@@ -90,14 +87,6 @@ const copy = {
     dash: '—',
   },
 } as const;
-
-const statusLabels: Record<OwnerBookingStatus, { ar: string; fr: string }> = {
-  requested: { ar: 'طلب جديد', fr: 'Nouvelle demande' },
-  confirmed: { ar: 'مؤكد', fr: 'Confirmée' },
-  completed: { ar: 'مكتمل', fr: 'Terminée' },
-  cancelled: { ar: 'ملغى', fr: 'Annulée' },
-  no_show: { ar: 'عدم حضور', fr: 'Non-présentation' },
-};
 
 function formatAmount(value: number, language: Language, currency: string) {
   return `${new Intl.NumberFormat(language === 'ar' ? 'ar-DZ' : 'fr-DZ', {
