@@ -29,18 +29,15 @@ The registry primary key on `booking_id` enforces at-most-one credential row. Th
 
 A deferred assertion by itself is not a sufficient concurrency design for a cross-table invariant. Two concurrent transactions could otherwise make decisions from snapshots that do not include one another's uncommitted changes. The implementation must serialize every mutation affecting the invariant by booking ID, then validate the final state at commit.
 
-### A. Immediate per-booking transaction lock
+### A. Serialization contract for trusted write paths
 
-Install narrowly scoped **BEFORE ROW** triggers on:
+Do **not** acquire a transaction advisory lock from generic `BEFORE ROW` triggers on both tables. The executor may already hold a tuple lock on the row being changed before the trigger runs. A registry mutation that then waits for the parent booking row can therefore invert lock order against a booking DELETE that holds the parent row and cascades into the registry row. This creates a credible deadlock path; a second advisory lock does not remove that ordering problem.
 
-- `public.bookings`: INSERT, UPDATE OF `traveler_id`, DELETE (and a separate guard rejecting primary-key `id` changes if the application does not already make this impossible).
-- `private.guest_booking_access`: INSERT, UPDATE, DELETE (with a guard rejecting changes to `booking_id`).
+Instead, make all credential-registry writes available only through narrowly scoped, server-only mutation routines. Each such routine must acquire `SELECT ... FOR UPDATE` on the parent `public.bookings` row **before** it inserts, updates, or deletes the registry row. The guest-creation routine inserts the booking and registry row in one transaction; the newly inserted booking row is already owned/locked by that transaction. Any future credential rotation/revocation routine must lock the parent booking first. Direct API-role access to the registry remains revoked, and no generic trigger should attempt to lock the parent after a registry tuple has already been locked.
 
-Each trigger obtains the same transaction-scoped advisory lock derived only from the affected booking UUID. The lock key derivation must be deterministic and identical in both trigger paths. A 64-bit hash collision can only cause extra serialization, not weaken the invariant. The lock is held until transaction end.
+Booking UPDATE/DELETE statements naturally lock their target booking row. No application workflow may change `bookings.traveler_id` or registry membership outside the reviewed server-only routines. If a future workflow needs that, it must follow the same parent-first lock order and be tested as a separate change. The exact mutation entry points and their isolation level must be documented before release.
 
-For UPDATE/DELETE, lock the existing booking ID. For INSERT, lock the new booking ID. Since registry booking IDs are immutable, a registry UPDATE locks the same ID. The booking INSERT and credential INSERT in the guest creation transaction therefore re-enter the same transaction lock safely.
-
-The lock helper must be private, fully schema-qualified, use a fixed empty search path, and be callable only through the trigger path. It must not be exposed as an RPC or granted to API roles. The trigger function should be owned by a narrowly chosen trusted database role with only the privileges needed for its work; do not assume ownership or bypass-RLS behavior without verifying it in the eventual migration environment.
+This parent-first row-lock protocol is the serialization mechanism for application writes. It avoids introducing a second lock domain with a conflicting order. It is not a substitute for the deferred invariant check below.
 
 ### B. Deferred commit-time assertion
 
@@ -66,8 +63,8 @@ If the registry row is deleted while the guest booking remains, commit fails. If
 
 ### C. Why both phases are required
 
-- The immediate lock serializes competing changes to the same booking before either transaction can complete its invariant-affecting writes.
-- The deferred assertion permits the required two-row creation/deletion sequence inside one transaction while rejecting an incomplete final state.
+- The parent-first row lock in every trusted registry mutation routine serializes competing application writes for the same booking.
+- The deferred assertion permits the required two-row creation sequence inside one transaction while rejecting an incomplete final state.
 - Both functions must be safe under the actual transaction isolation used by the Edge Function/RPC path. The final implementation must test READ COMMITTED and must either explicitly reject unsupported stronger isolation levels or demonstrate correctness under them. Do not assume the lock alone refreshes a repeatable-read transaction snapshot.
 - The assertion routine must not update booking, registry, availability, cancellation, payment, or notification rows. It is validation-only.
 
@@ -120,11 +117,11 @@ All tests must run in an isolated disposable database or controlled staging test
 
 ### Concurrency and integration
 
-13. Two transactions contend on the same booking's invariant lock — they serialize.
+13. Two trusted mutation transactions contend on the same parent booking row — they serialize under the documented parent-first lock order.
 14. Concurrent guest booking attempts for overlapping dates still respect the existing property advisory lock and both exclusion constraints.
 15. A failed notification trigger or payment validation causes the entire guest creation transaction to roll back, including the credential row.
 16. A transaction that changes booking/registry state and then rolls back leaves the original invariant intact.
-17. Verify behavior under the exact isolation level used by the production RPC/Edge Function path; include an explicit REPEATABLE READ test before claiming support for that isolation level.
+17. Verify behavior under the exact isolation level used by the production RPC/Edge Function path; include an explicit REPEATABLE READ test before claiming support for that isolation level, and verify whole-transaction retry behavior for serialization failures.
 18. Run the full registered booking, payment, owner response, cancellation, admin review, and public availability regression suite.
 
 ## 7. PostgreSQL syntax and platform verification
@@ -149,3 +146,10 @@ References:
 - No Edge Functions deployed.
 - No guest booking feature enabled.
 - Next implementation artifact should be a clean, separately reviewed SQL draft only after ownership, transaction isolation, trigger ordering, and migration syntax are verified in an isolated environment.
+
+
+## 9. Lock-order review correction (24 November 2026)
+
+A subsequent review rejected the earlier proposal to take a shared advisory lock inside generic BEFORE ROW triggers on both bookings and the credential registry. Row-level tuple locks may already be held before the trigger executes; a registry-side trigger that then waits for its parent booking can deadlock with a booking DELETE that holds the parent and cascades into the registry row.
+
+The revised design removes those generic advisory-lock triggers. The only permitted registry mutations must occur through server-only routines that lock the parent booking row with `SELECT ... FOR UPDATE` before touching the registry. Booking row updates/deletes already acquire their target row lock. The guest creation transaction inserts both booking and registry row atomically. The deferred constraint triggers remain as the final-state invariant guard. This is a design correction, not an implemented database change; the complete lock order and isolation behavior still require isolated integration tests.
