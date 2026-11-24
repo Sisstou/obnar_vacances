@@ -1,7 +1,7 @@
 # Storage Cleanup — Report-Only Implementation
 
 **Status:** Deployed and manually verified in the staging project; not scheduled.  
-**Deletion:** Not implemented. This function contains no Storage remove call.
+**Deletion:** Not implemented. The deployed function contains no Storage remove call.
 
 ## Fixed behavior
 
@@ -13,6 +13,7 @@
 - Refuses incomplete scans, reference-query failures, and configured scan-limit overflows.
 - Enforces a hard total limit of 500 Storage directories and 2,000 Storage list requests per run; exceeding either limit aborts the report.
 - Includes directory and list-request totals in the successful report and aggregate server log.
+- The source implementation counts unsupported entries encountered at the root, owner, and property-directory levels. This is a traversal diagnostic, not a complete inventory of every unsupported object in the bucket: unsupported/non-UUID folders are not recursively traversed.
 - Does not accept bucket names, paths, retention periods, or batch sizes from the request.
 - Does not write object keys, signed URLs, or credentials to logs.
 - Contains no delete, upload, database update, cron, or audit-table operation.
@@ -32,24 +33,29 @@ The required named API key and Edge Function invocation secret were configured b
 
 ## Report interpretation
 
-A successful HTTP 200 means the full bounded scan and reference read completed. It does not authorize deletion. Review the returned candidates manually. If the scan exceeds its hard limits or any query/list operation fails, the function returns a non-200 response and no candidate report.
+A successful HTTP 200 means the full bounded traversal and reference read completed. It does not authorize deletion. Review the returned candidates manually. If the scan exceeds its hard limits or any query/list operation fails, the function returns a non-200 response and no candidate report.
+
+The `skipped_unsupported_path` value counts unsupported entries observed in directories that the traversal actually lists. It does not count objects hidden below unsupported folder names, because those folders are deliberately not traversed. A zero value therefore does not prove that the entire bucket contains no unsupported paths.
 
 Only the authenticated caller receives object keys. Server logs contain aggregate counts and a run identifier, not keys.
 
 ## Deployment and verification
 
 - Supabase staging project: `obnar-vacances-staging` (`rhxeclddohpwtpzkruzm`).
-- Function: `storage-cleanup-dry-run`; deployed status `ACTIVE`, version 2.
+- Function: `storage-cleanup-dry-run`; current deployed status `ACTIVE`, version **3** (verified during the read-only security review on 2026-11-24).
 - Gateway JWT verification is disabled for this function only; invocation is protected by the named `storage_cleanup` API key and the separate `STORAGE_CLEANUP_INVOKE_SECRET` header check.
 - A manual POST invocation returned HTTP 200 on 2026-11-24.
-- Verified report: `mode: dry-run`, `deletion_enabled: false`, bucket `property-images`, 30-day grace period, 4 objects scanned, 4 directories scanned, 4 Storage list requests, 3 database references, 0 eligible candidates, and no truncated candidates. All 4 objects were skipped because they were recent or referenced. No unsupported paths or invalid timestamps were encountered; duration was 709 ms.
+- Verified report: `mode: dry-run`, `deletion_enabled: false`, bucket `property-images`, 30-day grace period, 4 objects scanned, 4 directories scanned, 4 Storage list requests, 3 database references, 0 eligible candidates, and no truncated candidates. All 4 objects were skipped because they were recent or referenced. The report showed 0 unsupported paths and 0 invalid timestamps; duration was 709 ms.
 - This invocation performed a read-only scan. It did not delete objects, change database rows, or schedule future runs.
 
 ## Remaining controls and future approval
 
 1. Keep the function report-only and unscheduled while more reports are reviewed.
-2. Treat each report as a point-in-time result; repeat the bounded scan before making any future cleanup decision.
-3. Obtain separate explicit approval before adding any deletion capability, changing retention rules, broadening bucket/path scope, or scheduling invocations. The deployed function currently has no deletion capability.
+2. Each invocation is bounded, but there is currently no distributed rate limiter or single-run lock. The two secrets authenticate callers; they do not prevent repeated or concurrent valid invocations. Before scheduling or broadening access, add a reliable shared rate-limit/lock mechanism and test its failure behavior. A process-local in-memory lock is not sufficient for distributed Edge Function instances.
+3. Treat each report as a point-in-time result; repeat the bounded scan before making any future cleanup decision.
+4. Obtain separate explicit approval before adding any deletion capability, changing retention rules, broadening bucket/path scope, or scheduling invocations. The deployed function currently has no deletion capability.
+
+The source changes described above are not deployed. The active staging deployment remains version 3 until a separate deployment approval is given.
 
 ## References
 
