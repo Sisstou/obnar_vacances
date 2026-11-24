@@ -4,6 +4,8 @@
  * The browser generates the guest access secret with Web Crypto. This server
  * module must not mint guest access secrets. It does not persist tokens, log
  * secrets, authorize bookings, or replace database-backed throttling.
+ */
+
 const TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 const encoder = new TextEncoder();
 
