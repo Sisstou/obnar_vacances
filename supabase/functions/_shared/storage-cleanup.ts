@@ -44,6 +44,20 @@ export function isSafeStorageFileName(value: unknown): value is string {
     !/[\\/\u0000-\u001f\u007f]/.test(value);
 }
 
+export function isSupportedFolderEntry(entry: {
+  name: unknown;
+  id?: unknown;
+}): boolean {
+  return entry.id == null && isUuidFolder(entry.name);
+}
+
+export function isSupportedFileEntry(entry: {
+  name: unknown;
+  id?: unknown;
+}): boolean {
+  return entry.id != null && isSafeStorageFileName(entry.name);
+}
+
 export function isSupportedPropertyImageKey(key: unknown): key is string {
   if (typeof key !== "string" || key.length > 1024) return false;
   const parts = key.split("/");
