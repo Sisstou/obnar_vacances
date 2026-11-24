@@ -31,7 +31,7 @@ All endpoints accept HTTPS POST with JSON except receipt upload, which accepts m
 - `guests`: positive integer
 - `guest_name`: bounded plain text
 - `guest_phone`: normalized Algerian/international phone string
-- `access_secret_digest`: SHA-256 hex digest of the 256-bit secret generated in the browser
+- `access_secret_digest`: required on the first request; SHA-256 hex digest of the 256-bit secret generated in the browser (a same-key replay may omit it, or supply only the exact original digest)
 - `idempotency_key`: high-entropy value generated separately in the browser
 
 **Server responsibilities**
@@ -127,14 +127,14 @@ These routines must live outside the exposed `public` API schema where practical
 
 ## Source code added in this phase
 
-- `supabase/functions/_shared/guest-security.ts`: cryptographic secret generation, format validation, SHA-256 hashing and hash comparison.
+- `supabase/functions/_shared/guest-security.ts`: server-side secret-format validation, SHA-256 hashing and hash comparison; secret generation is browser-side only.
 - `supabase/functions/_shared/guest-security_test.ts`: Deno tests for the shared primitives.
 
 These are shared primitives only. No HTTP endpoint is functional until the database contract above exists and has been tested. No migration, function deployment, secrets change, Storage policy change, or production change has been made.
 
 ## Required tests before staging
 
-- Secret generation entropy/format, hashing, malformed input rejection.
+- Browser-side Web Crypto secret-generation entropy/format, server-side digest validation/hashing, malformed input rejection.
 - No plaintext secret in DB, logs, URL, browser storage, analytics or error payload.
 - Unknown reference, wrong secret, expired secret, revoked secret and repeated attempts all return generic failures.
 - Throttling is atomic under concurrent requests and cannot be reset by changing client-supplied headers.
