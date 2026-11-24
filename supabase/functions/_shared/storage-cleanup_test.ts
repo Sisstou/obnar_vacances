@@ -6,6 +6,10 @@ import {
   isSafeStorageFileName,
   isSupportedPropertyImageKey,
   isUuidFolder,
+  MAX_DIRECTORIES_SCANNED,
+  MAX_STORAGE_LIST_REQUESTS,
+  recordDirectoryScan,
+  recordStorageListRequest,
 } from "./storage-cleanup.ts";
 
 const OWNER_ID = "123e4567-e89b-12d3-a456-426614174000";
@@ -67,4 +71,38 @@ Deno.test("only old, unreferenced property-images keys become dry-run candidates
   if (isDryRunCandidate({ ...base, key: `${OWNER_ID}/${PROPERTY_ID}/nested/photo.webp` })) {
     throw new Error("Unsupported path became a candidate");
   }
+});
+
+Deno.test("enforces a hard total directory scan limit", () => {
+  const budget = { directoriesScanned: 0, listRequests: 0 };
+  for (let index = 0; index < MAX_DIRECTORIES_SCANNED; index += 1) {
+    recordDirectoryScan(budget);
+  }
+  if (budget.directoriesScanned !== MAX_DIRECTORIES_SCANNED) {
+    throw new Error("Directory budget did not reach its configured limit");
+  }
+  let rejected = false;
+  try {
+    recordDirectoryScan(budget);
+  } catch (error) {
+    rejected = error instanceof Error && error.message === "DIRECTORY_LIMIT_REACHED";
+  }
+  if (!rejected) throw new Error("Directory scan limit was not enforced");
+});
+
+Deno.test("enforces a hard total Storage list request limit", () => {
+  const budget = { directoriesScanned: 0, listRequests: 0 };
+  for (let index = 0; index < MAX_STORAGE_LIST_REQUESTS; index += 1) {
+    recordStorageListRequest(budget);
+  }
+  if (budget.listRequests !== MAX_STORAGE_LIST_REQUESTS) {
+    throw new Error("Request budget did not reach its configured limit");
+  }
+  let rejected = false;
+  try {
+    recordStorageListRequest(budget);
+  } catch (error) {
+    rejected = error instanceof Error && error.message === "LIST_REQUEST_LIMIT_REACHED";
+  }
+  if (!rejected) throw new Error("Storage list request limit was not enforced");
 });
