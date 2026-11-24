@@ -28,6 +28,20 @@ export function calculateStayPrice(pricePerNight, nights, depositAmount = 0) {
 }
 
 /**
+ * Calculates commission for a fully paid booking.
+ * @param {number} nights
+ * @param {number} [ratePerNight]
+ */
+export function calculateFullPaymentCommission(nights, ratePerNight = 500) {
+  if (
+    !Number.isSafeInteger(nights) || nights < 1 ||
+    !Number.isSafeInteger(ratePerNight) || ratePerNight < 1
+  ) return null;
+  const commission = nights * ratePerNight;
+  return Number.isSafeInteger(commission) ? commission : null;
+}
+
+/**
  * Calculates commission only for full nights covered by a retained no-show deposit.
  * @param {number} bookingNights
  * @param {number} retainedDepositNights
