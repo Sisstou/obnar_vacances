@@ -1,5 +1,8 @@
 import React from 'react';
-import { calculateRetainedDepositCommission } from '../lib/booking-calculations.mjs';
+import {
+  calculateFullPaymentCommission,
+  calculateRetainedDepositCommission,
+} from '../lib/booking-calculations.mjs';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export type OwnerBookingStatus =
@@ -153,14 +156,14 @@ function formatAmount(value: number | undefined, language: Language, currency: s
 
 function commissionFor(booking: OwnerBookingItem): number | null {
   if (
-    !Number.isInteger(booking.nights) ||
+    !Number.isSafeInteger(booking.nights) ||
     booking.nights < 1 ||
     booking.commissionBasis === 'undetermined'
   ) return null;
 
   if (booking.commissionBasis === 'full_payment') {
     if (booking.paymentStatus !== 'fully_paid' || booking.status === 'cancelled') return null;
-    return booking.nights * 500;
+    return calculateFullPaymentCommission(booking.nights);
   }
   if (booking.commissionBasis === 'retained_no_show_deposit') {
     if (booking.status !== 'no_show') return null;
