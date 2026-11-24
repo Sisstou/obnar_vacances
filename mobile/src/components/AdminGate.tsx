@@ -19,12 +19,12 @@ export function AdminGate({
   state,
   children,
   fallback = null,
-}: AdminGateProps): React.ReactElement | null {
+}: AdminGateProps): ReactNode {
   if (state.status !== 'authorized') {
-    return fallback as React.ReactElement | null;
+    return fallback;
   }
 
-  return children as React.ReactElement | null;
+  return children;
 }
 
 export default AdminGate;
