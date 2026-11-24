@@ -6,6 +6,16 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "scheme": "dz.obnarvacances.app",
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "يسمح OBNAR VACANCES باختيار صور الإقامة من مكتبة الصور.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "dz.obnarvacances.app"
