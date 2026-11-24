@@ -4,6 +4,8 @@ import {
   isDryRunCandidate,
   isOlderThanGracePeriod,
   isSafeStorageFileName,
+  isSupportedFileEntry,
+  isSupportedFolderEntry,
   isSupportedPropertyImageKey,
   isUuidFolder,
   MAX_DIRECTORIES_SCANNED,
@@ -38,6 +40,24 @@ Deno.test("rejects unsafe file names", () => {
   if (!isSafeStorageFileName("photo.webp")) throw new Error("Safe name rejected");
   for (const name of ["", ".", "..", "../photo.webp", "a/b", "a\\b", "bad\u0000name"]) {
     if (isSafeStorageFileName(name)) throw new Error(`Unsafe name accepted: ${name}`);
+  }
+});
+
+Deno.test("classifies unsupported folders and file entries for accurate reporting", () => {
+  if (!isSupportedFolderEntry({ name: OWNER_ID, id: null })) {
+    throw new Error("Valid owner folder was not recognized");
+  }
+  if (isSupportedFolderEntry({ name: "legacy-folder", id: null })) {
+    throw new Error("Unsupported folder was classified as supported");
+  }
+  if (!isSupportedFileEntry({ name: "photo.webp", id: "object-id" })) {
+    throw new Error("Valid file entry was not recognized");
+  }
+  if (isSupportedFileEntry({ name: "../photo.webp", id: "object-id" })) {
+    throw new Error("Unsafe file entry was classified as supported");
+  }
+  if (isSupportedFileEntry({ name: "nested", id: null })) {
+    throw new Error("Directory entry was classified as a file");
   }
 });
 
