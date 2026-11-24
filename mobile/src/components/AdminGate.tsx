@@ -69,6 +69,7 @@ export default function AdminGate({
   useEffect(() => {
     let mounted = true;
     let requestNumber = 0;
+    let authCheckTimer: ReturnType<typeof setTimeout> | null = null;
 
     const check = (showChecking: boolean) => {
       const currentRequest = ++requestNumber;
@@ -92,7 +93,10 @@ export default function AdminGate({
             if (mounted) setState({ status: 'unauthenticated' });
             return;
           }
-          check(true);
+          // Supabase warns against awaiting auth methods inside this callback;
+          // defer verification until the auth callback releases its internal lock.
+          if (authCheckTimer) clearTimeout(authCheckTimer);
+          authCheckTimer = setTimeout(() => check(true), 0);
         }).data.subscription
       : null;
 
@@ -103,12 +107,13 @@ export default function AdminGate({
     const safeInterval = Number.isFinite(refreshIntervalMs) && refreshIntervalMs >= 1_000
       ? refreshIntervalMs
       : 60_000;
-    const interval = setInterval(() => check(false), safeInterval);
+    const interval = setInterval(() => check(true), safeInterval);
 
     return () => {
       mounted = false;
       requestNumber += 1;
       authSubscription?.unsubscribe();
+      if (authCheckTimer) clearTimeout(authCheckTimer);
       appStateSubscription.remove();
       clearInterval(interval);
     };
