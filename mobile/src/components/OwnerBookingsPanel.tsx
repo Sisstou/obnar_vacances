@@ -155,8 +155,14 @@ function commissionFor(booking: OwnerBookingItem): number | null {
     booking.commissionBasis === 'undetermined'
   ) return null;
 
-  if (booking.commissionBasis === 'full_payment') return booking.nights * 500;
-  if (booking.commissionBasis === 'retained_no_show_deposit') return 500;
+  if (booking.commissionBasis === 'full_payment') {
+    if (booking.paymentStatus !== 'fully_paid' || booking.status === 'cancelled') return null;
+    return booking.nights * 500;
+  }
+  if (booking.commissionBasis === 'retained_no_show_deposit') {
+    if (booking.status !== 'no_show') return null;
+    return 500;
+  }
   return 0;
 }
 
@@ -222,8 +228,8 @@ export default function OwnerBookingsPanel({
                       {t.guest}: {booking.guestDisplayName}
                     </Text>
                   </View>
-                  <View style={[styles.statusPill, { backgroundColor: status.backgroundColor }]}>
-                    <Text style={[styles.statusText, { color: status.color }]}>
+                  <View style={[styles.statusPill, { backgroundColor: trustedBookingSource ? status.backgroundColor : '#EEF2F7' }]}>
+                    <Text style={[styles.statusText, { color: trustedBookingSource ? status.color : '#667085' }]}>
                       {trustedBookingSource ? t[booking.status] : t.unknown}
                     </Text>
                   </View>
