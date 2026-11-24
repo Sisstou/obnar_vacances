@@ -17,13 +17,16 @@
 
 ## Invocation security
 
-The handler requires both:
-1. `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>`, which also satisfies the platform JWT verification when enabled.
-2. `x-cleanup-secret: <STORAGE_CLEANUP_INVOKE_SECRET>`.
+The function uses the current Supabase server-side authentication pattern:
 
-Both values must be held by a trusted server-side caller only. Never place them in the mobile app, website, repository, or client-visible environment variables. The service-role key must never be returned in the response or logs.
+- `supabase/config.toml` disables the gateway JWT check for this function only.
+- `withSupabase({ auth: "secret:storage_cleanup" })` requires a separately named Supabase secret API key called `storage_cleanup` on the `apikey` header.
+- A second server-side secret, `STORAGE_CLEANUP_INVOKE_SECRET`, is required in the `x-cleanup-secret` header.
+- The handler uses only `context.supabaseAdmin`; it does not read or expose a service-role key itself.
 
-The function is not scheduled. No Vault secret, pg_cron job, Edge Function secret, or hosted setting is created by this source-only change.
+Both credentials must be held by a trusted server-side caller only. Never place them in the mobile app, website, repository, or client-visible environment variables.
+
+The named API key and Edge Function secret have **not** been created. The function is not scheduled. No Vault secret, pg_cron job, Edge Function secret, or hosted setting is created by this source-only change.
 
 ## Report interpretation
 
@@ -35,6 +38,12 @@ Only the authenticated caller receives object keys. Server logs contain aggregat
 
 1. Review this source and its tests.
 2. Confirm the deployed project schema and Storage path layout still match the assumptions.
-3. Configure secrets and invocation settings through a separately approved change.
-4. Deploy in report-only mode and inspect multiple runs.
-5. Obtain separate explicit approval before any future deletion implementation. This source does not contain deletion capability.
+3. Separately approve and create the named API secret key and Edge Function invocation secret.
+4. Review the exact deployment settings and invoke the function manually in report-only mode.
+5. Inspect multiple dry-run reports before considering any scheduled invocation.
+6. Obtain separate explicit approval before any future deletion implementation. This source does not contain deletion capability.
+
+## References
+
+- Supabase Edge Function authentication: https://supabase.com/docs/guides/functions/auth
+- Supabase Edge Function secrets: https://supabase.com/docs/guides/functions/secrets
