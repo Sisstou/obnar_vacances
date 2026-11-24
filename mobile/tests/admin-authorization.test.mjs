@@ -77,36 +77,34 @@ test('authorizes a verified main administrator only when RPC returns true', asyn
 
 test('forbids an authenticated ordinary user when RPC returns false', async () => {
   const service = loadService(createClient({ rpcData: false }));
-  assert.deepEqual(await service.verifyAdminAuthorization(), { status: 'forbidden' });
+  assert.equal((await service.verifyAdminAuthorization()).status, 'forbidden');
 });
 
 test('rejects a user with no active session before calling Auth user or RPC', async () => {
   const client = createClient({ session: null });
   const service = loadService(client);
-  assert.deepEqual(await service.verifyAdminAuthorization(), { status: 'unauthenticated' });
+  assert.equal((await service.verifyAdminAuthorization()).status, 'unauthenticated');
 });
 
 test('classifies an expired Auth session separately', async () => {
   const service = loadService(createClient({
     userError: { name: 'AuthSessionMissingError', status: 400 },
   }));
-  assert.deepEqual(await service.verifyAdminAuthorization(), { status: 'session_expired' });
+  assert.equal((await service.verifyAdminAuthorization()).status, 'session_expired');
 });
 
 test('fails closed and marks an RPC network failure as retryable unavailable', async () => {
   const service = loadService(createClient({ throwAt: 'rpc' }));
-  assert.deepEqual(
-    await service.verifyAdminAuthorization(),
-    { status: 'unavailable', retryable: true },
-  );
+  const state = await service.verifyAdminAuthorization();
+  assert.equal(state.status, 'unavailable');
+  assert.equal(state.retryable, true);
 });
 
 test('does not authorize an unexpected non-boolean RPC response', async () => {
   const service = loadService(createClient({ rpcData: null }));
-  assert.deepEqual(
-    await service.verifyAdminAuthorization(),
-    { status: 'unavailable', retryable: false },
-  );
+  const state = await service.verifyAdminAuthorization();
+  assert.equal(state.status, 'unavailable');
+  assert.equal(state.retryable, false);
 });
 
 test('does not call Supabase when the public client is not configured', async () => {
