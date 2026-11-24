@@ -218,3 +218,30 @@ A read-only catalog inspection was run after this design was committed. The rele
 6. Guest cancellation support still requires the coordinated requester-role and history-role constraint changes already identified in the schema draft, plus NULL-safe cancellation notifications and the reviewed owner/admin RPC changes.
 
 This catalog review did not execute a write statement. It does not establish that the proposed deferred triggers have been implemented or tested; it only records the existing objects that the future migration must coexist with.
+
+
+## 12. Additional function and default-privilege findings
+
+A read-only function-definition and default-ACL inspection confirmed:
+
+### Notification function behavior
+
+- `public.notify_new_booking()` unconditionally inserts a traveler notification with `NEW.traveler_id`. Since `notifications.user_id` is NOT NULL, a guest booking with NULL traveler_id will fail during the AFTER INSERT trigger.
+- Its owner-notification condition compares `v_owner_id <> NEW.traveler_id`. With a NULL guest traveler_id, the comparison is NULL, so the IF condition does not run and the owner notification is skipped.
+- Its main-admin query filters with `pa.user_id <> NEW.traveler_id`. For a guest booking, that predicate is NULL for every row, so the admin notification is skipped.
+- `public.notify_booking_cancellation()` currently includes the owner recipient only when `requester_role = 'traveler'`; a guest cancellation is not included in that owner-recipient branch. Its recipient query filters NULL values, which is safe, but the guest-to-owner condition must be expanded in the coordinated patch.
+
+These are confirmed definitions from staging, not hypothetical concerns. Guest creation and cancellation must remain disabled until these functions and all related RPC notification inserts are made NULL-safe and tested.
+
+### Default ACL interpretation
+
+The catalog shows schema-specific default ACL entries for `public` owned by `postgres` and `supabase_admin`. In particular, new objects created in `public` receive broad API-role grants under those existing public-schema defaults. The catalog did **not** show a global default ACL entry for these roles.
+
+Do not assume the `public` default ACL is automatically inherited by objects created in `private`; PostgreSQL default privileges are scoped to the object creator and, where configured, the target schema. However, PostgreSQL's built-in default for a newly created function is EXECUTE to `PUBLIC` unless revoked. Therefore:
+
+- Explicitly revoke `EXECUTE` from `PUBLIC`, `anon`, `authenticated`, and `service_role` on every private helper/trigger function unless a specific caller is deliberately authorized.
+- For private tables, explicitly revoke all table privileges from `PUBLIC`, `anon`, `authenticated`, and `service_role`, enable RLS, and verify effective privileges after creation.
+- Do not grant API roles `USAGE` on `private`.
+- Do not globally change the existing `public` default ACLs as part of this feature; that would affect unrelated application objects and requires a separate database-wide review.
+
+The private schema itself is not an access-control substitute: keep it unexposed and enforce PostgreSQL schema, table, function and RLS privileges independently.
