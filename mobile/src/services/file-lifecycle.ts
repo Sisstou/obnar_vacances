@@ -1,0 +1,176 @@
+import { err, ok, type AppResult } from '../lib/result';
+
+export type StorageBucket =
+  | 'property-images'
+  | 'business-images'
+  | 'owner-documents'
+  | 'payment-receipts'
+  | 'refund-proofs';
+
+export interface StorageBucketPolicy {
+  maxBytes: number;
+  allowedContentTypes: readonly string[];
+  folderDepth: number;
+}
+
+export interface UploadValidationInput {
+  bucket: StorageBucket;
+  path: string;
+  contentType: string;
+  sizeBytes: number;
+}
+
+export interface VersionedPathInput {
+  bucket: StorageBucket;
+  primaryId: string;
+  secondaryId?: string;
+  fileName: string;
+  version?: number;
+}
+
+const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
+const DOCUMENT_TYPES = [
+  ...IMAGE_TYPES,
+  'application/pdf',
+] as const;
+
+const BUCKET_POLICIES: Record<StorageBucket, StorageBucketPolicy> = {
+  'property-images': {
+    maxBytes: 5 * 1024 * 1024,
+    allowedContentTypes: IMAGE_TYPES,
+    folderDepth: 2,
+  },
+  'business-images': {
+    maxBytes: 5 * 1024 * 1024,
+    allowedContentTypes: IMAGE_TYPES,
+    folderDepth: 2,
+  },
+  'owner-documents': {
+    maxBytes: 5 * 1024 * 1024,
+    allowedContentTypes: DOCUMENT_TYPES,
+    folderDepth: 1,
+  },
+  'payment-receipts': {
+    maxBytes: 5 * 1024 * 1024,
+    allowedContentTypes: DOCUMENT_TYPES,
+    folderDepth: 2,
+  },
+  'refund-proofs': {
+    maxBytes: 5 * 1024 * 1024,
+    allowedContentTypes: DOCUMENT_TYPES,
+    folderDepth: 1,
+  },
+};
+
+const SAFE_ID = /^[A-Za-z0-9_-]{1,128}$/;
+const SAFE_BASENAME = /^[A-Za-z0-9_-]{1,80}$/;
+const EXTENSIONS: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'application/pdf': 'pdf',
+};
+
+export function getStorageBucketPolicy(
+  bucket: StorageBucket,
+): StorageBucketPolicy | null {
+  return BUCKET_POLICIES[bucket] ?? null;
+}
+
+function invalid(message: string): AppResult<never> {
+  return err({
+    code: 'invalid_storage_upload',
+    message,
+    retryable: false,
+  });
+}
+
+/** Validates client-side constraints; Storage RLS and bucket limits remain authoritative. */
+export function validateStorageUpload(
+  input: UploadValidationInput,
+): AppResult<true> {
+  const policy = getStorageBucketPolicy(input.bucket);
+  if (!policy) return invalid('حاوية الملفات غير مدعومة.');
+
+  if (
+    !Number.isSafeInteger(input.sizeBytes) ||
+    input.sizeBytes <= 0 ||
+    input.sizeBytes > policy.maxBytes
+  ) {
+    return invalid('حجم الملف غير صالح أو يتجاوز الحد المسموح.');
+  }
+
+  if (!policy.allowedContentTypes.includes(input.contentType)) {
+    return invalid('نوع الملف غير مسموح لهذه الحاوية.');
+  }
+
+  const segments = input.path.split('/');
+  if (
+    input.path.startsWith('/') ||
+    segments.length !== policy.folderDepth + 1 ||
+    segments.some(
+      (segment) =>
+        !segment ||
+        segment === '.' ||
+        segment === '..' ||
+        !/^[A-Za-z0-9_.-]{1,128}$/.test(segment),
+    )
+  ) {
+    return invalid('مسار الملف لا يطابق بنية الحاوية المطلوبة.');
+  }
+
+  const extension = input.path.split('.').pop()?.toLowerCase();
+  if (extension !== EXTENSIONS[input.contentType]) {
+    return invalid('امتداد الملف لا يتوافق مع نوع المحتوى.');
+  }
+
+  return ok(true);
+}
+
+/**
+ * Builds a non-overwriting object path. Each replacement gets a new versioned name;
+ * the old object remains available for audit and manual review.
+ *
+ * primaryId / secondaryId mapping:
+ * - property-images: ownerId / propertyId
+ * - business-images: ownerId / businessId
+ * - owner-documents: ownerId
+ * - payment-receipts: travelerId / bookingId
+ * - refund-proofs: cancellationId
+ */
+export function buildVersionedStoragePath(
+  input: VersionedPathInput,
+): AppResult<string> {
+  const policy = getStorageBucketPolicy(input.bucket);
+  if (!policy) return invalid('حاوية الملفات غير مدعومة.');
+
+  const primaryId = input.primaryId.trim();
+  const secondaryId = input.secondaryId?.trim();
+  if (!SAFE_ID.test(primaryId)) return invalid('معرّف المجلد الأول غير صالح.');
+
+  const needsSecondary = policy.folderDepth === 2;
+  if (needsSecondary && (!secondaryId || !SAFE_ID.test(secondaryId))) {
+    return invalid('معرّف المجلد الثاني مطلوب وغير صالح.');
+  }
+  if (!needsSecondary && secondaryId) {
+    return invalid('هذه الحاوية لا تقبل مجلداً ثانياً.');
+  }
+
+  const rawName = input.fileName.trim();
+  const dot = rawName.lastIndexOf('.');
+  const baseName = dot > 0 ? rawName.slice(0, dot) : rawName;
+  const extension = dot > 0 ? rawName.slice(dot + 1).toLowerCase() : '';
+  if (!SAFE_BASENAME.test(baseName) || !Object.values(EXTENSIONS).includes(extension)) {
+    return invalid('اسم الملف أو امتداده غير صالح.');
+  }
+
+  const version = input.version ?? 1;
+  if (!Number.isSafeInteger(version) || version < 1 || version > 9999) {
+    return invalid('رقم نسخة الملف غير صالح.');
+  }
+
+  const folders = needsSecondary
+    ? [primaryId, secondaryId as string]
+    : [primaryId];
+  return ok(`${folders.join('/')}/${baseName}_v${version}.${extension}`);
+}
