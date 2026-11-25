@@ -153,7 +153,10 @@ function loadGateWithLifecycle(verifyAdminAuthorization) {
   };
   const reactNative = {
     ActivityIndicator: 'ActivityIndicator',
-    AppState: { addEventListener: () => ({ remove: () => undefined }) },
+    AppState: { addEventListener: (_event, callback) => {
+      appStateListener = callback;
+      return { remove: () => { appStateRemoved = true; } };
+    } },
     Pressable: 'Pressable',
     StyleSheet: { create: (styles) => styles },
     Text: 'Text',
@@ -321,11 +324,9 @@ test('unmount cleans up subscriptions and ignores pending authorization results'
   gate.emitAuthChange({ user: { id: 'new-user' } });
   gate.unmount(cleanup);
 
-  assert.deepEqual(gate.cleanupStatus, {
-    authUnsubscribed: true,
-    appStateRemoved: true,
-    intervalCount: 0,
-  });
+  assert.equal(gate.cleanupStatus.authUnsubscribed, true);
+  assert.equal(gate.cleanupStatus.appStateRemoved, true);
+  assert.equal(gate.cleanupStatus.intervalCount, 0);
 
   const updateCountAfterUnmount = gate.stateUpdates.length;
   resolveCheck({ status: 'authorized', userId: 'stale-admin', checkedAt: 3 });
