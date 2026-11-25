@@ -1,20 +1,15 @@
 name: Booking lifecycle JWT end-to-end tests
 
 on:
+  # Runs only on an explicit maintainer action, using the trusted main branch.
   workflow_dispatch:
-  push:
-    branches:
-      - test/booking-lifecycle-jwt-e2e
-  pull_request:
-    branches:
-      - main
-    types: [opened, synchronize, reopened]
 
 permissions:
   contents: read
 
 jobs:
   booking-lifecycle-e2e:
+    if: github.ref == 'refs/heads/main'
     name: Run booking lifecycle flows against isolated Staging
     runs-on: ubuntu-latest
     timeout-minutes: 15
