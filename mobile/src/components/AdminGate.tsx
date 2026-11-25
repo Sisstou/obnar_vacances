@@ -88,15 +88,27 @@ export default function AdminGate({
 
     const authSubscription = supabaseConfigured
       ? supabase.auth.onAuthStateChange((_event, session) => {
+          // Invalidate every in-flight result immediately when Auth changes.
+          // Do not call Supabase Auth methods inside this callback: its internal
+          // lock is still held until the callback returns.
+          requestNumber += 1;
+          if (authCheckTimer) {
+            clearTimeout(authCheckTimer);
+            authCheckTimer = null;
+          }
+
           if (!session) {
-            requestNumber += 1;
             if (mounted) setState({ status: 'unauthenticated' });
             return;
           }
-          // Supabase warns against awaiting auth methods inside this callback;
-          // defer verification until the auth callback releases its internal lock.
-          if (authCheckTimer) clearTimeout(authCheckTimer);
-          authCheckTimer = setTimeout(() => check(true), 0);
+
+          // Hide protected content immediately, then verify after the callback
+          // releases Supabase's internal Auth lock.
+          if (mounted) setState({ status: 'checking' });
+          authCheckTimer = setTimeout(() => {
+            authCheckTimer = null;
+            check(true);
+          }, 0);
         }).data.subscription
       : null;
 
