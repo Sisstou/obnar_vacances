@@ -29,10 +29,7 @@ function loadGate() {
   };
   const reactNative = {
     ActivityIndicator: 'ActivityIndicator',
-    AppState: { addEventListener: (_event, callback) => {
-      appStateListener = callback;
-      return { remove: () => { appStateRemoved = true; } };
-    } },
+    AppState: { addEventListener: () => ({ remove: () => undefined }) },
     Pressable: 'Pressable',
     StyleSheet: { create: (styles) => styles },
     Text: 'Text',
