@@ -4,6 +4,7 @@ import {
   AppState,
   KeyboardAvoidingView,
   Linking,
+  Modal,
   Platform,
   Pressable,
   SafeAreaView,
@@ -87,6 +88,7 @@ const copy = {
     ownerPrice: 'السعر يحدده صاحب الإقامة',
     bookingDisabled: 'الحجز غير متاح في هذه المعاينة',
     bookingNotice: 'هذه شاشة تصميم فقط. لم يتم إنشاء حجز أو إرسال أي بيانات.',
+    photoGallery: 'صور الإقامة', photoUnavailable: 'مكان مخصص لصورة الإقامة — الصورة غير متاحة في المعاينة', photoCounter: 'الصورة', photoClose: 'إغلاق عرض الصورة', photoPrevious: 'الصورة السابقة', photoNext: 'الصورة التالية',
 
     categories: 'اكتشف الإقامات',
     emptyTitle: 'لا توجد إقامات منشورة حالياً',
@@ -145,6 +147,7 @@ const copy = {
     ownerPrice: 'Le propriétaire fixe le prix',
     bookingDisabled: 'Réservation indisponible dans cet aperçu',
     bookingNotice: 'Ceci est un écran de conception. Aucune réservation ni donnée n’a été envoyée.',
+    photoGallery: 'Photos du logement', photoUnavailable: 'Emplacement réservé à une photo — image indisponible dans cet aperçu', photoCounter: 'Photo', photoClose: 'Fermer l’aperçu photo', photoPrevious: 'Photo précédente', photoNext: 'Photo suivante',
 
     categories: 'Découvrir les séjours',
     emptyTitle: 'Aucun logement publié pour le moment',
@@ -196,6 +199,8 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState('');
   const [showDetailPreview, setShowDetailPreview] = useState(false);
+  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
+  const [showPhotoViewer, setShowPhotoViewer] = useState(false);
   const [showOwnerPreview, setShowOwnerPreview] = useState(false);
   const [showOwnerEditor, setShowOwnerEditor] = useState(false);
   const [showAdminWorkspace, setShowAdminWorkspace] = useState(false);
@@ -367,10 +372,50 @@ export default function App() {
           <Pressable accessibilityRole="button" onPress={() => setShowDetailPreview(false)} style={styles.backButton}>
             <Text style={styles.backButtonText}>‹  {t.back}</Text>
           </Pressable>
-          <View style={styles.detailHero}>
-            <Text style={styles.detailPlaceholderIcon}>⌂</Text>
-            <Text style={styles.demoLabel}>{t.demoLabel}</Text>
+          <View style={styles.photoGallery}>
+            <Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.photoGallery}</Text>
+            <Pressable
+              accessibilityRole="imagebutton"
+              accessibilityLabel={t.photoUnavailable}
+              onPress={() => setShowPhotoViewer(true)}
+              style={styles.detailHero}
+            >
+              <Text style={styles.detailPlaceholderIcon}>▧</Text>
+              <Text style={styles.photoUnavailable}>{t.photoUnavailable}</Text>
+              <Text style={styles.demoLabel}>{t.demoLabel}</Text>
+            </Pressable>
+            <View style={styles.photoControls}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t.photoPrevious}
+                onPress={() => setActivePhotoIndex((index) => (index + 2) % 3)}
+                style={styles.photoControlButton}
+              >
+                <Text style={styles.photoControlText}>‹</Text>
+              </Pressable>
+              <Text style={styles.photoCounter}>{t.photoCounter} {activePhotoIndex + 1} / 3</Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t.photoNext}
+                onPress={() => setActivePhotoIndex((index) => (index + 1) % 3)}
+                style={styles.photoControlButton}
+              >
+                <Text style={styles.photoControlText}>›</Text>
+              </Pressable>
+            </View>
           </View>
+          <Modal visible={showPhotoViewer} transparent animationType="fade" onRequestClose={() => setShowPhotoViewer(false)}>
+            <View style={styles.photoViewerBackdrop}>
+              <View style={styles.photoViewerCard}>
+                <Pressable accessibilityRole="button" accessibilityLabel={t.photoClose} onPress={() => setShowPhotoViewer(false)} style={styles.photoViewerClose}>
+                  <Text style={styles.photoViewerCloseText}>×</Text>
+                </Pressable>
+                <Text style={styles.photoViewerIcon}>▧</Text>
+                <Text style={styles.photoUnavailable}>{t.photoUnavailable}</Text>
+                <Text style={styles.photoCounter}>{t.photoCounter} {activePhotoIndex + 1} / 3</Text>
+              </View>
+            </View>
+          </Modal>
           <View style={styles.detailCard}>
             <Text style={[styles.detailTitle, rtl && styles.textRight]}>{t.detailName}</Text>
             <Text style={[styles.detailLocation, rtl && styles.textRight]}>⌖  {t.detailLocation}</Text>
@@ -674,7 +719,18 @@ const styles = StyleSheet.create({
   stayCatalog: { gap: 12 },
   backButton: { alignSelf: 'flex-start', minHeight: 42, justifyContent: 'center', paddingHorizontal: 8 },
   backButtonText: { color: COLORS.blue, fontWeight: '800', fontSize: 14 },
-  detailHero: { minHeight: 170, backgroundColor: '#E8E2D6', borderRadius: 18, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 18 },
+  photoGallery: { gap: 10 },
+  detailHero: { minHeight: 210, backgroundColor: '#E8E2D6', borderRadius: 18, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 18 },
+  photoUnavailable: { color: COLORS.muted, fontSize: 13, lineHeight: 21, textAlign: 'center' },
+  photoControls: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 18 },
+  photoControlButton: { minWidth: 44, minHeight: 44, borderRadius: 12, backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.line, alignItems: 'center', justifyContent: 'center' },
+  photoControlText: { color: COLORS.blue, fontSize: 24, fontWeight: '800' },
+  photoCounter: { color: COLORS.muted, fontSize: 12, fontWeight: '700' },
+  photoViewerBackdrop: { flex: 1, backgroundColor: '#071827EE', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  photoViewerCard: { width: '100%', minHeight: 300, borderRadius: 18, backgroundColor: COLORS.background, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 16 },
+  photoViewerClose: { position: 'absolute', top: 8, right: 8, minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
+  photoViewerCloseText: { color: COLORS.navy, fontSize: 30, fontWeight: '700' },
+  photoViewerIcon: { color: COLORS.blue, fontSize: 76 },
   detailPlaceholderIcon: { fontSize: 54, color: COLORS.blue },
   demoLabel: { color: '#7B5A24', fontSize: 12, fontWeight: '800', textAlign: 'center' },
   detailCard: { backgroundColor: COLORS.white, borderRadius: 18, borderWidth: 1, borderColor: COLORS.line, padding: 18, gap: 13 },
