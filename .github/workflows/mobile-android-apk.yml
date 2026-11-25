@@ -1,0 +1,76 @@
+name: Build Android internal-test APK
+
+on:
+  push:
+    branches:
+      - mobile-app
+    paths:
+      - "mobile/**"
+      - ".github/workflows/mobile-android-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android-apk:
+    name: Build installable Android APK with embedded JavaScript
+    runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL || vars.EXPO_PUBLIC_SUPABASE_URL }}
+      EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY || vars.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+
+    steps:
+      - name: Require the mobile-app branch
+        run: |
+          if [ "${GITHUB_REF}" != "refs/heads/mobile-app" ]; then
+            echo "::error::Run this workflow from the mobile-app branch only."
+            exit 1
+          fi
+
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Validate public Supabase build configuration
+        working-directory: mobile
+        shell: bash
+        run: |
+          if [ -z "$EXPO_PUBLIC_SUPABASE_URL" ] || [ -z "$EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "::error title=Missing build configuration::Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY as repository Actions variables or secrets, then rerun."
+            exit 1
+          fi
+          if [[ "$EXPO_PUBLIC_SUPABASE_URL" == *"YOUR_PROJECT_REF"* ]] || [[ "$EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY" == *"YOUR_SUPABASE"* ]]; then
+            echo "::error::Replace the placeholder Supabase values before building."
+            exit 1
+          fi
+
+      - name: Install JavaScript dependencies
+        working-directory: mobile
+        run: npm install --no-audit --no-fund
+
+      - name: Generate native Android project
+        working-directory: mobile
+        run: npx expo prebuild --platform android --no-install --clean
+
+      - name: Build standalone internal-test APK
+        working-directory: mobile/android
+        run: bash ./gradlew :app:assembleRelease --no-daemon
+
+      - name: Upload internal-test APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: obnar-vacances-android-internal-test-${{ github.sha }}
+          path: mobile/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 7
