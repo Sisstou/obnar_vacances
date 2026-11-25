@@ -29,7 +29,10 @@ function loadGate() {
   };
   const reactNative = {
     ActivityIndicator: 'ActivityIndicator',
-    AppState: { addEventListener: () => ({ remove: () => undefined }) },
+    AppState: { addEventListener: (_event, callback) => {
+      appStateListener = callback;
+      return { remove: () => { appStateRemoved = true; } };
+    } },
     Pressable: 'Pressable',
     StyleSheet: { create: (styles) => styles },
     Text: 'Text',
@@ -136,6 +139,10 @@ function loadGateWithLifecycle(verifyAdminAuthorization) {
   let nextTimerId = 1;
   let effect;
   let authListener;
+  let appStateListener;
+  let authUnsubscribed = false;
+  let appStateRemoved = false;
+  const intervals = new Map();
 
   const react = {
     useEffect: (callback) => { effect = callback; },
@@ -170,7 +177,7 @@ function loadGateWithLifecycle(verifyAdminAuthorization) {
           auth: {
             onAuthStateChange: (callback) => {
               authListener = callback;
-              return { data: { subscription: { unsubscribe() {} } } };
+              return { data: { subscription: { unsubscribe() { authUnsubscribed = true; } } } };
             },
           },
         },
@@ -190,8 +197,12 @@ function loadGateWithLifecycle(verifyAdminAuthorization) {
       return id;
     },
     clearTimeout: (id) => timers.delete(id),
-    setInterval: () => 1,
-    clearInterval: () => undefined,
+    setInterval: (callback) => {
+      const id = nextTimerId++;
+      intervals.set(id, callback);
+      return id;
+    },
+    clearInterval: (id) => intervals.delete(id),
   }, { filename: gatePath });
 
   return {
@@ -201,7 +212,21 @@ function loadGateWithLifecycle(verifyAdminAuthorization) {
       return effect();
     },
     emitAuthChange(session) {
-      authListener('SIGNED_IN', session);
+      authListener(session ? 'SIGNED_IN' : 'SIGNED_OUT', session);
+    },
+    emitAppState(nextState) {
+      appStateListener(nextState);
+    },
+    unmount(cleanup) {
+      cleanup();
+    },
+    get cleanupStatus() {
+      return { authUnsubscribed, appStateRemoved, intervalCount: intervals.size };
+    },
+    runInterval() {
+      const entry = intervals.entries().next().value;
+      assert.ok(entry, 'expected a scheduled revalidation interval');
+      entry[1]();
     },
     runScheduledTimer() {
       const entry = timers.entries().next().value;
@@ -247,5 +272,94 @@ test('invalidates an in-flight admin result immediately when the account changes
   await new Promise((resolve) => setImmediate(resolve));
 
   assert.equal(calls, 2, 'new account is checked after the Auth callback returns');
+  assert.equal(gate.stateUpdates.at(-1).status, 'forbidden');
+});
+
+
+test('logout immediately denies access and invalidates an in-flight admin result', async () => {
+  let resolveCheck;
+  const pending = new Promise((resolve) => { resolveCheck = resolve; });
+  const gate = loadGateWithLifecycle(() => pending);
+  gate.mount();
+
+  gate.emitAuthChange(null);
+  assert.equal(gate.stateUpdates.at(-1).status, 'unauthenticated');
+
+  resolveCheck({ status: 'authorized', userId: 'previous-admin', checkedAt: 2 });
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.equal(
+    gate.stateUpdates.some((state) => state.status === 'authorized'),
+    false,
+    'a pending result must not restore access after sign-out',
+  );
+});
+
+test('only the latest of consecutive Auth events schedules a verification', async () => {
+  let calls = 0;
+  const gate = loadGateWithLifecycle(() => {
+    calls += 1;
+    return Promise.resolve({ status: 'forbidden' });
+  });
+  gate.mount();
+
+  gate.emitAuthChange({ user: { id: 'user-a' } });
+  gate.emitAuthChange({ user: { id: 'user-b' } });
+  gate.runScheduledTimer();
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.equal(calls, 2, 'initial check plus one check for the latest Auth event');
+  assert.equal(gate.stateUpdates.at(-1).status, 'forbidden');
+});
+
+test('unmount cleans up subscriptions and ignores pending authorization results', async () => {
+  let resolveCheck;
+  const pending = new Promise((resolve) => { resolveCheck = resolve; });
+  const gate = loadGateWithLifecycle(() => pending);
+  const cleanup = gate.mount();
+
+  gate.emitAuthChange({ user: { id: 'new-user' } });
+  gate.unmount(cleanup);
+
+  assert.deepEqual(gate.cleanupStatus, {
+    authUnsubscribed: true,
+    appStateRemoved: true,
+    intervalCount: 0,
+  });
+
+  const updateCountAfterUnmount = gate.stateUpdates.length;
+  resolveCheck({ status: 'authorized', userId: 'stale-admin', checkedAt: 3 });
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.equal(
+    gate.stateUpdates.length,
+    updateCountAfterUnmount,
+    'no state update is allowed after unmount',
+  );
+});
+
+test('foreground and periodic revalidation can observe a revoked admin', async () => {
+  let calls = 0;
+  const gate = loadGateWithLifecycle(() => {
+    calls += 1;
+    return Promise.resolve(
+      calls === 1
+        ? { status: 'authorized', userId: 'admin-1', checkedAt: 1 }
+        : { status: 'forbidden' },
+    );
+  });
+  gate.mount();
+  await new Promise((resolve) => setImmediate(resolve));
+
+  gate.emitAppState('background');
+  assert.equal(calls, 1, 'background transition does not trigger a check');
+
+  gate.emitAppState('active');
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(gate.stateUpdates.at(-1).status, 'forbidden');
+
+  gate.runInterval();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(calls, 3, 'periodic revalidation invokes the authorization check');
   assert.equal(gate.stateUpdates.at(-1).status, 'forbidden');
 });
