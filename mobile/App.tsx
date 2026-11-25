@@ -18,6 +18,8 @@ import type { EmailOtpType, Session } from '@supabase/supabase-js';
 import { supabase, supabaseConfigured } from './src/lib/supabase';
 import AdminGate from './src/components/AdminGate';
 import AdminWorkspace from './src/components/AdminWorkspace';
+import { StayListingCard, type StayListingCardData } from './src/components/StayListingCard';
+import { StayCatalogFeedback } from './src/components/StayCatalogFeedback';
 
 const AUTH_REDIRECT_URL = 'dz.obnarvacances.app://auth/callback';
 
@@ -197,6 +199,8 @@ export default function App() {
   const [showOwnerPreview, setShowOwnerPreview] = useState(false);
   const [showOwnerEditor, setShowOwnerEditor] = useState(false);
   const [showAdminWorkspace, setShowAdminWorkspace] = useState(false);
+  // UI integration only: keep the catalog empty until an approved production data source is connected.
+  const approvedStays: StayListingCardData[] = [];
   const t = copy[language];
   const rtl = language === 'ar';
 
@@ -338,10 +342,19 @@ export default function App() {
             <Feature title={t.stay} symbol="⌂" rtl={rtl} />
             <Feature title={t.activities} symbol="✦" rtl={rtl} />
           </View>
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyIcon}>⌂</Text>
-            <Text style={[styles.emptyTitle, rtl && styles.textRight]}>{t.emptyTitle}</Text>
-            <Text style={[styles.emptyBody, rtl && styles.textRight]}>{t.emptyBody}</Text>
+          <View style={styles.stayCatalog}>
+            {approvedStays.length > 0 ? (
+              approvedStays.map((stay) => (
+                <StayListingCard
+                  key={stay.id}
+                  stay={stay}
+                  locale={language}
+                  onPress={() => setShowDetailPreview(true)}
+                />
+              ))
+            ) : (
+              <StayCatalogFeedback state="empty" locale={language} />
+            )}
             <Pressable accessibilityRole="button" onPress={() => setShowDetailPreview(true)} style={styles.secondaryButton}>
               <Text style={styles.secondaryButtonText}>{t.previewDetails}</Text>
             </Pressable>
@@ -658,6 +671,7 @@ const styles = StyleSheet.create({
   featureSymbol: { color: COLORS.gold, fontSize: 23, fontWeight: '800' },
   featureText: { color: COLORS.blue, fontWeight: '700', fontSize: 13 },
   emptyCard: { backgroundColor: COLORS.white, borderRadius: 18, borderWidth: 1, borderColor: COLORS.line, padding: 22, alignItems: 'center', gap: 10 },
+  stayCatalog: { gap: 12 },
   backButton: { alignSelf: 'flex-start', minHeight: 42, justifyContent: 'center', paddingHorizontal: 8 },
   backButtonText: { color: COLORS.blue, fontWeight: '800', fontSize: 14 },
   detailHero: { minHeight: 170, backgroundColor: '#E8E2D6', borderRadius: 18, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 18 },
