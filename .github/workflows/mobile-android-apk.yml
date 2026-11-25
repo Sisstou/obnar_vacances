@@ -1,4 +1,4 @@
-name: Build Android debug APK
+name: Build Android internal-test APK
 
 on:
   push:
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   android-apk:
-    name: Build installable Android APK
+    name: Build installable Android APK with embedded JavaScript
     runs-on: ubuntu-latest
     env:
       EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL || vars.EXPO_PUBLIC_SUPABASE_URL }}
@@ -63,14 +63,14 @@ jobs:
         working-directory: mobile
         run: npx expo prebuild --platform android --no-install --clean
 
-      - name: Build installable debug APK
+      - name: Build standalone internal-test APK
         working-directory: mobile/android
-        run: bash ./gradlew :app:assembleDebug --no-daemon
+        run: bash ./gradlew :app:assembleRelease --no-daemon
 
-      - name: Upload APK artifact
+      - name: Upload internal-test APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: obnar-vacances-android-debug-${{ github.sha }}
-          path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          name: obnar-vacances-android-internal-test-${{ github.sha }}
+          path: mobile/android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7
