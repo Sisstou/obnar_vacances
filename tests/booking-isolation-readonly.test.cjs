@@ -14,7 +14,7 @@ for (const name of required) {
   assert.ok(process.env[name], `Missing required GitHub Actions secret/variable: ${name}`);
 }
 
-const base = process.env.SUPABASE_URL.replace(/\\/$/, '');
+const base = process.env.SUPABASE_URL.replace(/\/$/, '');
 const anonKey = process.env.SUPABASE_ANON_KEY;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const bookingId = process.env.SECURITY_TEST_BOOKING_ID;
