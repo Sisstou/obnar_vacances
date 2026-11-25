@@ -137,15 +137,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#A47B36',
   },
-  retryButton: {
-    minHeight: 44,
-    minWidth: 120,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 18,
-    borderRadius: 12,
-    backgroundColor: '#A47B36',
-  },
   retryText: {
     color: '#FFFFFF',
     fontSize: 13,
