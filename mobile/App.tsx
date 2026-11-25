@@ -16,6 +16,8 @@ import {
 } from 'react-native';
 import type { EmailOtpType, Session } from '@supabase/supabase-js';
 import { supabase, supabaseConfigured } from './src/lib/supabase';
+import AdminGate from './src/components/AdminGate';
+import AdminWorkspace from './src/components/AdminWorkspace';
 
 const AUTH_REDIRECT_URL = 'dz.obnarvacances.app://auth/callback';
 
@@ -118,6 +120,7 @@ const copy = {
     trackingSecurity: 'الرقم المرجعي وحده لا يكشف تفاصيل الحجز ولا يسمح بتعديله. يلزم معه رمز الوصول الخاص.',
     secretSafety: 'لا تشارك رمز الوصول مع أي شخص، ولا ترسله في رابط أو رسالة عامة.',
     trackingNoBackend: 'هذه واجهة تصميم فقط؛ لا يتم التحقق من أي حجز أو إرسال بيانات.',
+    adminEntry: 'لوحة الإدارة', adminBack: 'العودة إلى حسابي', adminDataPending: 'تم التحقق من صلاحية الوصول. لم يُربط بعد مصدر بيانات إداري إنتاجي بهذه اللوحة؛ لذلك لن تظهر بيانات تجريبية ولن تكون أي عملية إدارية متاحة.',
     ownerPortal: 'واجهة صاحب الإقامة', ownerPreviewTitle: 'مساحة صاحب الإقامة', ownerPreviewIntro: 'معاينة أولية لإدارة الإقامات وطلبات الحجز. ستظهر البيانات الحقيقية بعد ربط الخدمات والتحقق من صلاحيات الحساب.', ownerProperties: 'إقاماتي', ownerPropertiesEmpty: 'ستظهر إقاماتك هنا بعد اعتماد حساب المالك وربط بيانات الإنتاج.', ownerRequests: 'طلبات الحجز', ownerRequestsEmpty: 'ستظهر طلبات الحجز الواردة هنا بعد ربط خدمة الحجوزات.', ownerVerification: 'حالة اعتماد حساب المالك', ownerVerificationInfo: 'هذه الحالات للتوضيح فقط؛ لا نقرأ حالة اعتماد حسابك من الخادم في هذه المعاينة.', ownerStatusPending: 'قيد المراجعة', ownerStatusPendingInfo: 'تم استلام طلب الاعتماد. انتظر مراجعة الوثائق والبيانات من إدارة المنصة.', ownerStatusApproved: 'معتمد', ownerStatusApprovedInfo: 'بعد الاعتماد يمكنك متابعة إعداد الإقامة وفق صلاحيات حسابك. النشر يبقى خاضعاً للتحقق المطلوب.', ownerStatusRejected: 'يحتاج إلى استكمال أو تصحيح', ownerStatusRejectedInfo: 'راجع ملاحظات الإدارة وقدّم المعلومات أو الوثائق المطلوبة عبر المسار الرسمي عند تفعيله.', ownerStatusNoLive: 'لا تمثل أي حالة من هذه الحالات وضع حسابك الحالي.', ownerPreviewOnly: 'معاينة فقط — لا يمكن إضافة أو تعديل أو نشر الإقامات، ولا قبول أو رفض الحجوزات.', ownerBack: 'العودة إلى الحساب', ownerFormPreview: 'معاينة إضافة إقامة', ownerEditPreview: 'معاينة نموذج بيانات الإقامة', ownerName: 'اسم الإقامة', ownerArea: 'المنطقة والعنوان', ownerDescription: 'وصف الإقامة', ownerPhotos: 'صور الإقامة', ownerPhotoSlots: 'أماكن مخصصة للصور — رفع الصور غير متاح', ownerAmenities: 'المرافق والتجهيزات', ownerAmenityList: 'واي فاي · موقف سيارات · مطبخ · تكييف · شرفة', ownerCapacity: 'عدد الأشخاص والغرف', ownerPriceLabel: 'السعر لكل ليلة (دج)', ownerDeposit: 'العربون: ليلة واحدة بالضبط، يضاف إلى سعر الإقامة', ownerSaveDisabled: 'حفظ ونشر الإقامة غير متاحين', ownerEditorNotice: 'الحقول التالية توضيحية فقط. لا تُحفظ أي معلومات ولا تُرسل إلى الخادم.', ownerRequestPreview: 'معاينة طلب حجز وارد', ownerRequestSample: 'طلب تجريبي — ليس حجزاً حقيقياً', ownerRequestStatus: 'بانتظار مراجعة المالك', ownerRequestRef: 'المرجع: DEMO-0001', ownerRequestDates: 'الوصول: —   |   المغادرة: —', ownerRequestGuests: 'عدد الضيوف: —', ownerRequestTotal: 'المبلغ الإجمالي: — دج', ownerAccept: 'قبول الطلب', ownerReject: 'رفض الطلب', ownerActionsDisabled: 'أزرار القبول والرفض غير مفعّلة في المعاينة.', ownerCancelPolicy: 'إذا ألغى المالك الحجز، يسترد الضيف كامل ما دفعه ولا تُحتسب عمولة للمنصة. الإلغاء الاستثنائي من الضيف قبل أقل من 5 أيام يخضع للمراجعة وفق السياسة المعتمدة.',
     ownerDocsTitle: 'وثائق إثبات الملكية', ownerDocsIntro: 'معاينة قائمة الوثائق المطلوبة. المتطلبات النهائية تحددها إدارة المنصة عند تفعيل مسار التحقق.', ownerDocIdentity: 'وثيقة إثبات الهوية', ownerDocOwnership: 'وثيقة إثبات الملكية أو حق الاستغلال', ownerDocAddress: 'وثيقة إثبات العنوان', ownerDocStatusMissing: 'لم تُرفق وثيقة', ownerDocStatusReview: 'ستظهر حالة المراجعة هنا', ownerDocUploadDisabled: 'رفع الوثائق غير متاح حالياً', ownerDocsNotice: 'هذه عناصر توضيحية فقط. لا يتم اختيار ملفات أو رفعها أو تخزينها أو إرسالها إلى Supabase.',
 
@@ -175,6 +178,7 @@ const copy = {
     trackingSecurity: 'La référence seule ne révèle pas les détails et ne permet aucune modification. Le code privé est également nécessaire.',
     secretSafety: 'Ne partagez pas votre code privé et ne l’ajoutez jamais à un lien ou à un message public.',
     trackingNoBackend: 'Écran de conception uniquement : aucune réservation n’est vérifiée et aucune donnée n’est envoyée.',
+    adminEntry: 'Administration', adminBack: 'Retour à mon compte', adminDataPending: 'Votre accès a été vérifié. Aucune source de données administratives de production n’est encore connectée ; aucune donnée de test ni action administrative ne sera affichée.',
     ownerPortal: 'Espace propriétaire', ownerPreviewTitle: 'Espace du propriétaire', ownerPreviewIntro: 'Aperçu initial de la gestion des logements et des demandes. Les données réelles seront affichées après connexion des services et vérification des autorisations du compte.', ownerProperties: 'Mes logements', ownerPropertiesEmpty: 'Vos logements apparaîtront ici après validation du compte propriétaire et connexion aux données de production.', ownerRequests: 'Demandes de réservation', ownerRequestsEmpty: 'Les demandes reçues apparaîtront ici après connexion du service de réservation.', ownerVerification: 'État de validation du compte propriétaire', ownerVerificationInfo: 'Ces états sont présentés à titre indicatif ; cet aperçu ne consulte pas l’état réel de votre compte sur le serveur.', ownerStatusPending: 'En cours de vérification', ownerStatusPendingInfo: 'La demande de validation a été reçue. Attendez l’examen des informations et documents par l’administration.', ownerStatusApproved: 'Validé', ownerStatusApprovedInfo: 'Après validation, vous pourrez poursuivre la préparation du logement selon les autorisations de votre compte. La publication reste soumise aux contrôles requis.', ownerStatusRejected: 'À compléter ou à corriger', ownerStatusRejectedInfo: 'Consultez les remarques de l’administration et fournissez les informations ou documents demandés lorsque le parcours officiel sera activé.', ownerStatusNoLive: 'Aucun de ces états ne représente le statut actuel de votre compte.', ownerPreviewOnly: 'Aperçu uniquement — ajout, modification, publication, acceptation et refus des réservations sont désactivés.', ownerBack: 'Retour au compte', ownerFormPreview: 'Aperçu du formulaire logement', ownerEditPreview: 'Aperçu des informations du logement', ownerName: 'Nom du logement', ownerArea: 'Zone et adresse', ownerDescription: 'Description du logement', ownerPhotos: 'Photos du logement', ownerPhotoSlots: 'Emplacements photo — téléversement désactivé', ownerAmenities: 'Équipements et services', ownerAmenityList: 'Wi-Fi · Parking · Cuisine · Climatisation · Balcon', ownerCapacity: 'Capacité et chambres', ownerPriceLabel: 'Prix par nuit (DZD)', ownerDeposit: 'Acompte : exactement une nuit, ajouté au prix du séjour', ownerSaveDisabled: 'Enregistrement et publication indisponibles', ownerEditorNotice: 'Les champs suivants sont illustratifs. Aucune information ne sera enregistrée ni envoyée au serveur.', ownerRequestPreview: 'Aperçu d’une demande reçue', ownerRequestSample: 'Demande fictive — aucune réservation réelle', ownerRequestStatus: 'En attente de l’examen du propriétaire', ownerRequestRef: 'Référence : DEMO-0001', ownerRequestDates: 'Arrivée : —   |   Départ : —', ownerRequestGuests: 'Nombre de voyageurs : —', ownerRequestTotal: 'Montant total : — DZD', ownerAccept: 'Accepter la demande', ownerReject: 'Refuser la demande', ownerActionsDisabled: 'Les boutons accepter et refuser sont désactivés dans cet aperçu.', ownerCancelPolicy: 'Si le propriétaire annule, le voyageur reçoit un remboursement intégral et aucune commission n’est due à la plateforme. Les annulations exceptionnelles du voyageur à moins de 5 jours suivent la procédure de révision approuvée.',
     ownerDocsTitle: 'Documents justificatifs de propriété', ownerDocsIntro: 'Aperçu de la liste des justificatifs. Les exigences définitives seront précisées par l’administration lors de l’activation du parcours de vérification.', ownerDocIdentity: 'Justificatif d’identité', ownerDocOwnership: 'Justificatif de propriété ou droit d’exploitation', ownerDocAddress: 'Justificatif d’adresse', ownerDocStatusMissing: 'Aucun document joint', ownerDocStatusReview: 'Le statut de vérification apparaîtra ici', ownerDocUploadDisabled: 'Téléversement désactivé pour le moment', ownerDocsNotice: 'Éléments illustratifs uniquement. Aucun fichier n’est sélectionné, téléversé, stocké ou envoyé à Supabase.',
 
@@ -192,6 +196,7 @@ export default function App() {
   const [showDetailPreview, setShowDetailPreview] = useState(false);
   const [showOwnerPreview, setShowOwnerPreview] = useState(false);
   const [showOwnerEditor, setShowOwnerEditor] = useState(false);
+  const [showAdminWorkspace, setShowAdminWorkspace] = useState(false);
   const t = copy[language];
   const rtl = language === 'ar';
 
@@ -217,8 +222,11 @@ export default function App() {
       .catch(() => {
         // Keep guest browsing available if session restoration temporarily fails.
       });
-    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data } = supabase.auth.onAuthStateChange((event, nextSession) => {
       setSession(nextSession);
+      if (event !== 'TOKEN_REFRESHED' && event !== 'INITIAL_SESSION') {
+        setShowAdminWorkspace(false);
+      }
     });
     const deepLinkSubscription = Linking.addEventListener('url', ({ url }) => {
       completeAuthFromUrl(url).catch(() => {
@@ -284,6 +292,7 @@ export default function App() {
   }
 
   function navigateTo(nextTab: Tab) {
+    setShowAdminWorkspace(false);
     setTab(nextTab);
     if (nextTab !== 'discover') setShowDetailPreview(false);
   }
@@ -406,7 +415,33 @@ export default function App() {
         </ScrollView>
       )}
 
-      {tab === 'account' && (
+      {tab === 'account' && showAdminWorkspace && (
+        <View style={styles.adminScreen}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setShowAdminWorkspace(false)}
+            style={styles.backButton}
+          >
+            <Text style={styles.backButtonText}>‹  {t.adminBack}</Text>
+          </Pressable>
+          <View style={styles.adminWorkspace}>
+            <AdminGate language={language}>
+              <AdminWorkspace
+                language={language}
+                renderPanel={(_panelId, panelLanguage) => (
+                  <View style={styles.adminEmptyState}>
+                    <Text style={styles.adminEmptyText}>
+                      {panelLanguage === 'ar' ? copy.ar.adminDataPending : copy.fr.adminDataPending}
+                    </Text>
+                  </View>
+                )}
+              />
+            </AdminGate>
+          </View>
+        </View>
+      )}
+
+      {tab === 'account' && !showAdminWorkspace && (
         <KeyboardAvoidingView
           style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -438,6 +473,13 @@ export default function App() {
                 </>
               )}
             </View>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setShowAdminWorkspace(true)}
+              style={styles.adminEntryButton}
+            >
+              <Text style={styles.adminEntryText}>{t.adminEntry}  ›</Text>
+            </Pressable>
             {!showOwnerPreview ? (
               <Pressable accessibilityRole="button" onPress={() => setShowOwnerPreview(true)} style={styles.ownerEntryButton}>
                 <Text style={styles.ownerEntryText}>{t.ownerPortal}  ›</Text>
@@ -521,11 +563,11 @@ export default function App() {
         </KeyboardAvoidingView>
       )}
 
-      <View style={styles.tabBar}>
+      {!showAdminWorkspace && <View style={styles.tabBar}>
         <TabButton title={t.discover} symbol="⌂" active={tab === 'discover'} onPress={() => navigateTo('discover')} />
         <TabButton title={t.bookings} symbol="▤" active={tab === 'bookings'} onPress={() => navigateTo('bookings')} />
         <TabButton title={t.account} symbol="○" active={tab === 'account'} onPress={() => navigateTo('account')} />
-      </View>
+      </View>}
     </SafeAreaView>
   );
 }
@@ -639,6 +681,12 @@ const styles = StyleSheet.create({
   trackingIntro: { color: COLORS.ink, fontSize: 13, lineHeight: 22 },
   securityText: { color: COLORS.blue, fontSize: 12, lineHeight: 20 },
   accountCard: { backgroundColor: COLORS.white, borderRadius: 18, padding: 20, borderWidth: 1, borderColor: COLORS.line, gap: 14 },
+  adminScreen: { flex: 1, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12, gap: 8 },
+  adminWorkspace: { flex: 1, minHeight: 0 },
+  adminEmptyState: { backgroundColor: COLORS.white, borderColor: COLORS.line, borderRadius: 12, borderWidth: 1, padding: 16, minHeight: 88, justifyContent: 'center' },
+  adminEmptyText: { color: COLORS.muted, fontSize: 13, lineHeight: 21, textAlign: 'center' },
+  adminEntryButton: { minHeight: 50, borderRadius: 13, backgroundColor: COLORS.blue, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
+  adminEntryText: { color: COLORS.white, fontWeight: '800', fontSize: 14 },
   ownerEntryButton: { minHeight: 50, borderRadius: 13, backgroundColor: COLORS.navy, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
   ownerEntryText: { color: COLORS.white, fontWeight: '800', fontSize: 14 },
   ownerPanel: { backgroundColor: COLORS.white, borderRadius: 18, padding: 18, borderWidth: 1, borderColor: COLORS.line, gap: 14 },
