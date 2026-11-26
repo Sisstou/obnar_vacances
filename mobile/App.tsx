@@ -19,6 +19,7 @@ import type { EmailOtpType, Session } from '@supabase/supabase-js';
 import { supabase, supabaseConfigured } from './src/lib/supabase';
 import AdminGate from './src/components/AdminGate';
 import AdminWorkspace from './src/components/AdminWorkspace';
+import AdminPanelSafeRouter from './src/components/AdminPanelSafeRouter';
 import { StayListingCard, type StayListingCardData } from './src/components/StayListingCard';
 import { StayCatalogFeedback } from './src/components/StayCatalogFeedback';
 
@@ -486,12 +487,8 @@ export default function App() {
             <AdminGate language={language}>
               <AdminWorkspace
                 language={language}
-                renderPanel={(_panelId, panelLanguage) => (
-                  <View style={styles.adminEmptyState}>
-                    <Text style={styles.adminEmptyText}>
-                      {panelLanguage === 'ar' ? copy.ar.adminDataPending : copy.fr.adminDataPending}
-                    </Text>
-                  </View>
+                renderPanel={(panelId, panelLanguage) => (
+                  <AdminPanelSafeRouter panelId={panelId} language={panelLanguage} />
                 )}
               />
             </AdminGate>
