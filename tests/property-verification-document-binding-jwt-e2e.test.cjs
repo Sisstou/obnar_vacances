@@ -79,7 +79,7 @@ async function denied(action, label) {
   assert.ok(failure, label);
   assert.match(
     failure.message,
-    /failed \\((400|401|403|409)\\)/,
+    /failed \((400|401|403|409)\)/,
     label + ' (expected an authorization or constraint rejection, not an infrastructure error)',
   );
 }
