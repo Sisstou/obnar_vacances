@@ -25,7 +25,7 @@ jobs:
         shell: bash
         run: |
           case "${GITHUB_REF}" in
-            refs/heads/mobile-app|refs/heads/review/android-approved-stays-signed-urls)
+            refs/heads/mobile-app|refs/heads/review/android-approved-stays-signed-urls|refs/heads/review/android-admin-panel-routing)
               echo "Building an internal-test APK from ${GITHUB_REF}."
               ;;
             *)
