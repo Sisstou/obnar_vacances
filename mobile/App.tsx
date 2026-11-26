@@ -21,6 +21,157 @@ import AdminGate from './src/components/AdminGate';
 import AdminWorkspace from './src/components/AdminWorkspace';
 import { StayListingCard, type StayListingCardData } from './src/components/StayListingCard';
 import { StayCatalogFeedback } from './src/components/StayCatalogFeedback';
+import { StayPhotoGallery } from './src/components/StayPhotoGallery';
+
+
+type PropertyRow = {
+  id: string;
+  title_ar: string | null;
+  title_fr: string | null;
+  address: string | null;
+  location_id: string | null;
+  property_type: string | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  capacity: number | null;
+  price_per_night: number | string | null;
+  currency: string | null;
+  description_ar: string | null;
+  description_fr: string | null;
+};
+
+type PropertyImageRow = {
+  id: string;
+  property_id: string;
+  storage_path: string;
+  is_cover: boolean;
+  display_order: number;
+};
+
+type ApprovedStayPhoto = {
+  id: string;
+  storagePath: string;
+  signedUrl: string;
+  isCover: boolean;
+  displayOrder: number;
+};
+
+type ApprovedStay = StayListingCardData & {
+  currency: string;
+  description: string;
+  propertyType: string;
+  bathrooms?: number;
+  photos: ApprovedStayPhoto[];
+};
+
+async function fetchApprovedStays(): Promise<ApprovedStay[]> {
+  const { data, error } = await supabase
+    .from('properties')
+    .select('id,title_ar,title_fr,address,location_id,property_type,bedrooms,bathrooms,capacity,price_per_night,currency,description_ar,description_fr')
+    .eq('status', 'approved')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+
+  const properties = (data ?? []) as PropertyRow[];
+  if (properties.length === 0) return [];
+
+  const propertyIds = properties.map((property) => property.id);
+  const locationIds = [...new Set(
+    properties
+      .map((property) => property.location_id)
+      .filter((id): id is string => Boolean(id)),
+  )];
+
+  const locationById: Record<string, { name_ar: string | null; name_fr: string | null }> = {};
+  if (locationIds.length > 0) {
+    const { data: locations, error: locationsError } = await supabase
+      .from('locations')
+      .select('id,name_ar,name_fr')
+      .in('id', locationIds);
+
+    if (locationsError) {
+      console.warn('Approved stay locations could not be loaded:', locationsError);
+    } else {
+      for (const location of locations ?? []) {
+        locationById[location.id] = {
+          name_ar: location.name_ar,
+          name_fr: location.name_fr,
+        };
+      }
+    }
+  }
+
+  const { data: imageRows, error: imagesError } = await supabase
+    .from('property_images')
+    .select('id,property_id,storage_path,is_cover,display_order')
+    .in('property_id', propertyIds)
+    .order('display_order', { ascending: true });
+
+  if (imagesError) {
+    console.warn('Approved stay image records could not be loaded:', imagesError);
+  }
+
+  const rows = (imagesError ? [] : (imageRows ?? [])) as PropertyImageRow[];
+  const signedResults = await Promise.all(rows.map(async (row) => {
+    try {
+      const { data: signedData, error: signingError } = await supabase.storage
+        .from('property-images')
+        .createSignedUrl(row.storage_path, 3600);
+
+      if (signingError || !signedData?.signedUrl) {
+        throw signingError ?? new Error('Signed URL was not returned.');
+      }
+
+      return {
+        id: row.id,
+        propertyId: row.property_id,
+        storagePath: row.storage_path,
+        signedUrl: signedData.signedUrl,
+        isCover: row.is_cover,
+        displayOrder: row.display_order,
+      };
+    } catch (signingError) {
+      console.warn('Approved stay image signing failed:', row.id, signingError);
+      return null;
+    }
+  }));
+
+  const photosByPropertyId: Record<string, ApprovedStayPhoto[]> = {};
+  for (const photo of signedResults) {
+    if (!photo) continue;
+    if (!photosByPropertyId[photo.propertyId]) photosByPropertyId[photo.propertyId] = [];
+    photosByPropertyId[photo.propertyId].push({
+      id: photo.id,
+      storagePath: photo.storagePath,
+      signedUrl: photo.signedUrl,
+      isCover: photo.isCover,
+      displayOrder: photo.displayOrder,
+    });
+  }
+
+  return properties.map((property) => {
+    const location = property.location_id ? locationById[property.location_id] : undefined;
+    const photos = (photosByPropertyId[property.id] ?? [])
+      .sort((a, b) => a.displayOrder - b.displayOrder);
+    const cover = photos.find((photo) => photo.isCover) ?? photos[0];
+
+    return {
+      id: property.id,
+      title: property.title_ar || property.title_fr || 'إقامة معتمدة',
+      location: location?.name_ar || location?.name_fr || property.address || 'جيجل',
+      pricePerNight: Number(property.price_per_night ?? 0),
+      currency: property.currency || 'DZD',
+      maxGuests: typeof property.capacity === 'number' ? property.capacity : undefined,
+      bedrooms: typeof property.bedrooms === 'number' ? property.bedrooms : undefined,
+      bathrooms: typeof property.bathrooms === 'number' ? property.bathrooms : undefined,
+      coverImageUrl: cover?.signedUrl ?? null,
+      description: property.description_ar || property.description_fr || '',
+      propertyType: property.property_type || '',
+      photos,
+    };
+  });
+}
 
 const AUTH_REDIRECT_URL = 'dz.obnarvacances.app://auth/callback';
 
@@ -204,8 +355,10 @@ export default function App() {
   const [showOwnerPreview, setShowOwnerPreview] = useState(false);
   const [showOwnerEditor, setShowOwnerEditor] = useState(false);
   const [showAdminWorkspace, setShowAdminWorkspace] = useState(false);
-  // UI integration only: keep the catalog empty until an approved production data source is connected.
-  const approvedStays: StayListingCardData[] = [];
+  const [approvedStays, setApprovedStays] = useState<ApprovedStay[]>([]);
+  const [catalogState, setCatalogState] = useState<'loading' | 'empty' | 'ready' | 'error'>('loading');
+  const [catalogReloadToken, setCatalogReloadToken] = useState(0);
+  const [selectedStay, setSelectedStay] = useState<ApprovedStay | null>(null);
   const t = copy[language];
   const rtl = language === 'ar';
 
@@ -255,6 +408,54 @@ export default function App() {
       appStateSubscription.remove();
     };
   }, []);
+
+
+  useEffect(() => {
+    if (!supabaseConfigured) {
+      setCatalogState('error');
+      return;
+    }
+
+    let mounted = true;
+    let requestSequence = 0;
+    let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const loadCatalog = async () => {
+      const currentRequest = ++requestSequence;
+      setCatalogState('loading');
+
+      try {
+        const stays = await fetchApprovedStays();
+        if (!mounted || currentRequest !== requestSequence) return;
+        setApprovedStays(stays);
+        setCatalogState(stays.length > 0 ? 'ready' : 'empty');
+      } catch (error) {
+        console.warn('Approved stay catalog could not be loaded:', error);
+        if (!mounted || currentRequest !== requestSequence) return;
+        setCatalogState('error');
+      } finally {
+        if (mounted && currentRequest === requestSequence) {
+          if (refreshTimer) clearTimeout(refreshTimer);
+          // Refresh before the one-hour signed URLs expire.
+          refreshTimer = setTimeout(() => {
+            void loadCatalog();
+          }, 55 * 60 * 1000);
+        }
+      }
+    };
+
+    void loadCatalog();
+    const appStateSubscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') void loadCatalog();
+    });
+
+    return () => {
+      mounted = false;
+      requestSequence += 1;
+      if (refreshTimer) clearTimeout(refreshTimer);
+      appStateSubscription.remove();
+    };
+  }, [catalogReloadToken]);
 
   async function authenticate(mode: 'signIn' | 'signUp') {
     if (!email.trim() || !password) {
@@ -348,19 +549,38 @@ export default function App() {
             <Feature title={t.activities} symbol="✦" rtl={rtl} />
           </View>
           <View style={styles.stayCatalog}>
-            {approvedStays.length > 0 ? (
+            {catalogState === 'loading' && approvedStays.length === 0 ? (
+              <StayCatalogFeedback state="loading" locale={language} />
+            ) : catalogState === 'error' && approvedStays.length === 0 ? (
+              <StayCatalogFeedback
+                state="error"
+                locale={language}
+                onRetry={() => setCatalogReloadToken((value) => value + 1)}
+              />
+            ) : approvedStays.length > 0 ? (
               approvedStays.map((stay) => (
                 <StayListingCard
                   key={stay.id}
                   stay={stay}
                   locale={language}
-                  onPress={() => setShowDetailPreview(true)}
+                  currency={stay.currency}
+                  onPress={() => {
+                    setSelectedStay(stay);
+                    setShowDetailPreview(true);
+                  }}
                 />
               ))
             ) : (
               <StayCatalogFeedback state="empty" locale={language} />
             )}
-            <Pressable accessibilityRole="button" onPress={() => setShowDetailPreview(true)} style={styles.secondaryButton}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                setSelectedStay(null);
+                setShowDetailPreview(true);
+              }}
+              style={styles.secondaryButton}
+            >
               <Text style={styles.secondaryButtonText}>{t.previewDetails}</Text>
             </Pressable>
           </View>
@@ -372,38 +592,51 @@ export default function App() {
           <Pressable accessibilityRole="button" onPress={() => setShowDetailPreview(false)} style={styles.backButton}>
             <Text style={styles.backButtonText}>‹  {t.back}</Text>
           </Pressable>
-          <View style={styles.photoGallery}>
-            <Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.photoGallery}</Text>
-            <Pressable
-              accessibilityRole="imagebutton"
-              accessibilityLabel={t.photoUnavailable}
-              onPress={() => setShowPhotoViewer(true)}
-              style={styles.detailHero}
-            >
-              <Text style={styles.detailPlaceholderIcon}>▧</Text>
-              <Text style={styles.photoUnavailable}>{t.photoUnavailable}</Text>
-              <Text style={styles.demoLabel}>{t.demoLabel}</Text>
-            </Pressable>
-            <View style={styles.photoControls}>
+          {selectedStay ? (
+            <StayPhotoGallery
+              locale={language}
+              photos={selectedStay.photos.map((photo, index) => ({
+                id: photo.id,
+                source: { uri: photo.signedUrl },
+                accessibilityLabel: language === 'ar'
+                  ? `صورة الإقامة رقم ${index + 1}`
+                  : `Photo du logement ${index + 1}`,
+              }))}
+            />
+          ) : (
+            <View style={styles.photoGallery}>
+              <Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.photoGallery}</Text>
               <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t.photoPrevious}
-                onPress={() => setActivePhotoIndex((index) => (index + 2) % 3)}
-                style={styles.photoControlButton}
+                accessibilityRole="imagebutton"
+                accessibilityLabel={t.photoUnavailable}
+                onPress={() => setShowPhotoViewer(true)}
+                style={styles.detailHero}
               >
-                <Text style={styles.photoControlText}>‹</Text>
+                <Text style={styles.detailPlaceholderIcon}>▧</Text>
+                <Text style={styles.photoUnavailable}>{t.photoUnavailable}</Text>
+                <Text style={styles.demoLabel}>{t.demoLabel}</Text>
               </Pressable>
-              <Text style={styles.photoCounter}>{t.photoCounter} {activePhotoIndex + 1} / 3</Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t.photoNext}
-                onPress={() => setActivePhotoIndex((index) => (index + 1) % 3)}
-                style={styles.photoControlButton}
-              >
-                <Text style={styles.photoControlText}>›</Text>
-              </Pressable>
+              <View style={styles.photoControls}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t.photoPrevious}
+                  onPress={() => setActivePhotoIndex((index) => (index + 2) % 3)}
+                  style={styles.photoControlButton}
+                >
+                  <Text style={styles.photoControlText}>‹</Text>
+                </Pressable>
+                <Text style={styles.photoCounter}>{t.photoCounter} {activePhotoIndex + 1} / 3</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t.photoNext}
+                  onPress={() => setActivePhotoIndex((index) => (index + 1) % 3)}
+                  style={styles.photoControlButton}
+                >
+                  <Text style={styles.photoControlText}>›</Text>
+                </Pressable>
+              </View>
             </View>
-          </View>
+          )}
           <Modal visible={showPhotoViewer} transparent animationType="fade" onRequestClose={() => setShowPhotoViewer(false)}>
             <View style={styles.photoViewerBackdrop}>
               <View style={styles.photoViewerCard}>
@@ -417,9 +650,9 @@ export default function App() {
             </View>
           </Modal>
           <View style={styles.detailCard}>
-            <Text style={[styles.detailTitle, rtl && styles.textRight]}>{t.detailName}</Text>
-            <Text style={[styles.detailLocation, rtl && styles.textRight]}>⌖  {t.detailLocation}</Text>
-            <Text style={[styles.detailDescription, rtl && styles.textRight]}>{t.detailDescription}</Text>
+            <Text style={[styles.detailTitle, rtl && styles.textRight]}>{selectedStay ? selectedStay.title : t.detailName}</Text>
+            <Text style={[styles.detailLocation, rtl && styles.textRight]}>⌖  {selectedStay ? selectedStay.location : t.detailLocation}</Text>
+            <Text style={[styles.detailDescription, rtl && styles.textRight]}>{selectedStay ? (selectedStay.description || t.detailDescription) : t.detailDescription}</Text>
           </View>
           <View style={styles.detailCard}>
             <Text style={[styles.sectionTitle, rtl && styles.textRight]}>{t.bookingPanel}</Text>
@@ -435,7 +668,7 @@ export default function App() {
               <Text style={[styles.label, rtl && styles.textRight]}>{t.guests}</Text>
               <View style={styles.readOnlyField}><Text style={styles.readOnlyText}>—</Text></View>
             </View>
-            <Text style={[styles.ownerPrice, rtl && styles.textRight]}>{t.ownerPrice}</Text>
+            <Text style={[styles.ownerPrice, rtl && styles.textRight]}>{selectedStay ? `${new Intl.NumberFormat(rtl ? 'ar-DZ' : 'fr-DZ').format(selectedStay.pricePerNight)} ${selectedStay.currency} / ${rtl ? 'لليلة الواحدة' : 'par nuit'}` : t.ownerPrice}</Text>
             <View style={styles.disabledBooking}><Text style={styles.disabledBookingText}>{t.bookingDisabled}</Text></View>
             <Text style={[styles.bookingNotice, rtl && styles.textRight]}>{t.bookingNotice}</Text>
           </View>
