@@ -54,6 +54,18 @@ jobs:
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: node tests/property-verification-jwt-e2e.test.cjs
 
+      - name: Validate property verification document binding test syntax
+        run: node --check tests/property-verification-document-binding-jwt-e2e.test.cjs
+
+      - name: Run Staging-only property verification document binding tests
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          OWNER_EMAIL: ${{ secrets.OWNER_EMAIL }}
+          OWNER_PASSWORD: ${{ secrets.OWNER_PASSWORD }}
+        run: node tests/property-verification-document-binding-jwt-e2e.test.cjs
+
       - name: Validate property management test script syntax
         run: node --check tests/property-management-jwt-e2e.test.cjs
 
