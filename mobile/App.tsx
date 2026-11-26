@@ -58,7 +58,10 @@ type ApprovedStayPhoto = {
 
 type ApprovedStay = StayListingCardData & {
   currency: string;
+  titleFr: string;
+  locationFr: string;
   description: string;
+  descriptionFr: string;
   propertyType: string;
   bathrooms?: number;
   photos: ApprovedStayPhoto[];
@@ -159,7 +162,9 @@ async function fetchApprovedStays(): Promise<ApprovedStay[]> {
     return {
       id: property.id,
       title: property.title_ar || property.title_fr || 'إقامة معتمدة',
+      titleFr: property.title_fr || property.title_ar || 'Logement approuvé',
       location: location?.name_ar || location?.name_fr || property.address || 'جيجل',
+      locationFr: location?.name_fr || location?.name_ar || property.address || 'Jijel',
       pricePerNight: Number(property.price_per_night ?? 0),
       currency: property.currency || 'DZD',
       maxGuests: typeof property.capacity === 'number' ? property.capacity : undefined,
@@ -167,6 +172,7 @@ async function fetchApprovedStays(): Promise<ApprovedStay[]> {
       bathrooms: typeof property.bathrooms === 'number' ? property.bathrooms : undefined,
       coverImageUrl: cover?.signedUrl ?? null,
       description: property.description_ar || property.description_fr || '',
+      descriptionFr: property.description_fr || property.description_ar || '',
       propertyType: property.property_type || '',
       photos,
     };
@@ -561,7 +567,9 @@ export default function App() {
               approvedStays.map((stay) => (
                 <StayListingCard
                   key={stay.id}
-                  stay={stay}
+                  stay={language === 'fr'
+                    ? { ...stay, title: stay.titleFr, location: stay.locationFr }
+                    : stay}
                   locale={language}
                   currency={stay.currency}
                   onPress={() => {
@@ -650,9 +658,9 @@ export default function App() {
             </View>
           </Modal>
           <View style={styles.detailCard}>
-            <Text style={[styles.detailTitle, rtl && styles.textRight]}>{selectedStay ? selectedStay.title : t.detailName}</Text>
-            <Text style={[styles.detailLocation, rtl && styles.textRight]}>⌖  {selectedStay ? selectedStay.location : t.detailLocation}</Text>
-            <Text style={[styles.detailDescription, rtl && styles.textRight]}>{selectedStay ? (selectedStay.description || t.detailDescription) : t.detailDescription}</Text>
+            <Text style={[styles.detailTitle, rtl && styles.textRight]}>{selectedStay ? (rtl ? selectedStay.title : selectedStay.titleFr) : t.detailName}</Text>
+            <Text style={[styles.detailLocation, rtl && styles.textRight]}>⌖  {selectedStay ? (rtl ? selectedStay.location : selectedStay.locationFr) : t.detailLocation}</Text>
+            <Text style={[styles.detailDescription, rtl && styles.textRight]}>{selectedStay ? (rtl ? selectedStay.description : selectedStay.descriptionFr) || t.detailDescription : t.detailDescription}</Text>
           </View>
           <View style={styles.detailCard}>
             <Text style={[styles.sectionTitle, rtl && styles.textRight]}>{t.bookingPanel}</Text>
