@@ -15,7 +15,7 @@ for (const name of [
   assert.ok(process.env[name], 'Missing GitHub Actions secret: ' + name);
 }
 
-const base = process.env.SUPABASE_URL.replace(/\\/$/, '');
+const base = process.env.SUPABASE_URL.replace(/\/$/, '');
 assert.equal(
   new URL(base).hostname,
   STAGING_PROJECT_REF + '.supabase.co',
@@ -74,9 +74,14 @@ async function uploadFixture(path) {
 }
 
 async function denied(action, label) {
-  let rejected = false;
-  try { await action(); } catch { rejected = true; }
-  assert.equal(rejected, true, label);
+  let failure;
+  try { await action(); } catch (error) { failure = error; }
+  assert.ok(failure, label);
+  assert.match(
+    failure.message,
+    /failed \\((400|401|403|409)\\)/,
+    label + ' (expected an authorization or constraint rejection, not an infrastructure error)',
+  );
 }
 
 const fixture = { propertyId: null, paths: [] };
