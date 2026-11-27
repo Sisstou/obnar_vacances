@@ -39,6 +39,10 @@ jobs:
         working-directory: mobile/home-preview
         run: npm install --no-audit --no-fund
 
+      - name: Expose preview dependencies to shared components
+        working-directory: mobile
+        run: ln -s home-preview/node_modules node_modules
+
       - name: Run preview TypeScript check
         working-directory: mobile/home-preview
         run: npm run typecheck
