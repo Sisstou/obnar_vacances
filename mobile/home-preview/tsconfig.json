@@ -2,14 +2,7 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "noEmit": true,
-    "baseUrl": ".",
-    "paths": {
-      "react": ["./node_modules/react"],
-      "react/*": ["./node_modules/react/*"],
-      "react-native": ["./node_modules/react-native"],
-      "react-native/*": ["./node_modules/react-native/*"]
-    }
+    "noEmit": true
   },
   "include": [
     "./App.tsx",
