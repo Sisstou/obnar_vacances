@@ -16,7 +16,7 @@ import { HomeSectionHeader } from '../src/components/HomeSectionHeader';
 export default function App() {
   return (
     <View style={styles.screen}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8F5EF" />
+      <StatusBar barStyle="dark-content" />
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
