@@ -1,0 +1,36 @@
+name: Staging unapproved property HTTP isolation check
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_staging_only:
+        description: "Confirm this check targets OBNAR VACANCES Staging only"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  anonymous-http-isolation:
+    if: inputs.confirm_staging_only == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate test script syntax
+        run: node --check tests/unapproved-property-anon-http.test.cjs
+
+      - name: Test anonymous access against Staging (read-only)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: node tests/unapproved-property-anon-http.test.cjs
