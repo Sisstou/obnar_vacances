@@ -1,0 +1,60 @@
+name: Build isolated Android home-components preview APK
+
+on:
+  push:
+    branches:
+      - preview/home-components-android
+    paths:
+      - "mobile/home-preview/**"
+      - "mobile/src/components/HomeHero.tsx"
+      - "mobile/src/components/StayCategoryTiles.tsx"
+      - "mobile/src/components/ExploreLocalArea.tsx"
+      - "mobile/src/components/HomeSectionHeader.tsx"
+      - ".github/workflows/mobile-home-preview-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preview-apk:
+    name: Build standalone UI preview APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out preview source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install preview dependencies
+        working-directory: mobile/home-preview
+        run: npm install --no-audit --no-fund
+
+      - name: Run preview TypeScript check
+        working-directory: mobile/home-preview
+        run: npm run typecheck
+
+      - name: Generate isolated Android project
+        working-directory: mobile/home-preview
+        run: npx expo prebuild --platform android --no-install --clean
+
+      - name: Build standalone preview APK
+        working-directory: mobile/home-preview/android
+        run: bash ./gradlew :app:assembleRelease --no-daemon
+
+      - name: Upload preview APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: obnar-vacances-home-preview-${{ github.sha }}
+          path: mobile/home-preview/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 7
