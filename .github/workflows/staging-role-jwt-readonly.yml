@@ -1,4 +1,4 @@
-name: Staging authenticated role security (read-only)
+name: Staging authenticated role security (no application-data writes)
 
 on:
   workflow_dispatch:
@@ -29,7 +29,7 @@ jobs:
       - name: Validate test script syntax
         run: node --check tests/role-security-jwt-readonly.test.cjs
 
-      - name: Verify authenticated role isolation against Staging (read-only)
+      - name: Verify authenticated role authorization against Staging (no application-data writes)
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
