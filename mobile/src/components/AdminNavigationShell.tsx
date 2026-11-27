@@ -367,6 +367,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderColor: '#E5EAF0',
     borderTopWidth: 1,
+    flexShrink: 0,
+    minHeight: 120,
     gap: 8,
     padding: 16,
   },
