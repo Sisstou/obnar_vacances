@@ -24,13 +24,28 @@ for (const name of REQUIRED) {
   assert.ok(process.env[name], `Missing required GitHub Actions secret: ${name}`);
 }
 
-const baseUrl = process.env.SUPABASE_URL.replace(/\/$/, '');
-const parsedUrl = new URL(baseUrl);
+const parsedUrl = new URL(process.env.SUPABASE_URL);
+assert.equal(
+  parsedUrl.protocol,
+  'https:',
+  'Refusing to run: SUPABASE_URL must use HTTPS.',
+);
 assert.equal(
   parsedUrl.hostname,
   `${STAGING_PROJECT_REF}.supabase.co`,
   'Refusing to run: SUPABASE_URL is not the approved isolated Staging project.',
 );
+assert.equal(parsedUrl.username, '', 'Refusing to run: SUPABASE_URL must not contain embedded credentials.');
+assert.equal(parsedUrl.password, '', 'Refusing to run: SUPABASE_URL must not contain embedded credentials.');
+assert.ok(
+  parsedUrl.port === '' || parsedUrl.port === '443',
+  'Refusing to run: SUPABASE_URL must use the standard HTTPS port.',
+);
+assert.equal(parsedUrl.pathname, '/', 'Refusing to run: SUPABASE_URL must not contain a custom path.');
+assert.equal(parsedUrl.search, '', 'Refusing to run: SUPABASE_URL must not contain query parameters.');
+assert.equal(parsedUrl.hash, '', 'Refusing to run: SUPABASE_URL must not contain a fragment.');
+
+const baseUrl = parsedUrl.origin;
 
 const anonKey = process.env.SUPABASE_ANON_KEY;
 
@@ -159,8 +174,9 @@ async function main() {
   await expectRows('Admin can read draft image metadata', adminImage, 1,
     row => row.id === FIXTURES.draftImage && row.property_id === FIXTURES.draftProperty);
 
-  // These admin RPCs must fail at their explicit authorization guard for non-admin JWTs.
-  // The function checks admin status before looking up the supplied booking ID.
+  // These POST requests are authorization-denial probes, not read operations.
+  // The RPC must stop at its explicit main-admin guard before looking up the booking ID.
+  // No successful application-data mutation is intended or expected.
   const forbiddenCalls = [
     ['Traveler', traveler.token],
     ['Owner', owner.token],
@@ -184,7 +200,7 @@ async function main() {
   console.log('PASS: only the configured admin account has main-admin status.');
   console.log('PASS: draft property and image metadata are visible only to the owner and main admin.');
   console.log('PASS: traveler and owner are rejected by the explicit admin RPC authorization guard.');
-  console.log('RESULT: all read-only authenticated role checks passed.');
+  console.log('RESULT: all authenticated role authorization checks passed; no application-data writes were intended.');
 }
 
 main().catch(error => {
