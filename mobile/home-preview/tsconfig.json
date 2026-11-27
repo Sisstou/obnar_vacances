@@ -12,9 +12,10 @@
     }
   },
   "include": [
-    "./**/*.ts",
-    "./**/*.tsx",
-    "../src/components/**/*.ts",
-    "../src/components/**/*.tsx"
+    "./App.tsx",
+    "../src/components/HomeHero.tsx",
+    "../src/components/StayCategoryTiles.tsx",
+    "../src/components/ExploreLocalArea.tsx",
+    "../src/components/HomeSectionHeader.tsx"
   ]
 }
