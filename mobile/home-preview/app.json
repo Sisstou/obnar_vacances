@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "OBNAR VACANCES — Home Preview",
+    "slug": "obnar-vacances-home-preview",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "dz.obnarvacances.homepreview"
+    }
+  }
+}
