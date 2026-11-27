@@ -174,7 +174,7 @@ async function main() {
     assert.equal(result.ok, false, `${label}: unauthorized admin RPC unexpectedly succeeded.`);
     assert.equal(
       result.data?.message,
-      'Main admin access required',
+      'غير مصرح: المدير الرئيسي فقط',
       `${label}: RPC failed for a reason other than the explicit main-admin authorization guard.`,
     );
   }
