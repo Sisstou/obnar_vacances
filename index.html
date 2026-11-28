@@ -271,9 +271,9 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
  .destination-marquee .destination-card{flex-basis:78vw;max-width:290px}
  .destination-marquee .destination-card img,.destination-marquee .destination-card .destination-placeholder{height:125px;min-height:125px;max-height:125px}
 }
-@media(prefers-reduced-motion:reduce){
- .destination-marquee{overflow-x:auto;mask-image:none}
- .destination-marquee-track{animation:none;transform:none}
+@media(prefers-reduced-motion:reduce),(hover:none){
+ .destination-marquee{overflow-x:auto;mask-image:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+ .destination-marquee-track{animation:none;transform:none;will-change:auto}
  .destination-marquee-group[aria-hidden="true"]{display:none}
 }
 
