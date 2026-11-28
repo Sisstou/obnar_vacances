@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { getPhotoRemoveAccessibilityLabel } from '../lib/photo-picker-accessibility.mjs';
 
 export type OwnerListingLocalPhoto = {
   id: string;
@@ -48,7 +49,6 @@ export default function OwnerListingPhotoPicker({
         add: 'إضافة صور',
         opening: 'جارٍ فتح معرض الصور...',
         count: (count: number) => `${count} من ${limit} صور`,
-        remove: 'حذف الصورة من المعاينة',
         empty: 'لم تتم إضافة صور بعد.',
         limit: 'وصلت إلى الحد الأقصى للصور.',
         pickerErrorTitle: 'تعذر فتح الصور',
@@ -60,7 +60,6 @@ export default function OwnerListingPhotoPicker({
         add: 'Ajouter des photos',
         opening: 'Ouverture de la galerie...',
         count: (count: number) => `${count} sur ${limit} photos`,
-        remove: 'Retirer la photo de l’aperçu',
         empty: 'Aucune photo ajoutée pour le moment.',
         limit: 'Le nombre maximal de photos est atteint.',
         pickerErrorTitle: 'Impossible d’ouvrir les photos',
@@ -146,7 +145,7 @@ export default function OwnerListingPhotoPicker({
               />
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={t.remove}
+                accessibilityLabel={getPhotoRemoveAccessibilityLabel(language, index + 1)}
                 onPress={() => removePhoto(photo.id)}
                 style={({ pressed }) => [styles.removeButton, pressed && styles.pressed]}
               >
