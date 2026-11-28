@@ -47,6 +47,10 @@ jobs:
         working-directory: mobile/home-preview
         run: npm run typecheck
 
+      - name: Run mobile unit tests
+        working-directory: mobile
+        run: node --test tests/*.test.mjs
+
       - name: Generate isolated Android project
         working-directory: mobile/home-preview
         run: npx expo prebuild --platform android --no-install --clean
