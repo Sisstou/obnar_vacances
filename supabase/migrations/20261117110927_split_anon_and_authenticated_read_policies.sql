@@ -84,6 +84,7 @@ USING (
     SELECT 1
     FROM public.local_businesses b
     WHERE b.id::text = (storage.foldername(objects.name))[2]
+      AND b.owner_id::text = (storage.foldername(objects.name))[1]
       AND b.status = 'approved'
   )
 );
@@ -98,6 +99,7 @@ USING (
       SELECT 1
       FROM public.local_businesses b
       WHERE b.id::text = (storage.foldername(objects.name))[2]
+        AND b.owner_id::text = (storage.foldername(objects.name))[1]
         AND b.status = 'approved'
     )
     OR EXISTS (
@@ -105,6 +107,7 @@ USING (
       FROM public.local_businesses b
       WHERE b.id::text = (storage.foldername(objects.name))[2]
         AND b.owner_id = (SELECT auth.uid())
+        AND (storage.foldername(objects.name))[1] = (SELECT auth.uid())::text
     )
     OR (SELECT public.is_main_admin())
   )
