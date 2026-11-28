@@ -26,6 +26,7 @@ export interface StayCategoryTilesProps {
 }
 
 /**
+ * Screen-reader labels include supplied listing counts through the localized helper.
  * Presentational accommodation categories.
  * Counts are shown only when supplied by a trusted parent source.
  */
