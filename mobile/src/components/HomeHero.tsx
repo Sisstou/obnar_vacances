@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { colors } from '../theme/tokens';
 import {
   Pressable,
   StyleSheet,
@@ -94,23 +95,23 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     borderRadius: 22,
-    backgroundColor: '#E9DCC4',
+    backgroundColor: colors.sand,
     gap: 10,
   },
   eyebrow: {
-    color: '#123B5D',
+    color: colors.navy,
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 1,
   },
   title: {
-    color: '#3E3427',
+    color: colors.sandDark,
     fontSize: 27,
     lineHeight: 36,
     fontWeight: '900',
   },
   subtitle: {
-    color: '#5F5140',
+    color: colors.sandText,
     fontSize: 14,
     lineHeight: 22,
   },
@@ -120,13 +121,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
     padding: 7,
     borderRadius: 15,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   input: {
     flex: 1,
     minHeight: 48,
     paddingHorizontal: 10,
-    color: '#243447',
+    color: colors.navyText,
     fontSize: 14,
   },
   searchButton: {
@@ -136,10 +137,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 14,
     borderRadius: 12,
-    backgroundColor: '#123B5D',
+    backgroundColor: colors.navy,
   },
   searchButtonText: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontSize: 14,
     fontWeight: '800',
   },
