@@ -380,10 +380,15 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 .verification-detail-panel input[type=date]{max-width:190px}
 .verification-detail-panel button{margin:4px}
 @media(max-width:600px){.verification-table{font-size:12px}.verification-table th,.verification-table td{padding:9px 8px}}
+
+/* Keyboard accessibility: reveal a direct route to the primary visitor content. */
+.skip-link{position:fixed;top:8px;right:8px;z-index:10000;transform:translateY(-160%);padding:12px 16px;border-radius:10px;background:#fff;color:#073653;border:2px solid #c9a45c;font-weight:700;text-decoration:none;box-shadow:0 6px 20px #071c2b30}
+.skip-link:focus{transform:translateY(0);outline:3px solid #087eae;outline-offset:3px}
 </style>
 </head>
 
 <body>
+<a class="skip-link" href="#home" onclick="showAppPage('home')">انتقل إلى بداية المحتوى</a>
 
 <header>
 <h1>OBNAR VACANCES</h1>
@@ -398,7 +403,7 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <button type="button" class="notification-bell" id="notificationBell" onclick="openNotifications()" aria-label="الإشعارات" title="الإشعارات">🔔<span id="notificationBadge" class="notification-badge hidden">0</span></button>
 </nav>
 
-<section id="home" class="app-page active">
+<section id="home" class="app-page active" tabindex="-1">
 <div class="hero">
 <h2>اعثر على إقامتك في أولاد بونار وجيجل 🌊</h2>
 <p>تصفح الإقامات المعروضة للكراء، اكتشف التفاصيل، واختر المكان المناسب لعطلتك. التصفح متاح للجميع دون تسجيل.</p>
