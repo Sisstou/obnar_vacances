@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   heading: {
-    color: '#243447',
+    color: '#123B5D',
     fontSize: 19,
     lineHeight: 27,
     fontWeight: '900',
@@ -110,14 +110,14 @@ const styles = StyleSheet.create({
     width: 232,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E8E0D2',
+    borderColor: '#D7E3EA',
     borderRadius: 17,
     backgroundColor: '#FFFFFF',
   },
   image: {
     width: '100%',
     height: 132,
-    backgroundColor: '#F2EEE6',
+    backgroundColor: '#EAF1F5',
   },
   imageFallback: {
     height: 132,
@@ -127,11 +127,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2EEE6',
   },
   imageGlyph: {
-    color: '#A47B36',
+    color: '#123B5D',
     fontSize: 28,
   },
   imageFallbackText: {
-    color: '#786B57',
+    color: '#52697A',
     fontSize: 11,
   },
   copy: {
@@ -156,12 +156,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E8E0D2',
+    borderColor: '#D7E3EA',
     borderRadius: 15,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F7FAFC',
   },
   emptyText: {
-    color: '#667085',
+    color: '#52697A',
     fontSize: 13,
     lineHeight: 20,
     textAlign: 'center',
