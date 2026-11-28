@@ -71,7 +71,7 @@ export function HomeHero({
         <TextInput
           accessibilityLabel={copy.searchLabel}
           placeholder={placeholder ?? copy.placeholder}
-          placeholderTextColor="#7B7468"
+          placeholderTextColor={colors.placeholder}
           value={query}
           onChangeText={setQuery}
           onSubmitEditing={() => onSearch?.(query.trim())}
