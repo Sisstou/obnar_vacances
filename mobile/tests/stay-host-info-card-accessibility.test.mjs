@@ -100,7 +100,7 @@ test('verified status has a clean localized accessibility label', () => {
 
   assert.ok(verified, 'verified status should be present');
   assert.equal(verified.props.accessibilityLabel, 'مضيف تم التحقق منه');
-  assert.equal(verified.props.children, '✓ مضيف تم التحقق منه');
+  assert.deepEqual(Array.from(verified.props.children), ['✓ ', 'مضيف تم التحقق منه']);
 });
 
 test('French verified status uses the French accessibility label', () => {
