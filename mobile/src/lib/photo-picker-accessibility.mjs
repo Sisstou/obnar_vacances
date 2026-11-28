@@ -1,9 +1,12 @@
 export function getPhotoRemoveAccessibilityLabel(locale, photoNumber) {
-  const number = Number.isSafeInteger(photoNumber) && photoNumber > 0
-    ? String(photoNumber)
-    : '';
+  const isFrench = locale === 'fr';
+  if (!Number.isSafeInteger(photoNumber) || photoNumber < 1) {
+    return isFrench
+      ? 'Retirer la photo de l’aperçu'
+      : 'حذف الصورة من المعاينة';
+  }
 
-  return locale === 'fr'
-    ? `Retirer la photo ${number} de l’aperçu`.trim()
-    : `حذف الصورة رقم ${number} من المعاينة`.trim();
+  return isFrench
+    ? `Retirer la photo ${photoNumber} de l’aperçu`
+    : `حذف الصورة رقم ${photoNumber} من المعاينة`;
 }
