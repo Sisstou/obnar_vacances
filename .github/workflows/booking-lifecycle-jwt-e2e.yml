@@ -1,20 +1,19 @@
 name: Booking lifecycle JWT end-to-end tests
 
 on:
+  # Manual runs are for authorized maintainers; the job below rejects non-main dispatch refs.
   workflow_dispatch:
+  # Dedicated trusted test branch only; do not execute secret-bearing tests for pull requests.
   push:
     branches:
       - test/booking-lifecycle-jwt-e2e
-  pull_request:
-    branches:
-      - main
-    types: [opened, synchronize, reopened]
 
 permissions:
   contents: read
 
 jobs:
   booking-lifecycle-e2e:
+    if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
     name: Run booking lifecycle flows against isolated Staging
     runs-on: ubuntu-latest
     timeout-minutes: 15
