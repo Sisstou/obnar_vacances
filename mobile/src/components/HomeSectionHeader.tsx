@@ -8,8 +8,11 @@ import {
   type ViewStyle,
 } from 'react-native';
 
+export type HomeSectionHeaderLocale = 'ar' | 'fr';
+
 export interface HomeSectionHeaderProps {
   title: string;
+  locale?: HomeSectionHeaderLocale;
   subtitle?: string;
   style?: StyleProp<ViewStyle>;
 }
@@ -17,13 +20,14 @@ export interface HomeSectionHeaderProps {
 /** Reusable heading for guest-home content sections. */
 export function HomeSectionHeader({
   title,
+  locale = 'ar',
   subtitle,
   style,
 }: HomeSectionHeaderProps) {
   return (
-    <View style={[styles.container, style]}>
-      <Text accessibilityRole="header" style={styles.title}>{title}</Text>
-      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+    <View style={[styles.container, { direction: locale === 'ar' ? 'rtl' : 'ltr' }, style]}>
+      <Text accessibilityRole="header" style={[styles.title, { textAlign: locale === 'ar' ? 'right' : 'left' }]}>{title}</Text>
+      {subtitle ? <Text style={[styles.subtitle, { textAlign: locale === 'ar' ? 'right' : 'left' }]}>{subtitle}</Text> : null}
     </View>
   );
 }
@@ -37,7 +41,6 @@ const styles = StyleSheet.create({
     fontSize: 19,
     lineHeight: 27,
     fontWeight: '900',
-    textAlign: 'auto',
   },
   subtitle: {
     color: colors.textMuted,
