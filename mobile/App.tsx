@@ -327,22 +327,22 @@ export default function App() {
       {tab === 'discover' && !showDetailPreview && (
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.hero}>
-            <Text style={[styles.heroTitle, rtl && styles.textRight]}>{t.intro}</Text>
+            <Text style={[styles.heroTitle, rtl ? styles.textRight : styles.textLeft]}>{t.intro}</Text>
             <TextInput
               accessibilityLabel={t.search}
               placeholder={t.search}
               placeholderTextColor={COLORS.muted}
               value={search}
               onChangeText={setSearch}
-              style={[styles.search, rtl && styles.textRight]}
+              style={[styles.search, rtl ? styles.textRight : styles.textLeft]}
               textAlign={rtl ? 'right' : 'left'}
               returnKeyType="search"
             />
             {!!search.trim() && (
-              <Text style={[styles.searchNote, rtl && styles.textRight]}>{t.searchPending}</Text>
+              <Text style={[styles.searchNote, rtl ? styles.textRight : styles.textLeft]}>{t.searchPending}</Text>
             )}
           </View>
-          <Text style={[styles.sectionTitle, rtl && styles.textRight]}>{t.categories}</Text>
+          <Text style={[styles.sectionTitle, rtl ? styles.textRight : styles.textLeft]}>{t.categories}</Text>
           <View style={styles.featureRow}>
             <Feature title={t.stay} symbol="⌂" rtl={rtl} />
             <Feature title={t.activities} symbol="✦" rtl={rtl} />
@@ -373,7 +373,7 @@ export default function App() {
             <Text style={styles.backButtonText}>‹  {t.back}</Text>
           </Pressable>
           <View style={styles.photoGallery}>
-            <Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.photoGallery}</Text>
+            <Text style={[styles.ownerSectionTitle, rtl ? styles.textRight : styles.textLeft]}>{t.photoGallery}</Text>
             <Pressable
               accessibilityRole="imagebutton"
               accessibilityLabel={t.photoUnavailable}
@@ -417,58 +417,58 @@ export default function App() {
             </View>
           </Modal>
           <View style={styles.detailCard}>
-            <Text style={[styles.detailTitle, rtl && styles.textRight]}>{t.detailName}</Text>
-            <Text style={[styles.detailLocation, rtl && styles.textRight]}>⌖  {t.detailLocation}</Text>
-            <Text style={[styles.detailDescription, rtl && styles.textRight]}>{t.detailDescription}</Text>
+            <Text style={[styles.detailTitle, rtl ? styles.textRight : styles.textLeft]}>{t.detailName}</Text>
+            <Text style={[styles.detailLocation, rtl ? styles.textRight : styles.textLeft]}>⌖  {t.detailLocation}</Text>
+            <Text style={[styles.detailDescription, rtl ? styles.textRight : styles.textLeft]}>{t.detailDescription}</Text>
           </View>
           <View style={styles.detailCard}>
-            <Text style={[styles.sectionTitle, rtl && styles.textRight]}>{t.bookingPanel}</Text>
+            <Text style={[styles.sectionTitle, rtl ? styles.textRight : styles.textLeft]}>{t.bookingPanel}</Text>
             <View style={styles.previewField}>
-              <Text style={[styles.label, rtl && styles.textRight]}>{t.checkIn}</Text>
+              <Text style={[styles.label, rtl ? styles.textRight : styles.textLeft]}>{t.checkIn}</Text>
               <View style={styles.readOnlyField}><Text style={styles.readOnlyText}>— / — / — — — —</Text></View>
             </View>
             <View style={styles.previewField}>
-              <Text style={[styles.label, rtl && styles.textRight]}>{t.checkOut}</Text>
+              <Text style={[styles.label, rtl ? styles.textRight : styles.textLeft]}>{t.checkOut}</Text>
               <View style={styles.readOnlyField}><Text style={styles.readOnlyText}>— / — / — — — —</Text></View>
             </View>
             <View style={styles.previewField}>
-              <Text style={[styles.label, rtl && styles.textRight]}>{t.guests}</Text>
+              <Text style={[styles.label, rtl ? styles.textRight : styles.textLeft]}>{t.guests}</Text>
               <View style={styles.readOnlyField}><Text style={styles.readOnlyText}>—</Text></View>
             </View>
-            <Text style={[styles.ownerPrice, rtl && styles.textRight]}>{t.ownerPrice}</Text>
+            <Text style={[styles.ownerPrice, rtl ? styles.textRight : styles.textLeft]}>{t.ownerPrice}</Text>
             <View style={styles.disabledBooking}><Text style={styles.disabledBookingText}>{t.bookingDisabled}</Text></View>
-            <Text style={[styles.bookingNotice, rtl && styles.textRight]}>{t.bookingNotice}</Text>
+            <Text style={[styles.bookingNotice, rtl ? styles.textRight : styles.textLeft]}>{t.bookingNotice}</Text>
           </View>
         </ScrollView>
       )}
 
       {tab === 'bookings' && (
         <ScrollView contentContainerStyle={styles.content}>
-          <Text style={[styles.sectionTitle, rtl && styles.textRight]}>{t.bookingsTitle}</Text>
+          <Text style={[styles.sectionTitle, rtl ? styles.textRight : styles.textLeft]}>{t.bookingsTitle}</Text>
           <View style={styles.trackingCard}>
-            <Text style={[styles.trackingIntro, rtl && styles.textRight]}>{t.trackingIntro}</Text>
+            <Text style={[styles.trackingIntro, rtl ? styles.textRight : styles.textLeft]}>{t.trackingIntro}</Text>
             <View style={styles.previewField}>
-              <Text style={[styles.label, rtl && styles.textRight]}>{t.bookingReference}</Text>
+              <Text style={[styles.label, rtl ? styles.textRight : styles.textLeft]}>{t.bookingReference}</Text>
               <View style={styles.readOnlyField}>
-                <Text style={[styles.readOnlyText, rtl && styles.textRight]}>{t.referencePlaceholder}</Text>
+                <Text style={[styles.readOnlyText, rtl ? styles.textRight : styles.textLeft]}>{t.referencePlaceholder}</Text>
               </View>
             </View>
             <View style={styles.previewField}>
-              <Text style={[styles.label, rtl && styles.textRight]}>{t.privateSecret}</Text>
+              <Text style={[styles.label, rtl ? styles.textRight : styles.textLeft]}>{t.privateSecret}</Text>
               <View style={styles.readOnlyField}>
-                <Text style={[styles.readOnlyText, rtl && styles.textRight]}>••••••••••••••••</Text>
+                <Text style={[styles.readOnlyText, rtl ? styles.textRight : styles.textLeft]}>••••••••••••••••</Text>
               </View>
             </View>
             <View style={styles.disabledBooking}>
               <Text style={styles.disabledBookingText}>{t.trackingDisabled}</Text>
             </View>
-            <Text style={[styles.securityText, rtl && styles.textRight]}>{t.trackingSecurity}</Text>
-            <Text style={[styles.securityText, rtl && styles.textRight]}>{t.secretSafety}</Text>
-            <Text style={[styles.bookingNotice, rtl && styles.textRight]}>{t.trackingNoBackend}</Text>
+            <Text style={[styles.securityText, rtl ? styles.textRight : styles.textLeft]}>{t.trackingSecurity}</Text>
+            <Text style={[styles.securityText, rtl ? styles.textRight : styles.textLeft]}>{t.secretSafety}</Text>
+            <Text style={[styles.bookingNotice, rtl ? styles.textRight : styles.textLeft]}>{t.trackingNoBackend}</Text>
           </View>
           <View style={styles.emptyCard}>
             <Text style={styles.emptyIcon}>▤</Text>
-            <Text style={[styles.emptyBody, rtl && styles.textRight]}>{t.noBookings}</Text>
+            <Text style={[styles.emptyBody, rtl ? styles.textRight : styles.textLeft]}>{t.noBookings}</Text>
           </View>
         </ScrollView>
       )}
@@ -506,16 +506,16 @@ export default function App() {
         >
           <ScrollView contentContainerStyle={styles.content}>
             <View style={styles.accountCard}>
-              <Text style={[styles.sectionTitle, rtl && styles.textRight]}>{t.accountTitle}</Text>
+              <Text style={[styles.sectionTitle, rtl ? styles.textRight : styles.textLeft]}>{t.accountTitle}</Text>
               {session ? (
                 <>
-                  <Text style={[styles.signedIn, rtl && styles.textRight]}>{t.signedIn}</Text>
-                  <Text style={[styles.emailValue, rtl && styles.textRight]}>{session.user.email}</Text>
+                  <Text style={[styles.signedIn, rtl ? styles.textRight : styles.textLeft]}>{t.signedIn}</Text>
+                  <Text style={[styles.emailValue, rtl ? styles.textRight : styles.textLeft]}>{session.user.email}</Text>
                   <ActionButton title={t.signOut} onPress={signOut} disabled={busy} />
                 </>
               ) : (
                 <>
-                  <Text style={[styles.helper, rtl && styles.textRight]}>{t.signedOut}</Text>
+                  <Text style={[styles.helper, rtl ? styles.textRight : styles.textLeft]}>{t.signedOut}</Text>
                   <Field label={t.email} value={email} onChangeText={setEmail} keyboardType="email-address" rtl={rtl} />
                   <Field label={t.password} value={password} onChangeText={setPassword} secureTextEntry rtl={rtl} />
                   <ActionButton title={busy ? t.loading : t.signIn} onPress={() => authenticate('signIn')} disabled={busy} />
@@ -527,7 +527,7 @@ export default function App() {
                   >
                     <Text style={styles.secondaryButtonText}>{t.signUp}</Text>
                   </Pressable>
-                  {!supabaseConfigured && <Text style={[styles.configNote, rtl && styles.textRight]}>{t.configMissing}</Text>}
+                  {!supabaseConfigured && <Text style={[styles.configNote, rtl ? styles.textRight : styles.textLeft]}>{t.configMissing}</Text>}
                 </>
               )}
             </View>
@@ -547,64 +547,64 @@ export default function App() {
                 <Pressable accessibilityRole="button" onPress={() => setShowOwnerPreview(false)} style={styles.backButton}>
                   <Text style={styles.backButtonText}>‹  {t.ownerBack}</Text>
                 </Pressable>
-                <Text style={[styles.sectionTitle, rtl && styles.textRight]}>{t.ownerPreviewTitle}</Text>
-                <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerPreviewIntro}</Text>
+                <Text style={[styles.sectionTitle, rtl ? styles.textRight : styles.textLeft]}>{t.ownerPreviewTitle}</Text>
+                <Text style={[styles.ownerIntro, rtl ? styles.textRight : styles.textLeft]}>{t.ownerPreviewIntro}</Text>
                 <Pressable accessibilityRole="button" onPress={() => setShowOwnerEditor(!showOwnerEditor)} style={styles.ownerEntryButton}>
                   <Text style={styles.ownerEntryText}>{t.ownerFormPreview}  ›</Text>
                 </Pressable>
                 {showOwnerEditor ? (
                   <View style={styles.ownerEditor}>
-                    <Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerEditPreview}</Text>
-                    <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerEditorNotice}</Text>
-                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerName}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>—</Text></View></View>
-                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerArea}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>—</Text></View></View>
-                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerDescription}</Text><View style={[styles.readOnlyField, styles.ownerMultiline]}><Text style={styles.readOnlyText}>—</Text></View></View>
-                    <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerPhotos}</Text><View style={styles.ownerPhotoRow}><View style={styles.ownerPhotoSlot}><Text style={styles.ownerPhotoText}>＋</Text></View><View style={styles.ownerPhotoSlot}><Text style={styles.ownerPhotoText}>＋</Text></View><View style={styles.ownerPhotoSlot}><Text style={styles.ownerPhotoText}>＋</Text></View></View><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerPhotoSlots}</Text></View>
-                    <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerAmenities}</Text><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerAmenityList}</Text></View>
-                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerCapacity}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>—</Text></View></View>
-                    <View style={styles.ownerSection}><Text style={[styles.label, rtl && styles.textRight]}>{t.ownerPriceLabel}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>— DZD</Text></View><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerDeposit}</Text></View>
+                    <Text style={[styles.ownerSectionTitle, rtl ? styles.textRight : styles.textLeft]}>{t.ownerEditPreview}</Text>
+                    <Text style={[styles.ownerIntro, rtl ? styles.textRight : styles.textLeft]}>{t.ownerEditorNotice}</Text>
+                    <View style={styles.ownerSection}><Text style={[styles.label, rtl ? styles.textRight : styles.textLeft]}>{t.ownerName}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>—</Text></View></View>
+                    <View style={styles.ownerSection}><Text style={[styles.label, rtl ? styles.textRight : styles.textLeft]}>{t.ownerArea}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>—</Text></View></View>
+                    <View style={styles.ownerSection}><Text style={[styles.label, rtl ? styles.textRight : styles.textLeft]}>{t.ownerDescription}</Text><View style={[styles.readOnlyField, styles.ownerMultiline]}><Text style={styles.readOnlyText}>—</Text></View></View>
+                    <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl ? styles.textRight : styles.textLeft]}>{t.ownerPhotos}</Text><View style={styles.ownerPhotoRow}><View style={styles.ownerPhotoSlot}><Text style={styles.ownerPhotoText}>＋</Text></View><View style={styles.ownerPhotoSlot}><Text style={styles.ownerPhotoText}>＋</Text></View><View style={styles.ownerPhotoSlot}><Text style={styles.ownerPhotoText}>＋</Text></View></View><Text style={[styles.ownerIntro, rtl ? styles.textRight : styles.textLeft]}>{t.ownerPhotoSlots}</Text></View>
+                    <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl ? styles.textRight : styles.textLeft]}>{t.ownerAmenities}</Text><Text style={[styles.ownerIntro, rtl ? styles.textRight : styles.textLeft]}>{t.ownerAmenityList}</Text></View>
+                    <View style={styles.ownerSection}><Text style={[styles.label, rtl ? styles.textRight : styles.textLeft]}>{t.ownerCapacity}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>—</Text></View></View>
+                    <View style={styles.ownerSection}><Text style={[styles.label, rtl ? styles.textRight : styles.textLeft]}>{t.ownerPriceLabel}</Text><View style={styles.readOnlyField}><Text style={styles.readOnlyText}>— DZD</Text></View><Text style={[styles.ownerIntro, rtl ? styles.textRight : styles.textLeft]}>{t.ownerDeposit}</Text></View>
                     <View style={styles.disabledBooking}><Text style={styles.disabledBookingText}>{t.ownerSaveDisabled}</Text></View>
                   </View>
                 ) : (
                   <>
-                    <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerProperties}</Text><Text style={[styles.emptyBody, rtl && styles.textRight]}>{t.ownerPropertiesEmpty}</Text></View>
+                    <View style={styles.ownerSection}><Text style={[styles.ownerSectionTitle, rtl ? styles.textRight : styles.textLeft]}>{t.ownerProperties}</Text><Text style={[styles.emptyBody, rtl ? styles.textRight : styles.textLeft]}>{t.ownerPropertiesEmpty}</Text></View>
                     <View style={styles.ownerSection}>
-                      <Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerRequests}</Text>
-                      <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerRequestPreview}</Text>
+                      <Text style={[styles.ownerSectionTitle, rtl ? styles.textRight : styles.textLeft]}>{t.ownerRequests}</Text>
+                      <Text style={[styles.ownerIntro, rtl ? styles.textRight : styles.textLeft]}>{t.ownerRequestPreview}</Text>
                       <View style={styles.requestSample}>
-                        <Text style={[styles.requestSampleLabel, rtl && styles.textRight]}>{t.ownerRequestSample}</Text>
-                        <Text style={[styles.requestStatus, rtl && styles.textRight]}>{t.ownerRequestStatus}</Text>
-                        <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerRequestRef}</Text>
-                        <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerRequestDates}</Text>
-                        <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerRequestGuests}</Text>
-                        <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerRequestTotal}</Text>
+                        <Text style={[styles.requestSampleLabel, rtl ? styles.textRight : styles.textLeft]}>{t.ownerRequestSample}</Text>
+                        <Text style={[styles.requestStatus, rtl ? styles.textRight : styles.textLeft]}>{t.ownerRequestStatus}</Text>
+                        <Text style={[styles.ownerIntro, rtl ? styles.textRight : styles.textLeft]}>{t.ownerRequestRef}</Text>
+                        <Text style={[styles.ownerIntro, rtl ? styles.textRight : styles.textLeft]}>{t.ownerRequestDates}</Text>
+                        <Text style={[styles.ownerIntro, rtl ? styles.textRight : styles.textLeft]}>{t.ownerRequestGuests}</Text>
+                        <Text style={[styles.ownerIntro, rtl ? styles.textRight : styles.textLeft]}>{t.ownerRequestTotal}</Text>
                         <View style={styles.requestActions}>
                           <View style={[styles.requestAction, styles.requestAcceptDisabled]}><Text style={styles.requestActionText}>{t.ownerAccept}</Text></View>
                           <View style={[styles.requestAction, styles.requestRejectDisabled]}><Text style={styles.requestActionText}>{t.ownerReject}</Text></View>
                         </View>
-                        <Text style={[styles.ownerDisabledNote, rtl && styles.textRight]}>{t.ownerActionsDisabled}</Text>
+                        <Text style={[styles.ownerDisabledNote, rtl ? styles.textRight : styles.textLeft]}>{t.ownerActionsDisabled}</Text>
                       </View>
-                      <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerCancelPolicy}</Text>
+                      <Text style={[styles.ownerIntro, rtl ? styles.textRight : styles.textLeft]}>{t.ownerCancelPolicy}</Text>
                     </View>
                     <View style={styles.ownerVerification}>
-                      <Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerVerification}</Text>
-                      <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerVerificationInfo}</Text>
-                      <View style={styles.ownerStatusCard}><Text style={[styles.ownerStatusTitle, rtl && styles.textRight]}>{t.ownerStatusPending}</Text><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerStatusPendingInfo}</Text></View>
-                      <View style={styles.ownerStatusCard}><Text style={[styles.ownerStatusTitle, rtl && styles.textRight]}>{t.ownerStatusApproved}</Text><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerStatusApprovedInfo}</Text></View>
-                      <View style={styles.ownerStatusCard}><Text style={[styles.ownerStatusTitle, rtl && styles.textRight]}>{t.ownerStatusRejected}</Text><Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerStatusRejectedInfo}</Text></View>
-                      <Text style={[styles.ownerDisabledNote, rtl && styles.textRight]}>{t.ownerStatusNoLive}</Text>
+                      <Text style={[styles.ownerSectionTitle, rtl ? styles.textRight : styles.textLeft]}>{t.ownerVerification}</Text>
+                      <Text style={[styles.ownerIntro, rtl ? styles.textRight : styles.textLeft]}>{t.ownerVerificationInfo}</Text>
+                      <View style={styles.ownerStatusCard}><Text style={[styles.ownerStatusTitle, rtl ? styles.textRight : styles.textLeft]}>{t.ownerStatusPending}</Text><Text style={[styles.ownerIntro, rtl ? styles.textRight : styles.textLeft]}>{t.ownerStatusPendingInfo}</Text></View>
+                      <View style={styles.ownerStatusCard}><Text style={[styles.ownerStatusTitle, rtl ? styles.textRight : styles.textLeft]}>{t.ownerStatusApproved}</Text><Text style={[styles.ownerIntro, rtl ? styles.textRight : styles.textLeft]}>{t.ownerStatusApprovedInfo}</Text></View>
+                      <View style={styles.ownerStatusCard}><Text style={[styles.ownerStatusTitle, rtl ? styles.textRight : styles.textLeft]}>{t.ownerStatusRejected}</Text><Text style={[styles.ownerIntro, rtl ? styles.textRight : styles.textLeft]}>{t.ownerStatusRejectedInfo}</Text></View>
+                      <Text style={[styles.ownerDisabledNote, rtl ? styles.textRight : styles.textLeft]}>{t.ownerStatusNoLive}</Text>
                     </View>
                   </>
                 )}
                 <View style={styles.ownerDocs}>
-                  <Text style={[styles.ownerSectionTitle, rtl && styles.textRight]}>{t.ownerDocsTitle}</Text>
-                  <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerDocsIntro}</Text>
+                  <Text style={[styles.ownerSectionTitle, rtl ? styles.textRight : styles.textLeft]}>{t.ownerDocsTitle}</Text>
+                  <Text style={[styles.ownerIntro, rtl ? styles.textRight : styles.textLeft]}>{t.ownerDocsIntro}</Text>
                   {[t.ownerDocIdentity, t.ownerDocOwnership, t.ownerDocAddress].map((label) => (
                     <View key={label} style={styles.ownerDocRow}>
                       <View style={styles.ownerDocInfo}>
-                        <Text style={[styles.ownerDocName, rtl && styles.textRight]}>{label}</Text>
-                        <Text style={[styles.ownerDocStatus, rtl && styles.textRight]}>{t.ownerDocStatusMissing}</Text>
-                        <Text style={[styles.ownerIntro, rtl && styles.textRight]}>{t.ownerDocStatusReview}</Text>
+                        <Text style={[styles.ownerDocName, rtl ? styles.textRight : styles.textLeft]}>{label}</Text>
+                        <Text style={[styles.ownerDocStatus, rtl ? styles.textRight : styles.textLeft]}>{t.ownerDocStatusMissing}</Text>
+                        <Text style={[styles.ownerIntro, rtl ? styles.textRight : styles.textLeft]}>{t.ownerDocStatusReview}</Text>
                       </View>
                       <View style={styles.ownerDocPlaceholder}>
                         <Text style={styles.ownerDocPlus}>＋</Text>
@@ -612,9 +612,9 @@ export default function App() {
                     </View>
                   ))}
                   <View style={styles.disabledBooking}><Text style={styles.disabledBookingText}>{t.ownerDocUploadDisabled}</Text></View>
-                  <Text style={[styles.ownerDisabledNote, rtl && styles.textRight]}>{t.ownerDocsNotice}</Text>
+                  <Text style={[styles.ownerDisabledNote, rtl ? styles.textRight : styles.textLeft]}>{t.ownerDocsNotice}</Text>
                 </View>
-                <Text style={[styles.ownerDisabledNote, rtl && styles.textRight]}>{t.ownerPreviewOnly}</Text>
+                <Text style={[styles.ownerDisabledNote, rtl ? styles.textRight : styles.textLeft]}>{t.ownerPreviewOnly}</Text>
               </View>
             )}
           </ScrollView>
@@ -622,7 +622,7 @@ export default function App() {
       )}
 
       {!showAdminWorkspace && <View style={styles.tabBar}>
-        <TabButton title={t.discover} symbol="⌂" active={tab === 'discover'} onPress={() => navigateTo('discover')} />
+        <TabButton rtl={rtl} title={t.discover} symbol="⌂" active={tab === 'discover'} onPress={() => navigateTo('discover')} />
         <TabButton title={t.bookings} symbol="▤" active={tab === 'bookings'} onPress={() => navigateTo('bookings')} />
         <TabButton title={t.account} symbol="○" active={tab === 'account'} onPress={() => navigateTo('account')} />
       </View>}
@@ -645,7 +645,7 @@ function Feature({ title, symbol, rtl }: { title: string; symbol: string; rtl: b
   return (
     <View style={[styles.feature, rtl && styles.rtl]}>
       <Text style={styles.featureSymbol}>{symbol}</Text>
-      <Text style={[styles.featureText, rtl && styles.textRight]}>{title}</Text>
+      <Text style={[styles.featureText, rtl ? styles.textRight : styles.textLeft]}>{title}</Text>
     </View>
   );
 }
@@ -660,7 +660,7 @@ function Field(props: {
 }) {
   return (
     <View style={styles.field}>
-      <Text style={[styles.label, props.rtl && styles.textRight]}>{props.label}</Text>
+      <Text style={[styles.label, props.rtl ? styles.textRight : styles.textLeft]}>{props.label}</Text>
       <TextInput
         accessibilityLabel={props.label}
         value={props.value}
@@ -668,7 +668,7 @@ function Field(props: {
         secureTextEntry={props.secureTextEntry}
         keyboardType={props.keyboardType}
         autoCapitalize={props.keyboardType === 'email-address' ? 'none' : 'sentences'}
-        style={[styles.input, props.rtl && styles.textRight]}
+        style={[styles.input, props.rtl ? styles.textRight : styles.textLeft]}
         textAlign={props.rtl ? 'right' : 'left'}
       />
     </View>
@@ -683,11 +683,11 @@ function ActionButton({ title, onPress, disabled }: { title: string; onPress: ()
   );
 }
 
-function TabButton({ title, symbol, active, onPress }: { title: string; symbol: string; active: boolean; onPress: () => void }) {
+function TabButton({ title, symbol, active, onPress, rtl }: { title: string; symbol: string; active: boolean; onPress: () => void; rtl: boolean }) {
   return (
     <Pressable accessibilityRole="tab" accessibilityState={{ selected: active }} onPress={onPress} style={styles.tabButton}>
       <Text style={[styles.tabSymbol, active && styles.activeTabText]}>{symbol}</Text>
-      <Text style={[styles.tabText, active && styles.activeTabText]}>{title}</Text>
+      <Text style={[styles.tabText, rtl ? styles.textRight : styles.textLeft, active && styles.activeTabText]}>{title}</Text>
     </Pressable>
   );
 }
