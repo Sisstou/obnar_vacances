@@ -24,7 +24,8 @@
       "package": "dz.obnarvacances.app",
       "adaptiveIcon": {
         "backgroundColor": "#102D46"
-      }
+      },
+      "supportsRTL": true
     }
   }
 }
