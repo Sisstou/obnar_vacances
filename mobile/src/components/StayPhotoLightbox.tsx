@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { getPhotoNavigationText } from '../lib/photo-navigation.mjs';
 import {
   Image,
   Modal,
@@ -75,6 +76,7 @@ export function StayPhotoLightbox({
 
   const currentPhoto = photos[activeIndex];
   const canNavigate = photos.length > 1;
+  const navigationText = getPhotoNavigationText(locale);
 
   const move = (direction: -1 | 1) => {
     if (!canNavigate) return;
@@ -134,7 +136,7 @@ export function StayPhotoLightbox({
                   onPress={() => move(-1)}
                   style={styles.navButton}
                 >
-                  <Text style={styles.navText}>{isArabic ? 'التالي ←' : '← Précédente'}</Text>
+                  <Text style={styles.navText}>{navigationText.previous}</Text>
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
@@ -142,7 +144,7 @@ export function StayPhotoLightbox({
                   onPress={() => move(1)}
                   style={styles.navButton}
                 >
-                  <Text style={styles.navText}>{isArabic ? '→ السابقة' : 'Suivante →'}</Text>
+                  <Text style={styles.navText}>{navigationText.next}</Text>
                 </Pressable>
               </View>
             ) : null}
