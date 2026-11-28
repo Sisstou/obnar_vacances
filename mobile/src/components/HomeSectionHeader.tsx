@@ -43,6 +43,5 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: 12,
     lineHeight: 19,
-    textAlign: 'auto',
   },
 });
