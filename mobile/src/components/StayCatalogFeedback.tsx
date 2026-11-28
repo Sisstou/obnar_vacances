@@ -70,6 +70,7 @@ export function StayCatalogFeedback({
   return (
     <View
       accessibilityRole="summary"
+      accessibilityLiveRegion="polite"
       style={[styles.container, { direction: isArabic ? 'rtl' : 'ltr' }, style]}
     >
       {state === 'loading' ? (
