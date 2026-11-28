@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   heading: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 22,
     fontWeight: '800',
   },
@@ -234,8 +234,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   notice: {
-    backgroundColor: '#F2F6FA',
-    borderColor: '#DCE6EF',
+    backgroundColor: '#F8F5EF',
+    borderColor: '#E9DCC4',
     borderRadius: 12,
     borderWidth: 1,
     gap: 6,
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 13,
     borderWidth: 1,
     gap: 7,
@@ -276,21 +276,21 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   value: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 14,
     fontWeight: '700',
     lineHeight: 21,
   },
   section: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 14,
     borderWidth: 1,
     gap: 11,
     padding: 14,
   },
   sectionTitle: {
-    color: '#12345A',
+    color: '#123B5D',
     fontSize: 14,
     fontWeight: '800',
   },
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
   },
   emptyCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 13,
     borderWidth: 1,
     padding: 15,

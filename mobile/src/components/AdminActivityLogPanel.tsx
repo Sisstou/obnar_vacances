@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   heading: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 22,
     fontWeight: '800',
   },
@@ -269,8 +269,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   notice: {
-    backgroundColor: '#F2F6FA',
-    borderColor: '#DCE6EF',
+    backgroundColor: '#F8F5EF',
+    borderColor: '#E9DCC4',
     borderRadius: 12,
     borderWidth: 1,
     gap: 6,
@@ -284,14 +284,14 @@ const styles = StyleSheet.create({
   summaryCard: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 13,
     borderWidth: 1,
     gap: 5,
     padding: 13,
   },
   summaryValue: {
-    color: '#12345A',
+    color: '#123B5D',
     fontSize: 23,
     fontWeight: '800',
   },
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   },
   activityCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 16,
     borderWidth: 1,
     gap: 9,
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   action: {
-    color: '#12243A',
+    color: '#123B5D',
     flex: 1,
     fontSize: 14,
     fontWeight: '800',
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
   detailBox: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F8F5EF',
     borderRadius: 10,
     gap: 5,
     padding: 10,
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
   },
   openButton: {
     alignItems: 'center',
-    backgroundColor: '#12345A',
+    backgroundColor: '#123B5D',
     borderRadius: 11,
     paddingHorizontal: 14,
     paddingVertical: 11,
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   },
   emptyCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 14,
     borderWidth: 1,
     gap: 7,
