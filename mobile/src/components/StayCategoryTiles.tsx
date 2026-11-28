@@ -1,4 +1,5 @@
 import React from 'react';
+import { colors } from '../theme/tokens';
 import { getCategoryAccessibilityLabel } from '../lib/category-accessibility.mjs';
 import {
   Pressable,
@@ -91,9 +92,9 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#E8E0D2',
+    borderColor: colors.border,
     borderRadius: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   symbolWrap: {
     width: 42,
@@ -101,21 +102,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 14,
-    backgroundColor: '#F4EFE5',
+    backgroundColor: colors.cream,
   },
   symbol: {
-    color: '#A47B36',
+    color: colors.gold,
     fontSize: 25,
     fontWeight: '800',
   },
   label: {
-    color: '#344054',
+    color: colors.text,
     fontSize: 13,
     fontWeight: '800',
     textAlign: 'center',
   },
   count: {
-    color: '#7A8492',
+    color: colors.textSoft,
     fontSize: 10,
     textAlign: 'center',
   },
