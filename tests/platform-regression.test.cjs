@@ -82,3 +82,10 @@ test('owner booking export buttons invoke the public export handler', () => {
   assert.match(html, /onclick="exportOwnerBookings\('pdf'\)"/);
   assert.match(html, /window\.exportOwnerBookings\s*=\s*exportOwnerBookings/);
 });
+
+
+test('visitor pages provide a keyboard skip link to the primary content', () => {
+  assert.match(html, /<a class="skip-link" href="#home" onclick="showAppPage\('home'\)">انتقل إلى بداية المحتوى<\/a>/);
+  assert.match(html, /<section id="home" class="app-page active" tabindex="-1">/);
+  assert.match(html, /\.skip-link:focus\s*\{/);
+});
