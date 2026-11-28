@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   status: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 12,
     borderWidth: 1,
     flexDirection: 'row',

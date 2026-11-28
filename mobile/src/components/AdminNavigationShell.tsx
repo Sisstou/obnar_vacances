@@ -266,7 +266,7 @@ export default function AdminNavigationShell({
 
 const styles = StyleSheet.create({
   root: {
-    backgroundColor: '#F5F7FA',
+    backgroundColor: '#F8F5EF',
     flex: 1,
     gap: 12,
     width: '100%',
