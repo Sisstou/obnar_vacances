@@ -623,8 +623,8 @@ export default function App() {
 
       {!showAdminWorkspace && <View style={styles.tabBar}>
         <TabButton rtl={rtl} title={t.discover} symbol="⌂" active={tab === 'discover'} onPress={() => navigateTo('discover')} />
-        <TabButton title={t.bookings} symbol="▤" active={tab === 'bookings'} onPress={() => navigateTo('bookings')} />
-        <TabButton title={t.account} symbol="○" active={tab === 'account'} onPress={() => navigateTo('account')} />
+        <TabButton rtl={rtl} title={t.bookings} symbol="▤" active={tab === 'bookings'} onPress={() => navigateTo('bookings')} />
+        <TabButton rtl={rtl} title={t.account} symbol="○" active={tab === 'account'} onPress={() => navigateTo('account')} />
       </View>}
     </SafeAreaView>
   );
