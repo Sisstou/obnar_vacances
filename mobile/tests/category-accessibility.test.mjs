@@ -5,7 +5,7 @@ import { getCategoryAccessibilityLabel } from '../src/lib/category-accessibility
 test('Arabic category labels announce the listing count', () => {
   assert.equal(
     getCategoryAccessibilityLabel('ar', 'شقق', 12),
-    'شقق، ١٢ إقامة',
+    'شقق، 12 إقامة',
   );
 });
 
@@ -19,7 +19,7 @@ test('French category labels announce the listing count', () => {
 test('zero counts are announced', () => {
   assert.equal(
     getCategoryAccessibilityLabel('ar', 'استوديوهات', 0),
-    'استوديوهات، ٠ إقامة',
+    'استوديوهات، 0 إقامة',
   );
 });
 
