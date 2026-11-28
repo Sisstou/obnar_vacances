@@ -1,4 +1,5 @@
 import React from 'react';
+import { colors } from '../theme/tokens';
 import {
   StyleSheet,
   Text,
@@ -32,14 +33,14 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   title: {
-    color: '#243447',
+    color: colors.navyText,
     fontSize: 19,
     lineHeight: 27,
     fontWeight: '900',
     textAlign: 'auto',
   },
   subtitle: {
-    color: '#667085',
+    color: colors.textMuted,
     fontSize: 12,
     lineHeight: 19,
     textAlign: 'auto',
