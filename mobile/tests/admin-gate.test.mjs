@@ -44,6 +44,9 @@ function loadGate() {
     if (specifier === 'react') return react;
     if (specifier === 'react-native') return reactNative;
     if (specifier === 'react/jsx-runtime') return jsxRuntime;
+    if (specifier === '../theme/colors') {
+      return { colors: { surface: '#FFFFFF', adminText: '#344054', adminNavy: '#12345A' } };
+    }
     if (specifier === '../services/admin-authorization.service') {
       return { verifyAdminAuthorization: async () => ({ status: 'unauthenticated' }) };
     }
@@ -168,6 +171,9 @@ function loadGateWithLifecycle(verifyAdminAuthorization) {
     if (specifier === 'react') return react;
     if (specifier === 'react-native') return reactNative;
     if (specifier === 'react/jsx-runtime') return jsxRuntime;
+    if (specifier === '../theme/colors') {
+      return { colors: { surface: '#FFFFFF', adminText: '#344054', adminNavy: '#12345A' } };
+    }
     if (specifier === '../services/admin-authorization.service') {
       return { verifyAdminAuthorization };
     }

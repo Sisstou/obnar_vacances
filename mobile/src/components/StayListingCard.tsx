@@ -1,4 +1,5 @@
 import React from 'react';
+import { colors } from '../theme/colors';
 import {
   Image,
   Pressable,
@@ -143,8 +144,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#E8E0D2',
-    backgroundColor: '#FFFFFF',
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
   pressed: {
     opacity: 0.88,
@@ -152,7 +153,7 @@ const styles = StyleSheet.create({
   imageFrame: {
     height: 176,
     width: '100%',
-    backgroundColor: '#F2EEE6',
+    backgroundColor: colors.sandLight,
   },
   image: {
     width: '100%',
@@ -165,11 +166,11 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   imageFallbackGlyph: {
-    color: '#B38A43',
+    color: colors.goldMuted,
     fontSize: 34,
   },
   imageFallbackText: {
-    color: '#786B57',
+    color: colors.textSoft,
     fontSize: 12,
   },
   content: {
@@ -177,7 +178,7 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   title: {
-    color: '#243447',
+    color: colors.text,
     fontSize: 17,
     lineHeight: 24,
     fontWeight: '800',
@@ -187,12 +188,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   locationGlyph: {
-    color: '#A47B36',
+    color: colors.goldStrong,
     fontSize: 16,
   },
   location: {
     flex: 1,
-    color: '#667085',
+    color: colors.textSecondary,
     fontSize: 13,
   },
   footer: {
@@ -206,12 +207,12 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   price: {
-    color: '#80602C',
+    color: colors.goldDeep,
     fontSize: 16,
     fontWeight: '800',
   },
   priceCaption: {
-    color: '#7A8492',
+    color: colors.textMuted,
     fontSize: 11,
   },
   facts: {
@@ -220,8 +221,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   fact: {
-    color: '#52606D',
-    backgroundColor: '#F6F3ED',
+    color: colors.adminText,
+    backgroundColor: colors.sandPale,
     overflow: 'hidden',
     borderRadius: 10,
     paddingHorizontal: 8,

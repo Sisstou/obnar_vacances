@@ -1,4 +1,5 @@
 import React from 'react';
+import { colors } from '../theme/colors';
 import {
   ActivityIndicator,
   Pressable,
@@ -74,7 +75,7 @@ export function StayCatalogFeedback({
       style={[styles.container, { direction: isArabic ? 'rtl' : 'ltr' }, style]}
     >
       {state === 'loading' ? (
-        <ActivityIndicator size="large" color="#A47B36" />
+        <ActivityIndicator size="large" color={colors.goldStrong} />
       ) : (
         <Text style={styles.symbol}>{state === 'empty' ? '⌂' : '!'}</Text>
       )}
@@ -107,17 +108,17 @@ const styles = StyleSheet.create({
     minHeight: 190,
     padding: 22,
     borderWidth: 1,
-    borderColor: '#E8E0D2',
+    borderColor: colors.border,
     borderRadius: 18,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   symbol: {
-    color: '#A47B36',
+    color: colors.goldStrong,
     fontSize: 30,
     fontWeight: '700',
   },
   title: {
-    color: '#243447',
+    color: colors.text,
     fontSize: 17,
     lineHeight: 24,
     fontWeight: '800',
@@ -125,7 +126,7 @@ const styles = StyleSheet.create({
   },
   message: {
     maxWidth: 320,
-    color: '#667085',
+    color: colors.textSecondary,
     fontSize: 13,
     lineHeight: 21,
   },
@@ -136,10 +137,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 18,
     borderRadius: 12,
-    backgroundColor: '#A47B36',
+    backgroundColor: colors.goldStrong,
   },
   retryText: {
-    color: '#FFFFFF',
+    color: colors.surface,
     fontSize: 13,
     fontWeight: '700',
   },

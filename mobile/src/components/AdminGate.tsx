@@ -1,4 +1,5 @@
 import React, { useEffect, useState, type ReactNode } from 'react';
+import { colors } from '../theme/colors';
 import {
   ActivityIndicator,
   AppState,
@@ -173,21 +174,21 @@ export default function AdminGate({
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     flex: 1,
     gap: 12,
     justifyContent: 'center',
     padding: 24,
   },
   message: {
-    color: '#344054',
+    color: colors.adminText,
     fontSize: 14,
     lineHeight: 22,
     textAlign: 'center',
   },
   retryButton: {
     alignItems: 'center',
-    borderColor: '#12345A',
+    borderColor: colors.adminNavy,
     borderRadius: 10,
     borderWidth: 1,
     justifyContent: 'center',
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   retryText: {
-    color: '#12345A',
+    color: colors.adminNavy,
     fontSize: 14,
     fontWeight: '700',
   },
