@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - mobile-app
+      - review/android-approved-stays-signed-urls
+      - review/android-admin-panel-routing
     paths:
       - "mobile/**"
       - ".github/workflows/mobile-android-apk.yml"
@@ -21,12 +23,18 @@ jobs:
       EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY || vars.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
 
     steps:
-      - name: Require the mobile-app branch
+      - name: Require an approved internal-test branch
+        shell: bash
         run: |
-          if [ "${GITHUB_REF}" != "refs/heads/mobile-app" ]; then
-            echo "::error::Run this workflow from the mobile-app branch only."
-            exit 1
-          fi
+          case "${GITHUB_REF}" in
+            refs/heads/mobile-app|refs/heads/review/android-approved-stays-signed-urls|refs/heads/review/android-admin-panel-routing)
+              echo "Approved internal-test branch: ${GITHUB_REF}"
+              ;;
+            *)
+              echo "::error::This workflow is restricted to approved internal-test branches."
+              exit 1
+              ;;
+          esac
 
       - name: Check out source
         uses: actions/checkout@v4

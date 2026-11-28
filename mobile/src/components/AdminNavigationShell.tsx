@@ -201,6 +201,7 @@ export default function AdminNavigationShell({
       </View>
 
       <ScrollView
+        style={styles.navigationScroll}
         contentContainerStyle={styles.navigationContent}
         showsVerticalScrollIndicator={false}
       >
@@ -299,6 +300,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 19,
   },
+  navigationScroll: {
+    flex: 1,
+    minHeight: 0,
+  },
   navigationContent: {
     gap: 11,
     paddingHorizontal: 16,
@@ -362,6 +367,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderColor: '#E5EAF0',
     borderTopWidth: 1,
+    flexShrink: 0,
+    minHeight: 120,
     gap: 8,
     padding: 16,
   },
