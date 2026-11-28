@@ -75,7 +75,7 @@ export default function App() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F4F7F9',
+    backgroundColor: '#F8F5EF',
   },
   content: {
     paddingHorizontal: 16,
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   brand: {
-    color: '#123B5D',
+    color: '#344054',
     fontSize: 13,
     fontWeight: '900',
     letterSpacing: 1,
@@ -106,18 +106,18 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#123B5D',
-    backgroundColor: '#123B5D',
+    borderColor: '#E8E0D2',
+    backgroundColor: '#E9DCC4',
     gap: 6,
   },
   footerTitle: {
-    color: '#FFFFFF',
+    color: '#3E3427',
     fontSize: 14,
     fontWeight: '800',
     textAlign: 'right',
   },
   footerText: {
-    color: '#DCE8EF',
+    color: '#5F5140',
     fontSize: 12,
     lineHeight: 19,
     textAlign: 'right',

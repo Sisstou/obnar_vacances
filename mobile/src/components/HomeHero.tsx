@@ -94,23 +94,23 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     borderRadius: 22,
-    backgroundColor: '#123B5D',
+    backgroundColor: '#E9DCC4',
     gap: 10,
   },
   eyebrow: {
-    color: '#E7C98A',
+    color: '#123B5D',
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 1,
   },
   title: {
-    color: '#FFFFFF',
+    color: '#3E3427',
     fontSize: 27,
     lineHeight: 36,
     fontWeight: '900',
   },
   subtitle: {
-    color: '#DCE8EF',
+    color: '#5F5140',
     fontSize: 14,
     lineHeight: 22,
   },
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 14,
     borderRadius: 12,
-    backgroundColor: '#0B2D46',
+    backgroundColor: '#123B5D',
   },
   searchButtonText: {
     color: '#FFFFFF',

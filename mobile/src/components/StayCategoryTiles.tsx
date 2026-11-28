@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#D7E3EA',
+    borderColor: '#E8E0D2',
     borderRadius: 16,
     backgroundColor: '#FFFFFF',
   },
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 14,
-    backgroundColor: '#EAF1F5',
+    backgroundColor: '#F4EFE5',
   },
   symbol: {
     color: '#123B5D',
