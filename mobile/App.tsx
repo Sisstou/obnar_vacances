@@ -307,12 +307,12 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, rtl ? styles.rtlLayout : styles.ltrLayout]}>
       <StatusBar barStyle="light-content" />
       <View style={[styles.header, rtl && styles.rtl]}>
         <View>
           <Text style={styles.brand}>OBNAR VACANCES</Text>
-          <Text style={styles.headerSubtitle}>{t.tagline}</Text>
+          <Text style={[styles.headerSubtitle, rtl ? styles.textRight : styles.textLeft]}>{t.tagline}</Text>
         </View>
         <Pressable
           accessibilityRole="button"
@@ -700,6 +700,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
   },
   rtl: { flexDirection: 'row-reverse' },
+  rtlLayout: { direction: 'rtl' },
+  ltrLayout: { direction: 'ltr' },
   brand: { color: COLORS.white, fontSize: 18, fontWeight: '800', letterSpacing: 0.6 },
   headerSubtitle: { color: '#E9E1D2', fontSize: 12, marginTop: 4 },
   languageButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, borderColor: '#FFFFFF55' },
@@ -708,6 +710,7 @@ const styles = StyleSheet.create({
   hero: { backgroundColor: '#F1E7D3', borderRadius: 20, padding: 20, gap: 16 },
   heroTitle: { color: COLORS.navy, fontSize: 22, fontWeight: '800', lineHeight: 32 },
   textRight: { textAlign: 'right', writingDirection: 'rtl' },
+  textLeft: { textAlign: 'left', writingDirection: 'ltr' },
   search: { minHeight: 50, backgroundColor: COLORS.white, borderRadius: 12, paddingHorizontal: 14, color: COLORS.ink, borderWidth: 1, borderColor: COLORS.line },
   searchNote: { color: COLORS.muted, fontSize: 12, lineHeight: 19 },
   sectionTitle: { color: COLORS.navy, fontSize: 19, fontWeight: '800' },
