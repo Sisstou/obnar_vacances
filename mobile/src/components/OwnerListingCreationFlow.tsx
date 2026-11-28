@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     width: 34,
   },
   stepNumberActive: {
-    backgroundColor: '#12345A',
+    backgroundColor: '#123B5D',
   },
   stepNumberText: {
     color: '#667085',
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   stepLabelActive: {
-    color: '#12345A',
+    color: '#123B5D',
     fontWeight: '800',
   },
   visibleStep: {
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   successTitle: {
-    color: '#12345A',
+    color: '#123B5D',
     fontSize: 21,
     fontWeight: '800',
     textAlign: 'center',
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     alignItems: 'center',
-    backgroundColor: '#12345A',
+    backgroundColor: '#123B5D',
     borderRadius: 10,
     flex: 1,
     justifyContent: 'center',
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   secondaryText: {
-    color: '#12345A',
+    color: '#123B5D',
   },
   disabledText: {
     color: '#667085',

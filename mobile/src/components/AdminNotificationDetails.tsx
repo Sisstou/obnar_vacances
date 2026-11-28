@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   heading: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 22,
     fontWeight: '800',
   },
@@ -274,8 +274,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   notice: {
-    backgroundColor: '#F2F6FA',
-    borderColor: '#DCE6EF',
+    backgroundColor: '#F8F5EF',
+    borderColor: '#E9DCC4',
     borderRadius: 12,
     borderWidth: 1,
     gap: 6,
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 15,
     borderWidth: 1,
     gap: 10,
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   title: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 17,
     fontWeight: '800',
     lineHeight: 25,
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   sectionHeading: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 15,
     fontWeight: '800',
   },
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     alignItems: 'center',
-    backgroundColor: '#12345A',
+    backgroundColor: '#123B5D',
     borderRadius: 11,
     justifyContent: 'center',
     minHeight: 46,

@@ -96,7 +96,7 @@ export default function OwnerListingStatusCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 16,
     borderWidth: 1,
     padding: 16,
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   title: {
-    color: '#12243A',
+    color: '#123B5D',
     flexShrink: 1,
     fontSize: 16,
     fontWeight: '700',

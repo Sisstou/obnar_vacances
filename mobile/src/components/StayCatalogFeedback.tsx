@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     minHeight: 190,
     padding: 22,
     borderWidth: 1,
-    borderColor: '#E8E0D2',
+    borderColor: '#E9DCC4',
     borderRadius: 18,
     backgroundColor: '#FFFFFF',
   },
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   title: {
-    color: '#243447',
+    color: '#123B5D',
     fontSize: 17,
     lineHeight: 24,
     fontWeight: '800',

@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   heading: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 21,
     fontWeight: '800',
   },
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   },
   sectionCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 13,
     borderWidth: 1,
     gap: 9,
@@ -316,14 +316,14 @@ const styles = StyleSheet.create({
     minHeight: 34,
   },
   sectionTitle: {
-    color: '#24364B',
+    color: '#123B5D',
     flex: 1,
     fontSize: 13,
     fontWeight: '800',
     lineHeight: 20,
   },
   chevron: {
-    color: '#12345A',
+    color: '#123B5D',
     fontSize: 21,
     fontWeight: '600',
   },
@@ -331,12 +331,12 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   paragraph: {
-    color: '#475467',
+    color: '#344054',
     fontSize: 12,
     lineHeight: 21,
   },
   expandLabel: {
-    color: '#245B91',
+    color: '#123B5D',
     fontSize: 11,
     fontWeight: '700',
   },

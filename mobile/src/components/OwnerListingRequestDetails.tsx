@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   heading: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 22,
     fontWeight: '800',
   },
@@ -258,8 +258,8 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   notice: {
-    backgroundColor: '#F2F6FA',
-    borderColor: '#DCE6EF',
+    backgroundColor: '#F8F5EF',
+    borderColor: '#E9DCC4',
     borderRadius: 12,
     borderWidth: 1,
     gap: 6,
@@ -272,14 +272,14 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 16,
     borderWidth: 1,
     gap: 12,
     padding: 15,
   },
   sectionTitle: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 16,
     fontWeight: '800',
   },
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     alignItems: 'center',
-    backgroundColor: '#12345A',
+    backgroundColor: '#123B5D',
     borderRadius: 10,
     flex: 1,
     justifyContent: 'center',
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   secondaryText: {
-    color: '#12345A',
+    color: '#123B5D',
   },
   footerNote: {
     color: '#667085',

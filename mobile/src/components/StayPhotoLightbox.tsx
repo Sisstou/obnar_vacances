@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 22,
-    backgroundColor: '#203442',
+    backgroundColor: '#123B5D',
   },
   closeText: {
     color: '#FFFFFF',
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 12,
     borderRadius: 12,
-    backgroundColor: '#203442',
+    backgroundColor: '#123B5D',
   },
   navText: {
     color: '#FFFFFF',
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 12,
-    backgroundColor: '#203442',
+    backgroundColor: '#123B5D',
   },
   zoomText: {
     color: '#FFFFFF',
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 10,
     borderRadius: 12,
-    backgroundColor: '#0F766E',
+    backgroundColor: '#A47B36',
   },
   resetText: {
     color: '#FFFFFF',

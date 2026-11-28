@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   heading: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 21,
     fontWeight: '800',
   },
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: {
-    color: '#12345A',
+    color: '#123B5D',
     fontSize: 16,
     fontWeight: '800',
   },
@@ -242,12 +242,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 11,
   },
   smallButtonText: {
-    color: '#12345A',
+    color: '#123B5D',
     fontSize: 12,
     fontWeight: '700',
   },
   listingTitle: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 19,
     fontWeight: '800',
   },
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   depositNote: {
-    backgroundColor: '#F5F7FA',
+    backgroundColor: '#F8F5EF',
     borderRadius: 9,
     color: '#475467',
     fontSize: 12,

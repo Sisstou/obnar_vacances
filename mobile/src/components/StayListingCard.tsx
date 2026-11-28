@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   imageFrame: {
     height: 176,
     width: '100%',
-    backgroundColor: '#F2EEE6',
+    backgroundColor: '#F8F5EF',
   },
   image: {
     width: '100%',

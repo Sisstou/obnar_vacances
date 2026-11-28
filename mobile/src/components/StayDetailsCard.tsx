@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#E3E8EF',
+    borderColor: '#E9DCC4',
     backgroundColor: '#FFFFFF',
   },
   previewBanner: {
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   title: {
-    color: '#102A43',
+    color: '#123B5D',
     fontSize: 20,
     lineHeight: 28,
     fontWeight: '700',
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   locationPin: {
-    color: '#0F766E',
+    color: '#A47B36',
     fontSize: 17,
     fontWeight: '700',
   },
@@ -207,23 +207,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   description: {
-    color: '#334E68',
+    color: '#344054',
     fontSize: 14,
     lineHeight: 22,
   },
   pricePanel: {
     padding: 13,
     borderRadius: 12,
-    backgroundColor: '#F0F7F7',
+    backgroundColor: '#F8F5EF',
   },
   price: {
-    color: '#075E59',
+    color: '#123B5D',
     fontSize: 19,
     fontWeight: '700',
   },
   priceCaption: {
     marginTop: 2,
-    color: '#486581',
+    color: '#667085',
     fontSize: 12,
   },
   factsRow: {
@@ -236,16 +236,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     borderRadius: 12,
-    backgroundColor: '#F5F7FA',
+    backgroundColor: '#F8F5EF',
   },
   factValue: {
-    color: '#102A43',
+    color: '#123B5D',
     fontSize: 17,
     fontWeight: '700',
   },
   factLabel: {
     marginTop: 3,
-    color: '#627D98',
+    color: '#667085',
     fontSize: 11,
     textAlign: 'center',
   },
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: {
-    color: '#243B53',
+    color: '#123B5D',
     fontSize: 14,
     fontWeight: '700',
   },
@@ -266,10 +266,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 11,
     borderRadius: 16,
-    backgroundColor: '#EEF3F8',
+    backgroundColor: '#F8F5EF',
   },
   amenityText: {
-    color: '#334E68',
+    color: '#344054',
     fontSize: 12,
   },
 });

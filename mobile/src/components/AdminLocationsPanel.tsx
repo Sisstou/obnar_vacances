@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   heading: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 22,
     fontWeight: '800',
   },
@@ -251,8 +251,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   notice: {
-    backgroundColor: '#F2F6FA',
-    borderColor: '#DCE6EF',
+    backgroundColor: '#F8F5EF',
+    borderColor: '#E9DCC4',
     borderRadius: 12,
     borderWidth: 1,
     gap: 6,
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   },
   metricCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 12,
     borderWidth: 1,
     gap: 4,
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
     padding: 13,
   },
   metricValue: {
-    color: '#12345A',
+    color: '#123B5D',
     fontSize: 24,
     fontWeight: '800',
   },
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   sectionTitle: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 17,
     fontWeight: '800',
   },
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   },
   locationCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 15,
     borderWidth: 1,
     gap: 11,
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   locationName: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 16,
     fontWeight: '800',
     lineHeight: 23,
@@ -353,8 +353,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   descriptionBox: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E5EAF0',
+    backgroundColor: '#F8F5EF',
+    borderColor: '#E9DCC4',
     borderRadius: 10,
     borderWidth: 1,
     gap: 5,
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
   },
   openButton: {
     alignItems: 'center',
-    backgroundColor: '#12345A',
+    backgroundColor: '#123B5D',
     borderRadius: 10,
     justifyContent: 'center',
     minHeight: 44,
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
   emptyCard: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 14,
     borderWidth: 1,
     padding: 20,

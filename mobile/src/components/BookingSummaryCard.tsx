@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   card: {
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E3E8EF',
+    borderColor: '#E9DCC4',
     borderRadius: 16,
     backgroundColor: '#FFFFFF',
   },
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   heading: {
-    color: '#102A43',
+    color: '#123B5D',
     fontSize: 17,
     lineHeight: 24,
     fontWeight: '700',
@@ -255,19 +255,19 @@ const styles = StyleSheet.create({
     gap: 4,
     padding: 12,
     borderRadius: 12,
-    backgroundColor: '#F5F8FA',
+    backgroundColor: '#F8F5EF',
   },
   stayLabel: {
-    color: '#627D98',
+    color: '#667085',
     fontSize: 11,
   },
   stayTitle: {
-    color: '#102A43',
+    color: '#123B5D',
     fontSize: 16,
     fontWeight: '700',
   },
   location: {
-    color: '#627D98',
+    color: '#667085',
     fontSize: 12,
   },
   details: {
@@ -283,23 +283,23 @@ const styles = StyleSheet.create({
   },
   rowLabel: {
     flex: 1,
-    color: '#627D98',
+    color: '#667085',
     fontSize: 13,
   },
   rowValue: {
     flex: 1,
-    color: '#334E68',
+    color: '#344054',
     fontSize: 13,
     fontWeight: '600',
   },
   strongValue: {
-    color: '#075E59',
+    color: '#A47B36',
     fontWeight: '700',
   },
   totalPanel: {
     padding: 14,
     borderRadius: 12,
-    backgroundColor: '#F0F7F7',
+    backgroundColor: '#F8F5EF',
   },
   totalRow: {
     alignItems: 'center',
@@ -308,12 +308,12 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     flex: 1,
-    color: '#075E59',
+    color: '#A47B36',
     fontSize: 13,
     fontWeight: '700',
   },
   totalValue: {
-    color: '#075E59',
+    color: '#A47B36',
     fontSize: 18,
     fontWeight: '800',
   },
@@ -323,12 +323,12 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
   note: {
-    color: '#486581',
+    color: '#667085',
     fontSize: 11,
     lineHeight: 18,
   },
   footerNote: {
-    color: '#829AB1',
+    color: '#667085',
     fontSize: 10,
     lineHeight: 16,
   },
