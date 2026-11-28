@@ -1,6 +1,9 @@
 name: Scheduled security code analysis
 
 on:
+  push:
+    branches:
+      - security/automated-codeql-audit-20261128
   schedule:
     # Weekly on Sundays at 03:20 UTC.
     - cron: "20 3 * * 0"
