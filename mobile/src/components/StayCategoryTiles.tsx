@@ -1,4 +1,5 @@
 import React from 'react';
+import { getCategoryAccessibilityLabel } from '../lib/category-accessibility.mjs';
 import {
   Pressable,
   StyleSheet,
@@ -54,7 +55,11 @@ export function StayCategoryTiles({
           <Pressable
             key={category.id}
             accessibilityRole="button"
-            accessibilityLabel={category.label ?? (isArabic ? copy.ar : copy.fr)}
+            accessibilityLabel={getCategoryAccessibilityLabel(
+              locale,
+              category.label ?? (isArabic ? copy.ar : copy.fr),
+              category.count,
+            )}
             onPress={() => onSelect?.(category.id)}
             style={({ pressed }) => [styles.tile, pressed && styles.pressed]}
           >
