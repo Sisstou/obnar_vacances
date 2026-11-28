@@ -204,7 +204,7 @@ export function StayDateGuestSelector({
           >
             <Text style={styles.stepButtonText}>−</Text>
           </Pressable>
-          <Text accessibilityLiveRegion="polite" style={styles.guestCount}>
+          <Text accessibilityLabel={`${labels.guests}: ${safeGuestCount}`} accessibilityLiveRegion="polite" style={styles.guestCount}>
             {safeGuestCount}
           </Text>
           <Pressable
