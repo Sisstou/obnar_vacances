@@ -84,15 +84,25 @@ export function StayHostInfoCard({
       </Text>
 
       <View style={[styles.profileRow, { flexDirection: rtl ? 'row-reverse' : 'row' }]}>
-        <View style={styles.avatar} accessibilityLabel={displayName}>
+        <View
+          accessible={false}
+          importantForAccessibility="no"
+          style={styles.avatar}
+        >
           <Text style={styles.avatarText}>{safeInitials || '•'}</Text>
         </View>
         <View style={styles.profileText}>
-          <Text style={[styles.name, { textAlign: rtl ? 'right' : 'left' }]}>
+          <Text
+            accessibilityRole="header"
+            style={[styles.name, { textAlign: rtl ? 'right' : 'left' }]}
+          >
             {displayName}
           </Text>
           {isVerifiedHost ? (
-            <Text style={[styles.verified, { textAlign: rtl ? 'right' : 'left' }]}>
+            <Text
+              accessibilityLabel={labels.verified}
+              style={[styles.verified, { textAlign: rtl ? 'right' : 'left' }]}
+            >
               ✓ {labels.verified}
             </Text>
           ) : null}
