@@ -89,3 +89,11 @@ test('visitor pages provide a keyboard skip link to the primary content', () => 
   assert.match(html, /<section id="home" class="app-page active" tabindex="-1">/);
   assert.match(html, /\.skip-link:focus\s*\{/);
 });
+
+
+test('destination carousel supports manual touch scrolling without auto-motion', () => {
+  assert.match(html, /@media\(prefers-reduced-motion:reduce\),\(hover:none\)/);
+  assert.match(html, /\.destination-marquee\{[^}]*overflow-x:auto/);
+  assert.match(html, /\.destination-marquee-track\{animation:none;transform:none;will-change:auto\}/);
+  assert.match(html, /\.destination-marquee-group\[aria-hidden="true"\]\{display:none\}/);
+});
