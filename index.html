@@ -522,13 +522,13 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <div class="panel">
 <h2>🔎 البحث عن إقامة</h2>
 
-<input id="searchText" placeholder="المدينة أو المنطقة أو اسم الإقامة">
+<input id="searchText" placeholder="المدينة أو المنطقة أو اسم الإقامة" aria-label="ابحث باسم الإقامة أو المدينة أو المنطقة">
 
-<select id="locationFilter">
+<select id="locationFilter" aria-label="تصفية الإقامات حسب المنطقة">
 <option value="">كل المناطق</option>
 </select>
 
-<select id="guestFilter">
+<select id="guestFilter" aria-label="عدد الأشخاص">
 <option value="1">شخص واحد على الأقل</option>
 <option value="2">شخصان</option>
 <option value="3">3 أشخاص</option>
@@ -582,10 +582,10 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 </select>
 <p id="signupRoleNote" class="signup-role-note" aria-live="polite">يمكنك التسجيل كمصطاف والبدء في البحث عن إقامة.</p>
 
-<input id="fullName" placeholder="الاسم الكامل">
-<input id="phone" placeholder="رقم الهاتف">
-<input id="email" type="email" placeholder="البريد الإلكتروني">
-<input id="password" type="password" placeholder="كلمة المرور (6 أحرف على الأقل)">
+<input id="fullName" placeholder="الاسم الكامل" aria-label="الاسم الكامل">
+<input id="phone" placeholder="رقم الهاتف" aria-label="رقم الهاتف">
+<input id="email" type="email" placeholder="البريد الإلكتروني" aria-label="البريد الإلكتروني">
+<input id="password" type="password" placeholder="كلمة المرور (6 أحرف على الأقل)" aria-label="كلمة المرور">
 
 <button onclick="signup()">إنشاء حساب</button>
 
@@ -593,8 +593,8 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 
 <h3>تسجيل الدخول</h3>
 
-<input id="loginEmail" type="email" placeholder="البريد الإلكتروني">
-<input id="loginPassword" type="password" placeholder="كلمة المرور">
+<input id="loginEmail" type="email" placeholder="البريد الإلكتروني" aria-label="البريد الإلكتروني لتسجيل الدخول">
+<input id="loginPassword" type="password" placeholder="كلمة المرور" aria-label="كلمة المرور لتسجيل الدخول">
 
 <button onclick="login()">دخول</button>
 <button type="button" class="secondary" onclick="sendPasswordReset()">نسيت كلمة المرور؟</button>
@@ -629,7 +629,7 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <div id="profileEditFields" class="hidden">
  <p id="profileDisplayName" class="small">Khebbache</p>
  <input id="editFullName" type="hidden">
- <input id="editPhone" type="tel" placeholder="رقم الهاتف">
+ <input id="editPhone" type="tel" placeholder="رقم الهاتف" aria-label="رقم الهاتف في بيانات الحساب">
  <label class="field-label" for="editEmail">البريد الإلكتروني</label>
  <input id="editEmail" type="email" autocomplete="email" placeholder="البريد الإلكتروني">
  <button type="button" onclick="saveMyProfile()">حفظ التعديلات</button>
