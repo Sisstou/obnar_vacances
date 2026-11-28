@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   heading: {
-    color: '#A47B36',
+    color: '#123B5D',
     fontSize: 19,
     lineHeight: 27,
     fontWeight: '900',
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2EEE6',
   },
   imageGlyph: {
-    color: '#123B5D',
+    color: '#A47B36',
     fontSize: 28,
   },
   imageFallbackText: {
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   emptyText: {
-    color: '#52697A',
+    color: '#667085',
     fontSize: 13,
     lineHeight: 20,
     textAlign: 'center',
