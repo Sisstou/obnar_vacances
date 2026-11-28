@@ -89,32 +89,32 @@ export function StayListingCard({
         <Text
           accessibilityRole="header"
           numberOfLines={2}
-          style={[styles.title, { textAlign: rtl ? 'right' : 'left' }]}
+          style={[styles.title, { textAlign: rtl ? 'right' : 'left', writingDirection: rtl ? 'rtl' : 'ltr' }]}
         >
           {stay.title}
         </Text>
 
         <View style={[styles.locationRow, { flexDirection: rtl ? 'row-reverse' : 'row' }]}>
           <Text style={styles.locationGlyph}>⌖</Text>
-          <Text numberOfLines={1} style={[styles.location, { textAlign: rtl ? 'right' : 'left' }]}>
+          <Text numberOfLines={1} style={[styles.location, { textAlign: rtl ? 'right' : 'left', writingDirection: rtl ? 'rtl' : 'ltr' }]}>
             {stay.location}
           </Text>
         </View>
 
         <View style={[styles.footer, { flexDirection: rtl ? 'row-reverse' : 'row' }]}>
           <View style={styles.priceBlock}>
-            <Text style={styles.price}>
+            <Text style={[styles.price, { textAlign: rtl ? 'right' : 'left', writingDirection: rtl ? 'rtl' : 'ltr' }]}>
               {formattedPrice} {currency}
             </Text>
-            <Text style={styles.priceCaption}>{labels.perNight}</Text>
+            <Text style={[styles.priceCaption, { textAlign: rtl ? 'right' : 'left', writingDirection: rtl ? 'rtl' : 'ltr' }]}>{labels.perNight}</Text>
           </View>
 
           <View style={[styles.facts, { flexDirection: rtl ? 'row-reverse' : 'row' }]}>
             {stay.maxGuests != null ? (
-              <Text style={styles.fact}>{stay.maxGuests} {labels.guests}</Text>
+              <Text style={[styles.fact, { writingDirection: rtl ? 'rtl' : 'ltr' }]}>{stay.maxGuests} {labels.guests}</Text>
             ) : null}
             {stay.bedrooms != null ? (
-              <Text style={styles.fact}>{stay.bedrooms} {labels.bedrooms}</Text>
+              <Text style={[styles.fact, { writingDirection: rtl ? 'rtl' : 'ltr' }]}>{stay.bedrooms} {labels.bedrooms}</Text>
             ) : null}
           </View>
         </View>
@@ -123,7 +123,7 @@ export function StayListingCard({
   );
 
   if (!onPress) {
-    return <View style={[styles.card, style]}>{content}</View>;
+    return <View style={[styles.card, { direction: rtl ? 'rtl' : 'ltr' }, style]}>{content}</View>;
   }
 
   return (
@@ -131,7 +131,7 @@ export function StayListingCard({
       accessibilityRole="button"
       accessibilityLabel={`${labels.open}: ${stay.title}`}
       onPress={() => onPress(stay)}
-      style={({ pressed }) => [styles.card, style, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.card, { direction: rtl ? 'rtl' : 'ltr' }, style, pressed && styles.pressed]}
     >
       {content}
     </Pressable>
