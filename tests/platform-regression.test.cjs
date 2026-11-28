@@ -82,3 +82,64 @@ test('owner booking export buttons invoke the public export handler', () => {
   assert.match(html, /onclick="exportOwnerBookings\('pdf'\)"/);
   assert.match(html, /window\.exportOwnerBookings\s*=\s*exportOwnerBookings/);
 });
+
+
+test('visitor pages provide a keyboard skip link to the primary content', () => {
+  assert.match(html, /<a class="skip-link" href="#home" onclick="showAppPage\('home'\)">انتقل إلى بداية المحتوى<\/a>/);
+  assert.match(html, /<section id="home" class="app-page active" tabindex="-1">/);
+  assert.match(html, /\.skip-link:focus\s*\{/);
+});
+
+
+test('destination carousel supports manual touch scrolling without auto-motion', () => {
+  assert.match(html, /@media\(prefers-reduced-motion:reduce\),\(hover:none\)/);
+  assert.match(html, /\.destination-marquee\{[^}]*overflow-x:auto/);
+  assert.match(html, /\.destination-marquee-track\{animation:none;transform:none;will-change:auto\}/);
+  assert.match(html, /\.destination-marquee-group\[aria-hidden="true"\]\{display:none\}/);
+});
+
+
+test('static destination images use lazy loading and async decoding', () => {
+  const images = [...html.matchAll(/<img\b[^>]*>/gi)].map((match) => match[0]);
+  assert.equal(images.length, 18);
+  images.forEach((image) => {
+    assert.match(image, /\bloading="lazy"/);
+    assert.match(image, /\bdecoding="async"/);
+    assert.match(image, /\balt="/);
+  });
+});
+
+ 
+test('visitor search and account controls have accessible names', () => {
+  const controls = [
+    'searchText', 'locationFilter', 'guestFilter',
+    'fullName', 'phone', 'email', 'password',
+    'loginEmail', 'loginPassword', 'editPhone'
+  ];
+  controls.forEach((id) => {
+    assert.match(html, new RegExp('<(?:input|select)[^>]*id="' + id + '"[^>]*aria-label="[^"]+"'));
+  });
+});
+
+ 
+test('booking, owner upload and recovery controls have accessible names', () => {
+  [
+    ['newPassword', 'aria-label'],
+    ['confirmNewPassword', 'aria-label'],
+    ['ownerDocument', 'label'],
+    ['propertyBedroomsHouse', 'aria-label'],
+    ['propertyCapacityMore', 'aria-label'],
+    ['propertyPhotos', 'label'],
+    ['bookingCheckIn', 'label-for'],
+    ['bookingCheckOut', 'label-for'],
+    ['bookingGuests', 'label-for']
+  ].forEach(([id, kind]) => {
+    if (kind === 'label') {
+      assert.match(html, new RegExp('<label[^>]*for="' + id + '"'));
+    } else if (kind === 'label-for') {
+      assert.match(html, new RegExp('<label[^>]*for="' + id + '"'));
+    } else {
+      assert.match(html, new RegExp('<input[^>]*id="' + id + '"[^>]*aria-label="[^"]+"'));
+    }
+  });
+});

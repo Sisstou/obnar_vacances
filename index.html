@@ -271,9 +271,9 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
  .destination-marquee .destination-card{flex-basis:78vw;max-width:290px}
  .destination-marquee .destination-card img,.destination-marquee .destination-card .destination-placeholder{height:125px;min-height:125px;max-height:125px}
 }
-@media(prefers-reduced-motion:reduce){
- .destination-marquee{overflow-x:auto;mask-image:none}
- .destination-marquee-track{animation:none;transform:none}
+@media(prefers-reduced-motion:reduce),(hover:none){
+ .destination-marquee{overflow-x:auto;mask-image:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+ .destination-marquee-track{animation:none;transform:none;will-change:auto}
  .destination-marquee-group[aria-hidden="true"]{display:none}
 }
 
@@ -380,10 +380,15 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 .verification-detail-panel input[type=date]{max-width:190px}
 .verification-detail-panel button{margin:4px}
 @media(max-width:600px){.verification-table{font-size:12px}.verification-table th,.verification-table td{padding:9px 8px}}
+
+/* Keyboard accessibility: reveal a direct route to the primary visitor content. */
+.skip-link{position:fixed;top:8px;right:8px;z-index:10000;transform:translateY(-160%);padding:12px 16px;border-radius:10px;background:#fff;color:#073653;border:2px solid #c9a45c;font-weight:700;text-decoration:none;box-shadow:0 6px 20px #071c2b30}
+.skip-link:focus{transform:translateY(0);outline:3px solid #087eae;outline-offset:3px}
 </style>
 </head>
 
 <body>
+<a class="skip-link" href="#home" onclick="showAppPage('home')">انتقل إلى بداية المحتوى</a>
 
 <header>
 <h1>OBNAR VACANCES</h1>
@@ -398,7 +403,7 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <button type="button" class="notification-bell" id="notificationBell" onclick="openNotifications()" aria-label="الإشعارات" title="الإشعارات">🔔<span id="notificationBadge" class="notification-badge hidden">0</span></button>
 </nav>
 
-<section id="home" class="app-page active">
+<section id="home" class="app-page active" tabindex="-1">
 <div class="hero">
 <h2>اعثر على إقامتك في أولاد بونار وجيجل 🌊</h2>
 <p>تصفح الإقامات المعروضة للكراء، اكتشف التفاصيل، واختر المكان المناسب لعطلتك. التصفح متاح للجميع دون تسجيل.</p>
@@ -415,53 +420,53 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
  <div class="destination-marquee-track">
   <div class="destination-marquee-group">
 <article class="destination-card">
-<img src="https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=900&q=80" alt="منظر أمواج البحر - صورة توضيحية">
+<img src="https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=900&q=80" alt="منظر أمواج البحر - صورة توضيحية" loading="lazy" decoding="async">
 <div class="destination-info"><h3>شاطئ أولاد بونار</h3><p>وجهة للاستجمام والاستمتاع بأجواء البحر خلال موسم الاصطياف.</p></div>
 </article>
 <article class="destination-card">
-<img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80" alt="شاطئ رملي - صورة توضيحية">
+<img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80" alt="شاطئ رملي - صورة توضيحية" loading="lazy" decoding="async">
 <div class="destination-info"><h3>الخليج الصغير – لا كريك</h3><p>خليج ساحلي بطابع طبيعي وإطلالة بحرية جميلة.</p></div>
 </article>
 <article class="destination-card">
-<img src="https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=900&q=80" alt="شاطئ ساحلي - صورة توضيحية">
+<img src="https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=900&q=80" alt="شاطئ ساحلي - صورة توضيحية" loading="lazy" decoding="async">
 <div class="destination-info"><h3>شاطئ المنار الكبير</h3><p>من الوجهات الساحلية المعروفة في محيط جيجل.</p></div>
 </article>
 <article class="destination-card">
-<img src="https://images.unsplash.com/photo-1498623116890-37e912163d5d?auto=format&fit=crop&w=900&q=80" alt="ساحل البحر - صورة توضيحية">
+<img src="https://images.unsplash.com/photo-1498623116890-37e912163d5d?auto=format&fit=crop&w=900&q=80" alt="ساحل البحر - صورة توضيحية" loading="lazy" decoding="async">
 <div class="destination-info"><h3>شاطئ كتامة</h3><p>شاطئ قريب من وسط مدينة جيجل، مناسب للتنزه والاستمتاع بالواجهة البحرية.</p></div>
 </article>
 <article class="destination-card">
-<img src="https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=900&q=80" alt="مشهد حضري - صورة توضيحية">
+<img src="https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=900&q=80" alt="مشهد حضري - صورة توضيحية" loading="lazy" decoding="async">
 <div class="destination-info"><h3>وسط مدينة جيجل</h3><p>للتجول والتسوق والتعرف على أجواء المدينة ومرافقها.</p></div>
 </article>
 <article class="destination-card">
-<img src="https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=900&q=80" alt="طبيعة وأشجار - صورة توضيحية">
+<img src="https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=900&q=80" alt="طبيعة وأشجار - صورة توضيحية" loading="lazy" decoding="async">
 <div class="destination-info"><h3>حديقة الحيوانات</h3><p>وجهة ترفيهية عائلية في منطقة كسير العوانة؛ يُنصح بالتحقق من أوقات الزيارة قبل التوجه.</p></div>
 </article>
   </div>
   <div class="destination-marquee-group" aria-hidden="true" inert>
 <article class="destination-card">
-<img src="https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=900&q=80" alt="منظر أمواج البحر - صورة توضيحية">
+<img src="https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=900&q=80" alt="منظر أمواج البحر - صورة توضيحية" loading="lazy" decoding="async">
 <div class="destination-info"><h3>شاطئ أولاد بونار</h3><p>وجهة للاستجمام والاستمتاع بأجواء البحر خلال موسم الاصطياف.</p></div>
 </article>
 <article class="destination-card">
-<img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80" alt="شاطئ رملي - صورة توضيحية">
+<img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80" alt="شاطئ رملي - صورة توضيحية" loading="lazy" decoding="async">
 <div class="destination-info"><h3>الخليج الصغير – لا كريك</h3><p>خليج ساحلي بطابع طبيعي وإطلالة بحرية جميلة.</p></div>
 </article>
 <article class="destination-card">
-<img src="https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=900&q=80" alt="شاطئ ساحلي - صورة توضيحية">
+<img src="https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=900&q=80" alt="شاطئ ساحلي - صورة توضيحية" loading="lazy" decoding="async">
 <div class="destination-info"><h3>شاطئ المنار الكبير</h3><p>من الوجهات الساحلية المعروفة في محيط جيجل.</p></div>
 </article>
 <article class="destination-card">
-<img src="https://images.unsplash.com/photo-1498623116890-37e912163d5d?auto=format&fit=crop&w=900&q=80" alt="ساحل البحر - صورة توضيحية">
+<img src="https://images.unsplash.com/photo-1498623116890-37e912163d5d?auto=format&fit=crop&w=900&q=80" alt="ساحل البحر - صورة توضيحية" loading="lazy" decoding="async">
 <div class="destination-info"><h3>شاطئ كتامة</h3><p>شاطئ قريب من وسط مدينة جيجل، مناسب للتنزه والاستمتاع بالواجهة البحرية.</p></div>
 </article>
 <article class="destination-card">
-<img src="https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=900&q=80" alt="مشهد حضري - صورة توضيحية">
+<img src="https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=900&q=80" alt="مشهد حضري - صورة توضيحية" loading="lazy" decoding="async">
 <div class="destination-info"><h3>وسط مدينة جيجل</h3><p>للتجول والتسوق والتعرف على أجواء المدينة ومرافقها.</p></div>
 </article>
 <article class="destination-card">
-<img src="https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=900&q=80" alt="طبيعة وأشجار - صورة توضيحية">
+<img src="https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=900&q=80" alt="طبيعة وأشجار - صورة توضيحية" loading="lazy" decoding="async">
 <div class="destination-info"><h3>حديقة الحيوانات</h3><p>وجهة ترفيهية عائلية في منطقة كسير العوانة؛ يُنصح بالتحقق من أوقات الزيارة قبل التوجه.</p></div>
 </article>
   </div>
@@ -473,11 +478,11 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
  <div class="destination-marquee-track">
   <div class="destination-marquee-group">
 <article class="destination-card">
-<img src="https://commons.wikimedia.org/wiki/Special:FilePath/Oued_El_Kebir_1.jpg?width=900" alt="منظر لوادي الكبير قرب الميلية">
+<img src="https://commons.wikimedia.org/wiki/Special:FilePath/Oued_El_Kebir_1.jpg?width=900" alt="منظر لوادي الكبير قرب الميلية" loading="lazy" decoding="async">
 <div class="destination-info"><h3>الواد الكبير – جهة الميلية</h3><p>وجهة طبيعية للنزهة والاستمتاع بمشهد الوادي والمناظر المحيطة به. يُرجى اختيار مكان آمن ومسموح للتوقف والتنزه.</p><small>الصورة: LBM1948، عبر Wikimedia Commons، بترخيص CC BY-SA 4.0. <a href="https://commons.wikimedia.org/wiki/File:Oued_El_Kebir_1.jpg" target="_blank" rel="noopener">تفاصيل الصورة والترخيص</a>.</small></div>
 </article>
 <article class="destination-card">
-<img src="https://commons.wikimedia.org/wiki/Special:FilePath/Les_grottes_merveilleuses_Jijel_ziama_mansouria.jpg?width=900" alt="التشكيلات الطبيعية داخل الكهوف العجيبة بزيامة منصورية">
+<img src="https://commons.wikimedia.org/wiki/Special:FilePath/Les_grottes_merveilleuses_Jijel_ziama_mansouria.jpg?width=900" alt="التشكيلات الطبيعية داخل الكهوف العجيبة بزيامة منصورية" loading="lazy" decoding="async">
 <div class="destination-info"><h3>الكهوف العجيبة – زيامة منصورية</h3><p>مغارة طبيعية معروفة بتشكيلاتها الكلسية، تقع بزيامة منصورية غرب ولاية جيجل، وليست داخل أولاد بونار.</p><small>الصورة: Tine hinane Mouzaoui، عبر Wikimedia Commons، بترخيص CC BY-SA 4.0. <a href="https://commons.wikimedia.org/wiki/File:Les_grottes_merveilleuses_Jijel_ziama_mansouria.jpg" target="_blank" rel="noopener">تفاصيل الصورة والترخيص</a>.</small></div>
 </article>
 <article class="destination-card">
@@ -487,11 +492,11 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
   </div>
   <div class="destination-marquee-group" aria-hidden="true" inert>
 <article class="destination-card">
-<img src="https://commons.wikimedia.org/wiki/Special:FilePath/Oued_El_Kebir_1.jpg?width=900" alt="منظر لوادي الكبير قرب الميلية">
+<img src="https://commons.wikimedia.org/wiki/Special:FilePath/Oued_El_Kebir_1.jpg?width=900" alt="منظر لوادي الكبير قرب الميلية" loading="lazy" decoding="async">
 <div class="destination-info"><h3>الواد الكبير – جهة الميلية</h3><p>وجهة طبيعية للنزهة والاستمتاع بمشهد الوادي والمناظر المحيطة به. يُرجى اختيار مكان آمن ومسموح للتوقف والتنزه.</p><small>الصورة: LBM1948، عبر Wikimedia Commons، بترخيص CC BY-SA 4.0. <a href="https://commons.wikimedia.org/wiki/File:Oued_El_Kebir_1.jpg" target="_blank" rel="noopener">تفاصيل الصورة والترخيص</a>.</small></div>
 </article>
 <article class="destination-card">
-<img src="https://commons.wikimedia.org/wiki/Special:FilePath/Les_grottes_merveilleuses_Jijel_ziama_mansouria.jpg?width=900" alt="التشكيلات الطبيعية داخل الكهوف العجيبة بزيامة منصورية">
+<img src="https://commons.wikimedia.org/wiki/Special:FilePath/Les_grottes_merveilleuses_Jijel_ziama_mansouria.jpg?width=900" alt="التشكيلات الطبيعية داخل الكهوف العجيبة بزيامة منصورية" loading="lazy" decoding="async">
 <div class="destination-info"><h3>الكهوف العجيبة – زيامة منصورية</h3><p>مغارة طبيعية معروفة بتشكيلاتها الكلسية، تقع بزيامة منصورية غرب ولاية جيجل، وليست داخل أولاد بونار.</p><small>الصورة: Tine hinane Mouzaoui، عبر Wikimedia Commons، بترخيص CC BY-SA 4.0. <a href="https://commons.wikimedia.org/wiki/File:Les_grottes_merveilleuses_Jijel_ziama_mansouria.jpg" target="_blank" rel="noopener">تفاصيل الصورة والترخيص</a>.</small></div>
 </article>
 <article class="destination-card">
@@ -517,13 +522,13 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <div class="panel">
 <h2>🔎 البحث عن إقامة</h2>
 
-<input id="searchText" placeholder="المدينة أو المنطقة أو اسم الإقامة">
+<input id="searchText" placeholder="المدينة أو المنطقة أو اسم الإقامة" aria-label="ابحث باسم الإقامة أو المدينة أو المنطقة">
 
-<select id="locationFilter">
+<select id="locationFilter" aria-label="تصفية الإقامات حسب المنطقة">
 <option value="">كل المناطق</option>
 </select>
 
-<select id="guestFilter">
+<select id="guestFilter" aria-label="عدد الأشخاص">
 <option value="1">شخص واحد على الأقل</option>
 <option value="2">شخصان</option>
 <option value="3">3 أشخاص</option>
@@ -548,7 +553,7 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 
 </section>
 
-<section id="propertyDetail" class="app-page property-detail-page"><div class="detail-content"><button type="button" class="secondary" onclick="closePropertyDetails()">← العودة إلى الإقامات</button><h2 id="detailTitle"></h2><div id="detailGallery" class="detail-gallery"><div class="gallery-main" id="galleryMain"><img id="galleryMainImage" alt="صورة الإقامة" onclick="openCurrentGalleryImage()"><button type="button" class="gallery-nav gallery-prev" id="galleryPrev" aria-label="الصورة السابقة">‹</button><button type="button" class="gallery-nav gallery-next" id="galleryNext" aria-label="الصورة التالية">›</button><span id="galleryCounter" class="gallery-counter"></span></div><div id="galleryThumbs" class="gallery-thumbs"></div></div><div id="detailBody"></div>
+<section id="propertyDetail" class="app-page property-detail-page"><div class="detail-content"><button type="button" class="secondary" onclick="closePropertyDetails()">← العودة إلى الإقامات</button><h2 id="detailTitle"></h2><div id="detailGallery" class="detail-gallery"><div class="gallery-main" id="galleryMain"><img id="galleryMainImage" alt="صورة الإقامة" onclick="openCurrentGalleryImage()" loading="lazy" decoding="async"><button type="button" class="gallery-nav gallery-prev" id="galleryPrev" aria-label="الصورة السابقة">‹</button><button type="button" class="gallery-nav gallery-next" id="galleryNext" aria-label="الصورة التالية">›</button><span id="galleryCounter" class="gallery-counter"></span></div><div id="galleryThumbs" class="gallery-thumbs"></div></div><div id="detailBody"></div>
 <div id="propertyAvailability" class="availability-panel">
  <div class="availability-head"><h3>📅 رزنامة توفر الإقامة</h3><label for="availabilityMonth">الشهر <input id="availabilityMonth" type="month"></label></div>
  <p id="availabilityHint" class="availability-hint">الأيام المحجوزة تظهر باللون الأحمر، ويوم المغادرة يبقى متاحاً.</p>
@@ -561,7 +566,7 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
  </div>
 </div>
 <div id="detailActions"></div></div></section>
-<div id="imageLightbox" class="image-lightbox hidden" role="dialog" aria-modal="true" aria-label="عرض الصورة بالحجم الكبير" onclick="if(event.target===this)closeImageLightbox()"><button type="button" class="secondary" onclick="closeImageLightbox()">إغلاق ✕</button><button type="button" class="image-lightbox-nav image-lightbox-prev" id="lightboxPrev" aria-label="الصورة السابقة">‹</button><img id="lightboxImage" alt="صورة الإقامة بالحجم الكبير"><button type="button" class="image-lightbox-nav image-lightbox-next" id="lightboxNext" aria-label="الصورة التالية">›</button><span id="lightboxCounter" class="image-lightbox-counter"></span></div>
+<div id="imageLightbox" class="image-lightbox hidden" role="dialog" aria-modal="true" aria-label="عرض الصورة بالحجم الكبير" onclick="if(event.target===this)closeImageLightbox()"><button type="button" class="secondary" onclick="closeImageLightbox()">إغلاق ✕</button><button type="button" class="image-lightbox-nav image-lightbox-prev" id="lightboxPrev" aria-label="الصورة السابقة">‹</button><img id="lightboxImage" alt="صورة الإقامة بالحجم الكبير" loading="lazy" decoding="async"><button type="button" class="image-lightbox-nav image-lightbox-next" id="lightboxNext" aria-label="الصورة التالية">›</button><span id="lightboxCounter" class="image-lightbox-counter"></span></div>
 
 <section id="account" class="app-page">
 <div class="panel">
@@ -577,10 +582,10 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 </select>
 <p id="signupRoleNote" class="signup-role-note" aria-live="polite">يمكنك التسجيل كمصطاف والبدء في البحث عن إقامة.</p>
 
-<input id="fullName" placeholder="الاسم الكامل">
-<input id="phone" placeholder="رقم الهاتف">
-<input id="email" type="email" placeholder="البريد الإلكتروني">
-<input id="password" type="password" placeholder="كلمة المرور (6 أحرف على الأقل)">
+<input id="fullName" placeholder="الاسم الكامل" aria-label="الاسم الكامل">
+<input id="phone" placeholder="رقم الهاتف" aria-label="رقم الهاتف">
+<input id="email" type="email" placeholder="البريد الإلكتروني" aria-label="البريد الإلكتروني">
+<input id="password" type="password" placeholder="كلمة المرور (6 أحرف على الأقل)" aria-label="كلمة المرور">
 
 <button onclick="signup()">إنشاء حساب</button>
 
@@ -588,8 +593,8 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 
 <h3>تسجيل الدخول</h3>
 
-<input id="loginEmail" type="email" placeholder="البريد الإلكتروني">
-<input id="loginPassword" type="password" placeholder="كلمة المرور">
+<input id="loginEmail" type="email" placeholder="البريد الإلكتروني" aria-label="البريد الإلكتروني لتسجيل الدخول">
+<input id="loginPassword" type="password" placeholder="كلمة المرور" aria-label="كلمة المرور لتسجيل الدخول">
 
 <button onclick="login()">دخول</button>
 <button type="button" class="secondary" onclick="sendPasswordReset()">نسيت كلمة المرور؟</button>
@@ -598,8 +603,8 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <div id="passwordRecoveryArea" class="panel hidden">
 <h3>🔐 تعيين كلمة مرور جديدة</h3>
 <p>أدخل كلمة مرور جديدة لحسابك.</p>
-<input id="newPassword" type="password" placeholder="كلمة المرور الجديدة (6 أحرف على الأقل)" autocomplete="new-password">
-<input id="confirmNewPassword" type="password" placeholder="تأكيد كلمة المرور الجديدة" autocomplete="new-password">
+<input id="newPassword" type="password" placeholder="كلمة المرور الجديدة (6 أحرف على الأقل)" autocomplete="new-password" aria-label="كلمة المرور الجديدة">
+<input id="confirmNewPassword" type="password" placeholder="تأكيد كلمة المرور الجديدة" autocomplete="new-password" aria-label="تأكيد كلمة المرور الجديدة">
 <button type="button" onclick="updateRecoveredPassword()">حفظ كلمة المرور الجديدة</button>
 </div>
 
@@ -624,7 +629,7 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <div id="profileEditFields" class="hidden">
  <p id="profileDisplayName" class="small">Khebbache</p>
  <input id="editFullName" type="hidden">
- <input id="editPhone" type="tel" placeholder="رقم الهاتف">
+ <input id="editPhone" type="tel" placeholder="رقم الهاتف" aria-label="رقم الهاتف في بيانات الحساب">
  <label class="field-label" for="editEmail">البريد الإلكتروني</label>
  <input id="editEmail" type="email" autocomplete="email" placeholder="البريد الإلكتروني">
  <button type="button" onclick="saveMyProfile()">حفظ التعديلات</button>
@@ -639,6 +644,7 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <h3>طلب توثيق المالك</h3>
 <p class="small">ارفع وثيقة تثبت صفتك كمالك. لا يمكن نشر إقامة قبل موافقة الإدارة.</p>
 
+<label class="field-label" for="ownerDocument">وثيقة إثبات صفة المالك</label>
 <input id="ownerDocument" type="file"
 accept="image/jpeg,image/png,image/webp,application/pdf">
 <label class="field-label" for="ownerDocumentExpiry">تاريخ انتهاء الوثيقة (اختياري)</label><input id="ownerDocumentExpiry" type="date">
@@ -676,7 +682,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
   <h4>2. الغرف والسعة والسعر</h4>
   <label class="field-label" for="propertyBedroomsSelect">عدد غرف الشقة</label>
   <select id="propertyBedroomsSelect"><option value="2">غرفتان</option><option value="3" selected>3 غرف</option><option value="4">4 غرف</option></select>
-  <input id="propertyBedroomsHouse" class="hidden" type="number" min="1" step="1" value="3" placeholder="أدخل عدد غرف المنزل">
+  <input id="propertyBedroomsHouse" class="hidden" type="number" min="1" step="1" value="3" placeholder="أدخل عدد غرف المنزل" aria-label="عدد غرف المنزل">
   <label class="field-label" for="propertyBathrooms">عدد الحمامات</label>
   <input id="propertyBathrooms" type="number" min="0" step="1" value="1">
   <label class="field-label" for="propertyCapacitySelect">السعة القصوى</label>
@@ -685,7 +691,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
    <option value="4">4 أشخاص</option><option value="5">5 أشخاص</option><option value="6">6 أشخاص</option>
    <option value="7">7 أشخاص</option><option value="more">أكثر من 7 أشخاص</option>
   </select>
-  <input id="propertyCapacityMore" class="hidden" type="number" min="8" step="1" placeholder="أدخل العدد الفعلي (8 أو أكثر)">
+  <input id="propertyCapacityMore" class="hidden" type="number" min="8" step="1" placeholder="أدخل العدد الفعلي (8 أو أكثر)" aria-label="السعة الفعلية للإقامة">
   <label class="field-label" for="propertyPrice">السعر لليلة بالدينار</label>
   <input id="propertyPrice" type="number" min="0" step="100" placeholder="مثال: 5000">
  </div>
@@ -710,6 +716,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
  <div class="owner-form-section full">
   <h4>5. صور الإقامة</h4>
   <p class="small">أضف صوراً واضحة. الحد الأقصى 10 صور، و5 ميغابايت لكل صورة.</p>
+  <label class="field-label" for="propertyPhotos">صور الإقامة (حتى 10 صور)</label>
   <input id="propertyPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
  </div>
 </div>
@@ -757,13 +764,13 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 
   <p id="bookingPropertyTitle"></p>
 
-  <label>تاريخ الوصول</label>
+  <label for="bookingCheckIn">تاريخ الوصول</label>
   <input type="date" id="bookingCheckIn">
 
-  <label>تاريخ المغادرة</label>
+  <label for="bookingCheckOut">تاريخ المغادرة</label>
   <input type="date" id="bookingCheckOut">
 
-  <label>عدد الأشخاص</label>
+  <label for="bookingGuests">عدد الأشخاص</label>
   <input type="number" id="bookingGuests" min="1" value="1">
 
   <p id="bookingPrice">السعر الإجمالي: 0 دج</p>
