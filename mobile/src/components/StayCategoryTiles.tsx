@@ -1,4 +1,5 @@
 import React from 'react';
+import { getCategoryAccessibilityLabel } from '../lib/category-accessibility.mjs';
 import {
   Pressable,
   StyleSheet,
@@ -50,20 +51,23 @@ export function StayCategoryTiles({
     <View style={[styles.container, { direction: isArabic ? 'rtl' : 'ltr' }, style]}>
       {(categories ?? defaults).map((category) => {
         const copy = labels[category.id];
+        const label = category.label ?? (isArabic ? copy.ar : copy.fr);
         return (
           <Pressable
             key={category.id}
             accessibilityRole="button"
-            accessibilityLabel={category.label ?? (isArabic ? copy.ar : copy.fr)}
+            accessibilityLabel={getCategoryAccessibilityLabel(
+              locale,
+              label,
+              category.count,
+            )}
             onPress={() => onSelect?.(category.id)}
             style={({ pressed }) => [styles.tile, pressed && styles.pressed]}
           >
             <View style={styles.symbolWrap}>
               <Text style={styles.symbol}>{copy.symbol}</Text>
             </View>
-            <Text style={styles.label}>
-              {category.label ?? (isArabic ? copy.ar : copy.fr)}
-            </Text>
+            <Text style={styles.label}>{label}</Text>
             {category.count != null ? (
               <Text style={styles.count}>
                 {category.count} {isArabic ? 'إقامة' : 'logements'}
@@ -102,12 +106,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4EFE5',
   },
   symbol: {
-    color: '#123B5D',
+    color: '#A47B36',
     fontSize: 25,
     fontWeight: '800',
   },
   label: {
-    color: '#123B5D',
+    color: '#344054',
     fontSize: 13,
     fontWeight: '800',
     textAlign: 'center',
