@@ -26,8 +26,8 @@ export function HomeSectionHeader({
 }: HomeSectionHeaderProps) {
   return (
     <View style={[styles.container, { direction: locale === 'ar' ? 'rtl' : 'ltr' }, style]}>
-      <Text accessibilityRole="header" style={[styles.title, { textAlign: locale === 'ar' ? 'right' : 'left' }]}>{title}</Text>
-      {subtitle ? <Text style={[styles.subtitle, { textAlign: locale === 'ar' ? 'right' : 'left' }]}>{subtitle}</Text> : null}
+      <Text accessibilityRole="header" style={[styles.title, { width: '100%', textAlign: locale === 'ar' ? 'right' : 'left' }]}>{title}</Text>
+      {subtitle ? <Text style={[styles.subtitle, { width: '100%', textAlign: locale === 'ar' ? 'right' : 'left' }]}>{subtitle}</Text> : null}
     </View>
   );
 }
