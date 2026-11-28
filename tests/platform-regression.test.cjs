@@ -108,3 +108,15 @@ test('static destination images use lazy loading and async decoding', () => {
     assert.match(image, /\balt="/);
   });
 });
+
+ 
+test('visitor search and account controls have accessible names', () => {
+  const controls = [
+    'searchText', 'locationFilter', 'guestFilter',
+    'fullName', 'phone', 'email', 'password',
+    'loginEmail', 'loginPassword', 'editPhone'
+  ];
+  controls.forEach((id) => {
+    assert.match(html, new RegExp('<(?:input|select)[^>]*id="' + id + '"[^>]*aria-label="[^"]+"'));
+  });
+});
