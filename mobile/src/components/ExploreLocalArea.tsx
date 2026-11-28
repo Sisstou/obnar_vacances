@@ -1,4 +1,5 @@
 import React from 'react';
+import { colors } from '../theme/tokens';
 import {
   Image,
   ScrollView,
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   heading: {
-    color: '#123B5D',
+    color: colors.navy,
     fontSize: 19,
     lineHeight: 27,
     fontWeight: '900',
@@ -137,28 +138,28 @@ const styles = StyleSheet.create({
     width: 232,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E8E0D2',
+    borderColor: colors.border,
     borderRadius: 17,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   image: {
     width: '100%',
     height: 132,
-    backgroundColor: '#F2EEE6',
+    backgroundColor: colors.canvas,
   },
   imageFallback: {
     height: 132,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 5,
-    backgroundColor: '#F2EEE6',
+    backgroundColor: colors.canvas,
   },
   imageGlyph: {
-    color: '#A47B36',
+    color: colors.gold,
     fontSize: 28,
   },
   imageFallbackText: {
-    color: '#786B57',
+    color: colors.fallbackText,
     fontSize: 11,
   },
   copy: {
@@ -166,14 +167,14 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   itemTitle: {
-    color: '#344054',
+    color: colors.text,
     fontSize: 15,
     lineHeight: 21,
     fontWeight: '800',
     textAlign: 'auto',
   },
   description: {
-    color: '#667085',
+    color: colors.textMuted,
     fontSize: 12,
     lineHeight: 18,
     textAlign: 'auto',
@@ -182,12 +183,12 @@ const styles = StyleSheet.create({
     gap: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E8E0D2',
+    borderColor: colors.border,
     borderRadius: 17,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   emptyText: {
-    color: '#667085',
+    color: colors.textMuted,
     fontSize: 13,
     lineHeight: 20,
   },
@@ -203,9 +204,9 @@ const styles = StyleSheet.create({
     gap: 7,
     padding: 11,
     borderWidth: 1,
-    borderColor: '#EEE7DB',
+    borderColor: colors.borderSoft,
     borderRadius: 13,
-    backgroundColor: '#FBF8F2',
+    backgroundColor: colors.canvasWarm,
   },
   suggestionTop: {
     flexDirection: 'row',
@@ -213,22 +214,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   suggestionSymbol: {
-    color: '#A47B36',
+    color: colors.gold,
     fontSize: 21,
     fontWeight: '800',
   },
   comingSoon: {
-    color: '#8B7651',
+    color: colors.goldMuted,
     fontSize: 10,
     fontWeight: '700',
   },
   suggestionTitle: {
-    color: '#344054',
+    color: colors.text,
     fontSize: 13,
     fontWeight: '800',
   },
   suggestionDescription: {
-    color: '#667085',
+    color: colors.textMuted,
     fontSize: 11,
     lineHeight: 16,
   },
