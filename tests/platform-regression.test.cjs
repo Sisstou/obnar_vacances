@@ -97,3 +97,14 @@ test('destination carousel supports manual touch scrolling without auto-motion',
   assert.match(html, /\.destination-marquee-track\{animation:none;transform:none;will-change:auto\}/);
   assert.match(html, /\.destination-marquee-group\[aria-hidden="true"\]\{display:none\}/);
 });
+
+
+test('static destination images use lazy loading and async decoding', () => {
+  const images = [...html.matchAll(/<img\b[^>]*>/gi)].map((match) => match[0]);
+  assert.equal(images.length, 18);
+  images.forEach((image) => {
+    assert.match(image, /\bloading="lazy"/);
+    assert.match(image, /\bdecoding="async"/);
+    assert.match(image, /\balt="/);
+  });
+});
