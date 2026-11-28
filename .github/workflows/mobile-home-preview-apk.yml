@@ -10,6 +10,7 @@ on:
       - "mobile/src/components/StayCategoryTiles.tsx"
       - "mobile/src/components/ExploreLocalArea.tsx"
       - "mobile/src/components/HomeSectionHeader.tsx"
+      - "mobile/src/theme/**"
       - ".github/workflows/mobile-home-preview-apk.yml"
   workflow_dispatch:
 
