@@ -1,0 +1,37 @@
+name: Scheduled security code analysis
+
+on:
+  schedule:
+    # Weekly on Sundays at 03:20 UTC.
+    - cron: "20 3 * * 0"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+concurrency:
+  group: scheduled-security-analysis-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  codeql:
+    name: CodeQL JavaScript and TypeScript analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          build-mode: none
+          queries: security-extended
+
+      - name: Analyze code
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript-typescript"
