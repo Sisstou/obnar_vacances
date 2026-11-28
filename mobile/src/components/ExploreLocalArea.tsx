@@ -48,12 +48,12 @@ export function ExploreLocalArea({
 
   return (
     <View style={[styles.container, { direction: isArabic ? 'rtl' : 'ltr' }, style]}>
-      <Text style={[styles.heading, { textAlign: isArabic ? 'right' : 'left' }]}>
+      <Text style={[styles.heading, { width: '100%', textAlign: isArabic ? 'right' : 'left' }]}>
         {sectionTitle}
       </Text>
       {items.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={[styles.emptyText, { textAlign: isArabic ? 'right' : 'left' }]}>
+          <Text style={[styles.emptyText, { width: '100%', textAlign: isArabic ? 'right' : 'left' }]}>
             {emptyText}
           </Text>
           <View style={styles.suggestionGrid}>
@@ -69,10 +69,10 @@ export function ExploreLocalArea({
                   <Text style={styles.suggestionSymbol}>{item.symbol}</Text>
                   <Text style={styles.comingSoon}>{comingSoonText}</Text>
                 </View>
-                <Text style={[styles.suggestionTitle, { textAlign: isArabic ? 'right' : 'left' }]}>
+                <Text style={[styles.suggestionTitle, { width: '100%', textAlign: isArabic ? 'right' : 'left' }]}>
                   {item.title}
                 </Text>
-                <Text style={[styles.suggestionDescription, { textAlign: isArabic ? 'right' : 'left' }]}>
+                <Text style={[styles.suggestionDescription, { width: '100%', textAlign: isArabic ? 'right' : 'left' }]}>
                   {item.description}
                 </Text>
               </View>
@@ -105,9 +105,9 @@ export function ExploreLocalArea({
                 </View>
               )}
               <View style={styles.copy}>
-                <Text numberOfLines={2} style={[styles.itemTitle, { textAlign: isArabic ? 'right' : 'left' }]}>{item.title}</Text>
+                <Text numberOfLines={2} style={[styles.itemTitle, { width: '100%', textAlign: isArabic ? 'right' : 'left' }]}>{item.title}</Text>
                 {item.description ? (
-                  <Text numberOfLines={3} style={[styles.description, { textAlign: isArabic ? 'right' : 'left' }]}>
+                  <Text numberOfLines={3} style={[styles.description, { width: '100%', textAlign: isArabic ? 'right' : 'left' }]}>
                     {item.description}
                   </Text>
                 ) : null}
