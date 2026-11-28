@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   heading: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 22,
     fontWeight: '800',
   },
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     borderColor: '#D0D9E3',
     borderRadius: 11,
     borderWidth: 1,
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 15,
     minHeight: 48,
     paddingHorizontal: 13,
@@ -363,8 +363,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 13,
   },
   amenityChipSelected: {
-    backgroundColor: '#EAF1F8',
-    borderColor: '#12345A',
+    backgroundColor: '#F3EBDD',
+    borderColor: '#123B5D',
   },
   amenityText: {
     color: '#344054',
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   amenityTextSelected: {
-    color: '#12345A',
+    color: '#123B5D',
   },
   error: {
     color: '#B42318',
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
   },
   previewButton: {
     alignItems: 'center',
-    backgroundColor: '#12345A',
+    backgroundColor: '#123B5D',
     borderRadius: 12,
     justifyContent: 'center',
     minHeight: 50,
@@ -401,12 +401,12 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   previewHeading: {
-    color: '#12345A',
+    color: '#123B5D',
     fontSize: 15,
     fontWeight: '800',
   },
   previewTitle: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 19,
     fontWeight: '800',
   },

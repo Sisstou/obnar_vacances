@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 17,
     fontWeight: '800',
   },
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     alignItems: 'center',
-    backgroundColor: '#F5F7FA',
+    backgroundColor: '#F8F5EF',
     borderColor: '#C8D5E2',
     borderRadius: 14,
     borderStyle: 'dashed',
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
   },
   addButton: {
     alignItems: 'center',
-    backgroundColor: '#12345A',
+    backgroundColor: '#123B5D',
     borderRadius: 11,
     justifyContent: 'center',
     minHeight: 48,
