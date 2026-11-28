@@ -145,6 +145,7 @@ export function StayDateGuestSelector({
           </Text>
           <TextInput
             accessibilityLabel={labels.arrival}
+            accessibilityHint={labels.dateHint}
             value={checkInDate}
             onChangeText={(value) => changeDate(value, onCheckInDateChange)}
             placeholder={labels.dateHint}
@@ -162,6 +163,7 @@ export function StayDateGuestSelector({
           </Text>
           <TextInput
             accessibilityLabel={labels.departure}
+            accessibilityHint={labels.dateHint}
             value={checkOutDate}
             onChangeText={(value) => changeDate(value, onCheckOutDateChange)}
             placeholder={labels.dateHint}
