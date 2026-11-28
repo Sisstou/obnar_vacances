@@ -105,9 +105,9 @@ export function ExploreLocalArea({
                 </View>
               )}
               <View style={styles.copy}>
-                <Text numberOfLines={2} style={styles.itemTitle}>{item.title}</Text>
+                <Text numberOfLines={2} style={[styles.itemTitle, { textAlign: isArabic ? 'right' : 'left' }]}>{item.title}</Text>
                 {item.description ? (
-                  <Text numberOfLines={3} style={styles.description}>
+                  <Text numberOfLines={3} style={[styles.description, { textAlign: isArabic ? 'right' : 'left' }]}>
                     {item.description}
                   </Text>
                 ) : null}
