@@ -81,7 +81,7 @@ export function StayCatalogFeedback({
       <Text accessibilityRole="header" style={styles.title}>
         {title ?? defaultTitle}
       </Text>
-      <Text style={[styles.message, { textAlign: isArabic ? 'right' : 'left' }]}>
+      <Text style={[styles.message, { textAlign: isArabic ? 'right' : 'left', writingDirection: isArabic ? 'rtl' : 'ltr' }]}>
         {message ?? defaultMessage}
       </Text>
 
