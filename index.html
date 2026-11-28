@@ -603,8 +603,8 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <div id="passwordRecoveryArea" class="panel hidden">
 <h3>🔐 تعيين كلمة مرور جديدة</h3>
 <p>أدخل كلمة مرور جديدة لحسابك.</p>
-<input id="newPassword" type="password" placeholder="كلمة المرور الجديدة (6 أحرف على الأقل)" autocomplete="new-password">
-<input id="confirmNewPassword" type="password" placeholder="تأكيد كلمة المرور الجديدة" autocomplete="new-password">
+<input id="newPassword" type="password" placeholder="كلمة المرور الجديدة (6 أحرف على الأقل)" autocomplete="new-password" aria-label="كلمة المرور الجديدة">
+<input id="confirmNewPassword" type="password" placeholder="تأكيد كلمة المرور الجديدة" autocomplete="new-password" aria-label="تأكيد كلمة المرور الجديدة">
 <button type="button" onclick="updateRecoveredPassword()">حفظ كلمة المرور الجديدة</button>
 </div>
 
@@ -644,6 +644,7 @@ button.secondary{background:#edf1f2;color:#29485c;box-shadow:none}
 <h3>طلب توثيق المالك</h3>
 <p class="small">ارفع وثيقة تثبت صفتك كمالك. لا يمكن نشر إقامة قبل موافقة الإدارة.</p>
 
+<label class="field-label" for="ownerDocument">وثيقة إثبات صفة المالك</label>
 <input id="ownerDocument" type="file"
 accept="image/jpeg,image/png,image/webp,application/pdf">
 <label class="field-label" for="ownerDocumentExpiry">تاريخ انتهاء الوثيقة (اختياري)</label><input id="ownerDocumentExpiry" type="date">
@@ -681,7 +682,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
   <h4>2. الغرف والسعة والسعر</h4>
   <label class="field-label" for="propertyBedroomsSelect">عدد غرف الشقة</label>
   <select id="propertyBedroomsSelect"><option value="2">غرفتان</option><option value="3" selected>3 غرف</option><option value="4">4 غرف</option></select>
-  <input id="propertyBedroomsHouse" class="hidden" type="number" min="1" step="1" value="3" placeholder="أدخل عدد غرف المنزل">
+  <input id="propertyBedroomsHouse" class="hidden" type="number" min="1" step="1" value="3" placeholder="أدخل عدد غرف المنزل" aria-label="عدد غرف المنزل">
   <label class="field-label" for="propertyBathrooms">عدد الحمامات</label>
   <input id="propertyBathrooms" type="number" min="0" step="1" value="1">
   <label class="field-label" for="propertyCapacitySelect">السعة القصوى</label>
@@ -690,7 +691,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
    <option value="4">4 أشخاص</option><option value="5">5 أشخاص</option><option value="6">6 أشخاص</option>
    <option value="7">7 أشخاص</option><option value="more">أكثر من 7 أشخاص</option>
   </select>
-  <input id="propertyCapacityMore" class="hidden" type="number" min="8" step="1" placeholder="أدخل العدد الفعلي (8 أو أكثر)">
+  <input id="propertyCapacityMore" class="hidden" type="number" min="8" step="1" placeholder="أدخل العدد الفعلي (8 أو أكثر)" aria-label="السعة الفعلية للإقامة">
   <label class="field-label" for="propertyPrice">السعر لليلة بالدينار</label>
   <input id="propertyPrice" type="number" min="0" step="100" placeholder="مثال: 5000">
  </div>
@@ -715,6 +716,7 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
  <div class="owner-form-section full">
   <h4>5. صور الإقامة</h4>
   <p class="small">أضف صوراً واضحة. الحد الأقصى 10 صور، و5 ميغابايت لكل صورة.</p>
+  <label class="field-label" for="propertyPhotos">صور الإقامة (حتى 10 صور)</label>
   <input id="propertyPhotos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
  </div>
 </div>
@@ -762,13 +764,13 @@ accept="image/jpeg,image/png,image/webp,application/pdf">
 
   <p id="bookingPropertyTitle"></p>
 
-  <label>تاريخ الوصول</label>
+  <label for="bookingCheckIn">تاريخ الوصول</label>
   <input type="date" id="bookingCheckIn">
 
-  <label>تاريخ المغادرة</label>
+  <label for="bookingCheckOut">تاريخ المغادرة</label>
   <input type="date" id="bookingCheckOut">
 
-  <label>عدد الأشخاص</label>
+  <label for="bookingGuests">عدد الأشخاص</label>
   <input type="number" id="bookingGuests" min="1" value="1">
 
   <p id="bookingPrice">السعر الإجمالي: 0 دج</p>
