@@ -23,7 +23,7 @@ test('French photo removal labels identify the photo number', () => {
 test('invalid photo numbers do not produce misleading indices', () => {
   assert.equal(
     getPhotoRemoveAccessibilityLabel('ar', 0),
-    'حذف الصورة رقم من المعاينة',
+    'حذف الصورة من المعاينة',
   );
   assert.equal(
     getPhotoRemoveAccessibilityLabel('fr', -1),
