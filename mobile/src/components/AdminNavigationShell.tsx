@@ -186,16 +186,16 @@ export default function AdminNavigationShell({
   return (
     <View style={[styles.root, { direction: rtl ? 'rtl' : 'ltr' }]}>
       <View style={styles.header}>
-        <Text accessibilityRole="header" style={[styles.heading, { textAlign: rtl ? 'right' : 'left' }]}>
+        <Text accessibilityRole="header" style={[styles.heading, { textAlign: rtl ? 'right' : 'left', writingDirection: rtl ? 'rtl' : 'ltr' }]}>
           {labels.heading}
         </Text>
-        <Text style={[styles.subtitle, { textAlign: rtl ? 'right' : 'left' }]}>
+        <Text style={[styles.subtitle, { textAlign: rtl ? 'right' : 'left', writingDirection: rtl ? 'rtl' : 'ltr' }]}>
           {labels.subtitle}
         </Text>
       </View>
 
       <View style={styles.securityNotice}>
-        <Text style={[styles.noticeText, { textAlign: rtl ? 'right' : 'left' }]}>
+        <Text style={[styles.noticeText, { textAlign: rtl ? 'right' : 'left', writingDirection: rtl ? 'rtl' : 'ltr' }]}>
           {labels.security}
         </Text>
       </View>
@@ -207,10 +207,10 @@ export default function AdminNavigationShell({
         {sections.map((section) => (
           <View key={section.id} style={styles.sectionCard}>
             <View style={styles.sectionHeading}>
-              <Text style={[styles.sectionTitle, { textAlign: rtl ? 'right' : 'left' }]}>
+              <Text style={[styles.sectionTitle, { textAlign: rtl ? 'right' : 'left', writingDirection: rtl ? 'rtl' : 'ltr' }]}>
                 {section.title[language]}
               </Text>
-              <Text style={[styles.sectionDescription, { textAlign: rtl ? 'right' : 'left' }]}>
+              <Text style={[styles.sectionDescription, { textAlign: rtl ? 'right' : 'left', writingDirection: rtl ? 'rtl' : 'ltr' }]}>
                 {section.description[language]}
               </Text>
             </View>
@@ -234,7 +234,7 @@ export default function AdminNavigationShell({
                       style={[
                         styles.panelTitle,
                         active && styles.panelTitleActive,
-                        { textAlign: rtl ? 'right' : 'left' },
+                        { textAlign: rtl ? 'right' : 'left', writingDirection: rtl ? 'rtl' : 'ltr' },
                       ]}
                     >
                       {panel.title[language]}
@@ -251,11 +251,11 @@ export default function AdminNavigationShell({
       </ScrollView>
 
       <View style={styles.contentArea}>
-        <Text style={[styles.contentHeading, { textAlign: rtl ? 'right' : 'left' }]}>
+        <Text style={[styles.contentHeading, { textAlign: rtl ? 'right' : 'left', writingDirection: rtl ? 'rtl' : 'ltr' }]}>
           {labels.selected}: {selectedPanel?.title[language] ?? selectedPanelId}
         </Text>
         {children ?? (
-          <Text style={[styles.emptyContent, { textAlign: rtl ? 'right' : 'left' }]}>
+          <Text style={[styles.emptyContent, { textAlign: rtl ? 'right' : 'left', writingDirection: rtl ? 'rtl' : 'ltr' }]}>
             {labels.notConnected}
           </Text>
         )}
