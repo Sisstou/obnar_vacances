@@ -120,3 +120,26 @@ test('visitor search and account controls have accessible names', () => {
     assert.match(html, new RegExp('<(?:input|select)[^>]*id="' + id + '"[^>]*aria-label="[^"]+"'));
   });
 });
+
+ 
+test('booking, owner upload and recovery controls have accessible names', () => {
+  [
+    ['newPassword', 'aria-label'],
+    ['confirmNewPassword', 'aria-label'],
+    ['ownerDocument', 'label'],
+    ['propertyBedroomsHouse', 'aria-label'],
+    ['propertyCapacityMore', 'aria-label'],
+    ['propertyPhotos', 'label'],
+    ['bookingCheckIn', 'label-for'],
+    ['bookingCheckOut', 'label-for'],
+    ['bookingGuests', 'label-for']
+  ].forEach(([id, kind]) => {
+    if (kind === 'label') {
+      assert.match(html, new RegExp('<label[^>]*for="' + id + '"'));
+    } else if (kind === 'label-for') {
+      assert.match(html, new RegExp('<label[^>]*for="' + id + '"'));
+    } else {
+      assert.match(html, new RegExp('<input[^>]*id="' + id + '"[^>]*aria-label="[^"]+"'));
+    }
+  });
+});
