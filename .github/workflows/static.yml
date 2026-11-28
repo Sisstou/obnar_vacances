@@ -19,8 +19,8 @@ permissions:
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+# Allow only one concurrent deployment, skipping runs queued between runs.
+# Do NOT cancel an in-progress production deployment.
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -39,9 +39,9 @@ jobs:
       - name: Run platform regression tests
         run: node --test tests/platform-regression.test.cjs
 
-  # Production deployment runs only for main pushes and only after tests pass.
+  # Publishing is restricted to the default branch, including manual runs.
   deploy:
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     needs: regression-tests
     environment:
       name: github-pages
