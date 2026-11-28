@@ -158,12 +158,12 @@ const styles = StyleSheet.create({
     gap: 13,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E3E8EF',
+    borderColor: '#E9DCC4',
     borderRadius: 16,
     backgroundColor: '#FFFFFF',
   },
   heading: {
-    color: '#102A43',
+    color: '#123B5D',
     fontSize: 17,
     lineHeight: 24,
     fontWeight: '700',
@@ -173,19 +173,19 @@ const styles = StyleSheet.create({
     gap: 14,
     padding: 13,
     borderRadius: 12,
-    backgroundColor: '#F5F8FA',
+    backgroundColor: '#F8F5EF',
   },
   scoreBlock: {
     alignItems: 'center',
     minWidth: 54,
   },
   score: {
-    color: '#102A43',
+    color: '#123B5D',
     fontSize: 27,
     fontWeight: '700',
   },
   scoreOutOf: {
-    color: '#627D98',
+    color: '#667085',
     fontSize: 11,
   },
   summaryDetails: {
@@ -204,10 +204,10 @@ const styles = StyleSheet.create({
   emptyState: {
     padding: 18,
     borderRadius: 12,
-    backgroundColor: '#F5F7FA',
+    backgroundColor: '#F8F5EF',
   },
   emptyText: {
-    color: '#627D98',
+    color: '#667085',
     fontSize: 13,
     textAlign: 'center',
   },
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     gap: 7,
     padding: 13,
     borderWidth: 1,
-    borderColor: '#EDF1F5',
+    borderColor: '#E9DCC4',
     borderRadius: 12,
   },
   reviewHeader: {
@@ -231,12 +231,12 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   author: {
-    color: '#243B53',
+    color: '#344054',
     fontSize: 13,
     fontWeight: '700',
   },
   date: {
-    color: '#829AB1',
+    color: '#667085',
     fontSize: 11,
   },
   reviewStars: {
@@ -250,12 +250,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   comment: {
-    color: '#334E68',
+    color: '#344054',
     fontSize: 13,
     lineHeight: 20,
   },
   disclaimer: {
-    color: '#829AB1',
+    color: '#667085',
     fontSize: 10,
     lineHeight: 15,
   },
