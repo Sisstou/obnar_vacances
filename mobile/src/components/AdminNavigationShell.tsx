@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   heading: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 22,
     fontWeight: '800',
   },
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   },
   sectionCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 14,
     borderWidth: 1,
     gap: 10,
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   sectionTitle: {
-    color: '#12345A',
+    color: '#123B5D',
     fontSize: 15,
     fontWeight: '800',
   },
@@ -329,8 +329,8 @@ const styles = StyleSheet.create({
     gap: 7,
   },
   panelButton: {
-    backgroundColor: '#F7F9FC',
-    borderColor: '#E8EDF3',
+    backgroundColor: '#F8F5EF',
+    borderColor: '#E9DCC4',
     borderRadius: 10,
     borderWidth: 1,
     justifyContent: 'center',
@@ -339,8 +339,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   panelButtonActive: {
-    backgroundColor: '#EAF1F8',
-    borderColor: '#8BAAC8',
+    backgroundColor: '#F3EBDD',
+    borderColor: '#D6C19A',
   },
   panelTitle: {
     color: '#344054',
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   panelTitleActive: {
-    color: '#12345A',
+    color: '#123B5D',
   },
   panelHint: {
     color: '#98A2B3',
@@ -360,13 +360,13 @@ const styles = StyleSheet.create({
   },
   contentArea: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderTopWidth: 1,
     gap: 8,
     padding: 16,
   },
   contentHeading: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 14,
     fontWeight: '800',
   },

@@ -145,18 +145,18 @@ const styles = StyleSheet.create({
     gap: 13,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E3E8EF',
+    borderColor: '#E9DCC4',
     borderRadius: 16,
     backgroundColor: '#FFFFFF',
   },
   heading: {
-    color: '#102A43',
+    color: '#123B5D',
     fontSize: 17,
     lineHeight: 24,
     fontWeight: '700',
   },
   period: {
-    color: '#627D98',
+    color: '#667085',
     fontSize: 12,
   },
   breakdown: {
@@ -169,22 +169,22 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     flex: 1,
-    color: '#627D98',
+    color: '#667085',
     fontSize: 13,
   },
   detailValue: {
     flex: 1,
-    color: '#334E68',
+    color: '#344054',
     fontSize: 13,
     fontWeight: '600',
   },
   emphasizedValue: {
-    color: '#075E59',
+    color: '#123B5D',
   },
   totalPanel: {
     padding: 14,
     borderRadius: 12,
-    backgroundColor: '#F0F7F7',
+    backgroundColor: '#F8F5EF',
   },
   totalRow: {
     alignItems: 'center',
@@ -193,17 +193,17 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     flex: 1,
-    color: '#075E59',
+    color: '#123B5D',
     fontSize: 14,
     fontWeight: '700',
   },
   totalValue: {
-    color: '#075E59',
+    color: '#123B5D',
     fontSize: 19,
     fontWeight: '800',
   },
   depositNote: {
-    color: '#486581',
+    color: '#667085',
     fontSize: 12,
     lineHeight: 19,
   },

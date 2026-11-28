@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   heading: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 22,
     fontWeight: '800',
   },
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#D8E1EA',
+    borderColor: '#E9DCC4',
     borderRadius: 12,
     borderWidth: 1,
     color: '#344054',
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   sectionTitle: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 16,
     fontWeight: '800',
   },
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   },
   topicCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 13,
     borderWidth: 1,
     gap: 9,
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   chevron: {
-    color: '#12345A',
+    color: '#123B5D',
     fontSize: 21,
     fontWeight: '600',
   },
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
   },
   channelCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 13,
     borderWidth: 1,
     gap: 6,
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
   },
   emptyCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 12,
     borderWidth: 1,
     padding: 15,

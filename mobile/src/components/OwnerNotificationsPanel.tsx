@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   heading: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 22,
     fontWeight: '800',
   },
@@ -226,8 +226,8 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   notice: {
-    backgroundColor: '#F2F6FA',
-    borderColor: '#DCE6EF',
+    backgroundColor: '#F8F5EF',
+    borderColor: '#E9DCC4',
     borderRadius: 12,
     borderWidth: 1,
     gap: 6,
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
   },
   notificationCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 15,
     borderWidth: 1,
     gap: 9,
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   notificationTitle: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 15,
     fontWeight: '800',
     lineHeight: 22,
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   openLabel: {
-    color: '#12345A',
+    color: '#123B5D',
     fontSize: 12,
     fontWeight: '800',
     paddingTop: 3,
@@ -302,14 +302,14 @@ const styles = StyleSheet.create({
   emptyCard: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 16,
     borderWidth: 1,
     gap: 8,
     padding: 22,
   },
   emptyTitle: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 16,
     fontWeight: '700',
     textAlign: 'center',

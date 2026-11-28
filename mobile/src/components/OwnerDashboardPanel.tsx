@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   heading: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 23,
     fontWeight: '800',
   },
@@ -255,8 +255,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   notice: {
-    backgroundColor: '#F2F6FA',
-    borderColor: '#DCE6EF',
+    backgroundColor: '#F8F5EF',
+    borderColor: '#E9DCC4',
     borderRadius: 13,
     borderWidth: 1,
     gap: 6,
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
   },
   metric: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 14,
     borderWidth: 1,
     flexBasis: '30%',
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   metricValue: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 24,
     fontWeight: '800',
   },
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   sectionTitle: {
-    color: '#12243A',
+    color: '#123B5D',
     fontSize: 16,
     fontWeight: '800',
   },
@@ -314,11 +314,11 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
   },
   primaryAction: {
-    backgroundColor: '#12345A',
+    backgroundColor: '#123B5D',
   },
   secondaryAction: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#D8E1EA',
+    borderColor: '#E9DCC4',
     borderWidth: 1,
   },
   disabledAction: {
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   secondaryActionText: {
-    color: '#12345A',
+    color: '#123B5D',
   },
   recentList: {
     gap: 8,
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
   recentItem: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 12,
     borderWidth: 1,
     flexDirection: 'row',
@@ -365,13 +365,13 @@ const styles = StyleSheet.create({
     width: 8,
   },
   openText: {
-    color: '#12345A',
+    color: '#123B5D',
     fontSize: 11,
     fontWeight: '800',
   },
   emptyCard: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#E5EAF0',
+    borderColor: '#E9DCC4',
     borderRadius: 12,
     borderWidth: 1,
     padding: 16,
